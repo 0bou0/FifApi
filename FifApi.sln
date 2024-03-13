@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.6.33829.357
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FifApi", "FifApi\FifApi.csproj", "{D849180D-71B3-4A18-81A6-C8393B1C5498}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D849180D-71B3-4A18-81A6-C8393B1C5498}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D849180D-71B3-4A18-81A6-C8393B1C5498}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D849180D-71B3-4A18-81A6-C8393B1C5498}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D849180D-71B3-4A18-81A6-C8393B1C5498}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {A960E98D-778E-440E-9BB7-6CE05FC43DD8}
+	EndGlobalSection
+EndGlobal
