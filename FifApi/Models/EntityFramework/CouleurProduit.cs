@@ -20,7 +20,7 @@ namespace FifApi.Models.EntityFramework
 
         [Column("clp_codebarre")]
         [StringLength(48)]
-        public string? CodeBarre{ get; set;}
+        public string? CodeBarre { get; set; }
 
 
         [ForeignKey(nameof(IdProduit))]
@@ -29,6 +29,6 @@ namespace FifApi.Models.EntityFramework
 
         [ForeignKey(nameof(IdCouleur))]
         [InverseProperty(nameof(Couleur.CouleurProduits))]
-        public virtual Produit Couleur_CouleurProduit { get; set; } = null!;
+        public virtual Couleur Couleur_CouleurProduit { get; set; } = null!;
     }
 }
