@@ -1,0 +1,17 @@
+dotnet tool install --global dotnet-ef --version 6.0.13
+
+dotnet-ef migrations add FifaBDD --project FifApi
+
+si jamais : dotnet build
+
+dotnet ef migrations remove
+
+
+dotnet ef database update 0 --project FifApi
+dotnet ef migrations remove --project FifApi
+
+dotnet-ef migrations remove –-project FifApi
+
+dotnet-ef database update --project FifApi
+
+dotnet-ef migrations script --project FifApi

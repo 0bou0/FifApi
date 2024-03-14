@@ -8,6 +8,7 @@ namespace FifApi.Models.EntityFramework
         public FifaDBContext(DbContextOptions<FifaDBContext> options)
             : base(options) { }
 
+
         public virtual DbSet<Produit> Produits { get; set; } = null!;
         public virtual DbSet<Couleur> Couleurs { get; set; } = null!;
         public virtual DbSet<CouleurProduit> CouleurProduits { get; set; } = null!;
@@ -18,7 +19,7 @@ namespace FifApi.Models.EntityFramework
             if (!optionsBuilder.IsConfigured)
             {
 
-                optionsBuilder.UseLoggerFactory(MyLoggerFactory).EnableSensitiveDataLogging().UseNpgsql("Server=localhost;port=5432;Database=FifaBDD; uid=postgres; password=postgres;");
+                optionsBuilder.UseNpgsql("Server=localhost;port=5432;Database=FifaBDD; uid=postgres; password=postgres;");
             }
         }
 
