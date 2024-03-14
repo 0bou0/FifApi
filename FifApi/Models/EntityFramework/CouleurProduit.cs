@@ -38,7 +38,7 @@ namespace FifApi.Models.EntityFramework
         public virtual Couleur Couleur_CouleurProduit { get; set; } = null!;
 
 
-        [InverseProperty(nameof(Stock.ProduitEncouleuret))]
-        public virtual ICollection<Produit> ProduitStock { get; set; } = null!;
+        [InverseProperty(nameof(Stock.ProduitEncouleur))]
+        public virtual ICollection<Stock> ProduitStock { get; set; } = null!;
     }
 }

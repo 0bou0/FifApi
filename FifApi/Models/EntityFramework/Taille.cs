@@ -23,4 +23,4 @@ namespace FifApi.Models.EntityFramework
         public virtual ICollection<Stock> StockDuProduit { get; set; } = null!;
     }
 }
-}
+

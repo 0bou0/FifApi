@@ -19,7 +19,7 @@ namespace FifApi.Models.EntityFramework
         [StringLength(300)]
         public string? DescriptionPoste { get; set; }
 
-        [InverseProperty(nameof(Joueur.PosteId))]
+        [InverseProperty(nameof(Joueur.PostePourJoueur))]
         public virtual ICollection<Joueur> JoueurPoste { get; set; } = null!;
     }
 }

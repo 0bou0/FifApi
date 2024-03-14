@@ -29,5 +29,9 @@ namespace FifApi.Models.EntityFramework
 
         [InverseProperty(nameof(TypeProduit.SurType))]
         public virtual ICollection<TypeProduit> SousTypes { get; set; } = null!;
+
+
+        [InverseProperty(nameof(Produit.TypePourLeProduit))]
+        public virtual ICollection<Produit> TypographieDuProduit { get; set; } = null!;
     }
 }

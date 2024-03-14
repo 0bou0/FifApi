@@ -42,7 +42,7 @@ namespace FifApi.Models.EntityFramework
         public virtual Marque MarqueduProduit { get; set; } = null!;
 
         [ForeignKey(nameof(TypeId))]
-        [InverseProperty(nameof(TypeProduit.SurType))]
+        [InverseProperty(nameof(TypeProduit.TypographieDuProduit))]
         public virtual TypeProduit TypePourLeProduit { get; set; } = null!;
 
 
