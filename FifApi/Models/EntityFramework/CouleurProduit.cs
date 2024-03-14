@@ -6,16 +6,22 @@ namespace FifApi.Models.EntityFramework
     [Table("t_j_couleurproduit_clp")]
     public class CouleurProduit
     {
+
+
         [Key]
+        [Column("clp_id", TypeName = "int")]
+        public int IdCouleurProduit { get; set; }
+
+        [Required]
         [Column("clp_produit")]
         public int IdProduit { get; set; }
 
-        [Key]
+        [Required]
         [Column("clp_couleur")]
         public string IdCouleur { get; set; }
 
         [Required]
-        [Column("clp_prix")]
+        [Column("clp_prix", TypeName = "numeric(8,2)")]
         public decimal Prix { get; set; }
 
         [Column("clp_codebarre")]

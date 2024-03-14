@@ -24,7 +24,29 @@ namespace FifApi.Models.EntityFramework
         public string? Caracteristiques { get; set; }
 
 
+        [Column("pdt_marque", TypeName = "int")]
+        public int MarqueId { get; set; }
+
+        [Column("pdt_type", TypeName = "int")]
+        public int TypeId { get; set; }
+
+        [Column("pdt_album", TypeName = "int")]
+        public int AlbumId { get; set; }
+
+        [ForeignKey("MarqueId")]
+        [InverseProperty("ProduitAlbum")]
+        public virtual Album AlbumDuProduit { get; set; }
+
+        [ForeignKey("AlbumId")]
+        [InverseProperty("ProduitMarque")]
+        public virtual Marque MarqueduProduit { get; set; }
+
+        [ForeignKey("TypeId")]
+        [InverseProperty("ProduitType")]
+        public virtual TypeProduit TypePourLeProduit { get; set; }
+
+
         [InverseProperty(nameof(CouleurProduit.Produit_CouleurProduit))]
-        public virtual ICollection<CouleurProduit> CouleursProduit { get; set; }
+        public virtual ICollection<CouleurProduit> CouleursProduit { get; set; } = null!;
     }
 }

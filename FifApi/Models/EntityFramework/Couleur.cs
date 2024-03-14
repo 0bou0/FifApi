@@ -17,6 +17,6 @@ namespace FifApi.Models.EntityFramework
 
 
         [InverseProperty(nameof(CouleurProduit.Couleur_CouleurProduit))]
-        public virtual ICollection<CouleurProduit> CouleurProduits { get; set; }
+        public virtual ICollection<CouleurProduit> CouleurProduits { get; set; } = null!;
     }
 }

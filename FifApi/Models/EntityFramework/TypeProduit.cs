@@ -28,6 +28,6 @@ namespace FifApi.Models.EntityFramework
         public virtual TypeProduit SurType { get; set; } = null!;
 
         [InverseProperty(nameof(TypeProduit.SurType))]
-        public virtual ICollection<TypeProduit> SousTypes { get; set; }
+        public virtual ICollection<TypeProduit> SousTypes { get; set; } = null!;
     }
 }
