@@ -13,6 +13,14 @@ namespace FifApi.Models.EntityFramework
         public virtual DbSet<CouleurProduit> CouleurProduits { get; set; } = null!;
         public virtual DbSet<TypeProduit> TypeProduits { get; set; } = null!;
 
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        {
+            if (!optionsBuilder.IsConfigured)
+            {
+
+                optionsBuilder.UseLoggerFactory(MyLoggerFactory).EnableSensitiveDataLogging().UseNpgsql("Server=localhost;port=5432;Database=FifaBDD; uid=postgres; password=postgres;");
+            }
+        }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
