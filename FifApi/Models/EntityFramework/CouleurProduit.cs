@@ -18,7 +18,7 @@ namespace FifApi.Models.EntityFramework
 
         [Required]
         [Column("clp_couleur")]
-        public string IdCouleur { get; set; }
+        public int IdCouleur { get; set; }
 
         [Required]
         [Column("clp_prix", TypeName = "numeric(8,2)")]
