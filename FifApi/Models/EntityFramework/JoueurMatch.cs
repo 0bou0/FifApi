@@ -19,11 +19,11 @@ namespace FifApi.Models.EntityFramework
         public int NbButs { get; set; }
 
 
-        [ForeignKey("JoueurId")]
-        [InverseProperty("JouabiliteMatch")]
+        [ForeignKey(nameof(MatchId))]
+        [InverseProperty(nameof(Match.JouabiliteMatch))]
         public virtual Joueur JoueurDansMatch { get; set; } = null!;
-        [ForeignKey("MatchId")]
-        [InverseProperty("JouabiliteMatch")]
+        [ForeignKey(nameof(JoueurId))]
+        [InverseProperty(nameof(Joueur.JouabiliteMatch) )]
         public virtual Match MatchPourJoueur { get; set; } = null!;
     }
 }

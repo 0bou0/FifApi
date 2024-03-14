@@ -45,11 +45,11 @@ namespace FifApi.Models.EntityFramework
         [Column("posteid", TypeName = "int")]
         public int PosteId { get; set; }
 
-        [InverseProperty("JoueurDansMatch")]
+        [InverseProperty(nameof(JoueurMatch.JoueurDansMatch))]
         public virtual ICollection<JoueurMatch> JouabiliteMatch { get; set; } = null!;
 
-        [ForeignKey("PosteId")]
-        [InverseProperty("JoueurPoste")]
+        [ForeignKey(nameof(PosteId))]
+        [InverseProperty(nameof(Poste.JoueurPoste))]
         public virtual Poste PostePourJoueur { get; set; } = null!;
 
     }

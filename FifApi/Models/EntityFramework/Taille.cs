@@ -7,19 +7,19 @@ namespace FifApi.Models.EntityFramework
     public class Taille
     {
         [Key]
-        [Column("idtaille", TypeName = "char(6)")]
+        [Column("tal_taille", TypeName = "char(6)")]
         public string IdTaille { get; set; }
 
         [Required]
-        [Column("nomtaille")]
+        [Column("tal_nom")]
         [StringLength(50)]
         public string NomTaille { get; set; }
 
-        [Column("descriptiontaille")]
+        [Column("tal_description")]
         [StringLength(100)]
         public string? DescriptionTaille { get; set; }  
 
-        [InverseProperty("TailleDuProduit")]
+        [InverseProperty(nameof(Stock.TailleDuProduit))]
         public virtual ICollection<Stock> StockDuProduit { get; set; } = null!;
     }
 }

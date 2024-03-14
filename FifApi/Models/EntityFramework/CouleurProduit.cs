@@ -30,11 +30,15 @@ namespace FifApi.Models.EntityFramework
 
 
         [ForeignKey(nameof(IdProduit))]
-        [InverseProperty(nameof(Produit.CouleursProduit))]
+        [InverseProperty(nameof(Produit.CouleursProduits))]
         public virtual Produit Produit_CouleurProduit { get; set; } = null!;
 
         [ForeignKey(nameof(IdCouleur))]
         [InverseProperty(nameof(Couleur.CouleurProduits))]
         public virtual Couleur Couleur_CouleurProduit { get; set; } = null!;
+
+
+        [InverseProperty(nameof(Stock.ProduitEncouleuret))]
+        public virtual ICollection<Produit> ProduitStock { get; set; } = null!;
     }
 }

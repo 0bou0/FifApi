@@ -20,12 +20,12 @@ namespace FifApi.Models.EntityFramework
         [Column("stc_couleurproduit")]
         public int CouleurProduitId { get; set; }
 
-        [ForeignKey("TailleId")]
-        [InverseProperty("StockDuProduit")]
+        [ForeignKey(nameof(TailleId))]
+        [InverseProperty(nameof(Taille.StockDuProduit))]
         public virtual Taille TailleDuProduit { get; set; }
 
-        [ForeignKey("CouleurProduitId")]
-        [InverseProperty("StockDuProduit")]
-        public virtual CouleurProduit ProduitEnTaille { get; set; }
+        [ForeignKey(nameof(CouleurProduitId))]
+        [InverseProperty(nameof(CouleurProduit.ProduitStock))]
+        public virtual CouleurProduit ProduitEncouleuret { get; set; }
     }
 }

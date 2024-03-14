@@ -24,7 +24,7 @@ namespace FifApi.Models.EntityFramework
         [Column("mch_date", TypeName = "Date")]
         public DateTime? DateMatch { get; set; }
 
-        [InverseProperty("MatchPourJoueur")]
+        [InverseProperty(nameof(JoueurMatch.MatchPourJoueur))]
         public virtual ICollection<JoueurMatch> JouabiliteMatch { get; set; } = null!;
     }
 }

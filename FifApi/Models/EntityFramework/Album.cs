@@ -14,7 +14,7 @@ namespace FifApi.Models.EntityFramework
         [Column("alb_nom")]
         public string? NomAlbum { get; set; }
 
-        [InverseProperty("AlbumDuProduit")]
+        [InverseProperty(nameof(Produit.AlbumDuProduit))]
         public virtual ICollection<Produit> ProduitAlbum { get; set; } = null!;
 
 

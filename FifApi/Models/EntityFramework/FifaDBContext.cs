@@ -43,7 +43,7 @@ namespace FifApi.Models.EntityFramework
                     .HasName("pk_clp");
 
                 entity.HasOne(x => x.Produit_CouleurProduit)
-                    .WithMany(x => x.CouleursProduit)
+                    .WithMany(x => x.CouleursProduits)
                     .HasForeignKey(x => x.IdProduit)
                     .OnDelete(DeleteBehavior.Cascade)
                     .HasConstraintName("fk_clp_pdt");
