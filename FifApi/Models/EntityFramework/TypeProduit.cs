@@ -25,7 +25,7 @@ namespace FifApi.Models.EntityFramework
 
         [ForeignKey(nameof(IdSurType))]
         [InverseProperty(nameof(TypeProduit.SousTypes))]
-        public virtual TypeProduit SurType { get; set; } = null!;
+        public virtual TypeProduit? SurType { get; set; }
 
         [InverseProperty(nameof(TypeProduit.SurType))]
         public virtual ICollection<TypeProduit> SousTypes { get; set; } = null!;

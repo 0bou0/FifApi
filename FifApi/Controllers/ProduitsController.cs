@@ -24,7 +24,7 @@ namespace FifApi.Controllers
 
         // GET: api/Produits
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Produit>>> GetProduits()
+        public async Task<ActionResult<IEnumerable<object>>> GetProduits()
         {
           if (_context.Produits == null)
           {
@@ -36,7 +36,7 @@ namespace FifApi.Controllers
                         inner: _context.CouleurProduits,
                         outerKeySelector: p => p.Id,
                         innerKeySelector: cp => cp.IdProduit,
-                        resultSelector: (p1, cp1) => new Produit
+                        resultSelector: (p1, cp1) => new
                         { 
                             Id = p1.Id,
                             Name = p1.Name,
