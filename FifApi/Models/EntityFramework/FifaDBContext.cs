@@ -20,6 +20,9 @@ namespace FifApi.Models.EntityFramework
         public virtual DbSet<Taille> Tailles { get; set; } = null!;
         public virtual DbSet<Stock> Stocks { get; set; } = null!;
         public virtual DbSet<TypeProduit> TypeProduits { get; set; } = null!;
+        public virtual DbSet<Sponsor> Sponsors { get; set; } = null!;
+        public virtual DbSet<Equipe> Equipes { get; set; } = null!;
+        public virtual DbSet<Utilisateur> Utilisateurs { get; set; } = null!;
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -103,13 +106,19 @@ namespace FifApi.Models.EntityFramework
             modelBuilder.Entity<Marque>(entity =>
             {
                 entity.HasKey(x => x.IdMarque)
-                    .HasName("pk_alb");
+                    .HasName("pk_mrq");
             });
 
             modelBuilder.Entity<Match>(entity =>
             {
                 entity.HasKey(x => x.IdMatch)
                     .HasName("pk_mch");
+
+                entity.HasOne(d => d.EquipeEnMatch)
+                .WithMany(p => p.MatchEnEquipe)
+                .HasForeignKey(d => d.IdEquipe)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("fk_mch_eqp");
             });
 
             modelBuilder.Entity<Poste>(entity =>
@@ -122,6 +131,12 @@ namespace FifApi.Models.EntityFramework
             {
                 entity.HasKey(x => x.IdTaille)
                     .HasName("pk_tal");
+            });
+
+            modelBuilder.Entity<Equipe>(entity =>
+            {
+                entity.HasKey(x => x.IdEquipe)
+                    .HasName("pk_eqp");
             });
 
             modelBuilder.Entity<CouleurProduit>(entity =>
@@ -140,6 +155,24 @@ namespace FifApi.Models.EntityFramework
                     .HasForeignKey(x => x.IdCouleur)
                     .OnDelete(DeleteBehavior.Cascade)
                     .HasConstraintName("fk_clp_clr");
+            });
+
+            modelBuilder.Entity<Sponsor>(entity =>
+            {
+                entity.HasKey(x => new { x.IdMarque, x.IdEquipe })
+                    .HasName("pk_spc");
+
+                entity.HasOne(x => x.EquipeSponsorise)
+                    .WithMany(x => x.SponsorMarque)
+                    .HasForeignKey(x => x.IdEquipe)
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .HasConstraintName("fk_spc_eqp");
+
+                entity.HasOne(x => x.MarqueDuSponsor)
+                    .WithMany(x => x.SponsorMarque)
+                    .HasForeignKey(x => x.IdMarque)
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .HasConstraintName("fk_spc_mrq");
             });
 
             modelBuilder.Entity<TypeProduit>(entity =>

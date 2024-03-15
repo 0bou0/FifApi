@@ -10,6 +10,10 @@ namespace FifApi.Models.EntityFramework
         [Column("mch_id")]
         public int IdMatch { get; set; }
 
+        
+        [Column("mch_equipe")]
+        public int IdEquipe { get; set; }
+
         [Column("mch_scoreint")]
         public int? ScoreEquipeDomicile { get; set; }
         
@@ -26,5 +30,9 @@ namespace FifApi.Models.EntityFramework
 
         [InverseProperty(nameof(JoueurMatch.MatchPourJoueur))]
         public virtual ICollection<JoueurMatch> JouabiliteMatch { get; set; } = null!;
+
+        [ForeignKey(nameof(IdEquipe))]
+        [InverseProperty(nameof(Equipe.MatchEnEquipe))]
+        public virtual Equipe EquipeEnMatch { get; set; } = null!;
     }
 }

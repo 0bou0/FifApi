@@ -18,5 +18,9 @@ namespace FifApi.Models.EntityFramework
 
         [InverseProperty(nameof(Produit.MarqueduProduit))]
         public virtual ICollection<Produit> ProduitMarque { get; set; } = null!;
+
+
+        [InverseProperty(nameof(Sponsor.MarqueDuSponsor))]
+        public virtual ICollection<Sponsor> SponsorMarque { get; set; } = null!;
     }
 }
