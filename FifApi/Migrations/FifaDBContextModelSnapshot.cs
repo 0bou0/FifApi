@@ -84,6 +84,24 @@ namespace FifApi.Migrations
                     b.ToTable("t_e_album_alb");
                 });
 
+            modelBuilder.Entity("FifApi.Models.EntityFramework.AlbumPhoto", b =>
+                {
+                    b.Property<int>("IdPhoto")
+                        .HasColumnType("integer")
+                        .HasColumnName("apb_photo");
+
+                    b.Property<int>("IdAlbum")
+                        .HasColumnType("integer")
+                        .HasColumnName("abp_album");
+
+                    b.HasKey("IdPhoto", "IdAlbum")
+                        .HasName("pk_abp");
+
+                    b.HasIndex("IdAlbum");
+
+                    b.ToTable("t_j_albumphoto_abp");
+                });
+
             modelBuilder.Entity("FifApi.Models.EntityFramework.Commande", b =>
                 {
                     b.Property<int>("IdCommande")
@@ -312,7 +330,7 @@ namespace FifApi.Migrations
 
                     b.Property<int>("IdStock")
                         .HasColumnType("integer")
-                        .HasColumnName("lcm_commande");
+                        .HasColumnName("lcm_stock");
 
                     b.HasKey("IdCommande", "IdStock")
                         .HasName("pk_lcm");
@@ -396,6 +414,37 @@ namespace FifApi.Migrations
                         .HasName("pk_pay");
 
                     b.ToTable("t_e_pays_pay");
+                });
+
+            modelBuilder.Entity("FifApi.Models.EntityFramework.Photo", b =>
+                {
+                    b.Property<int>("IdPhoto")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("pht_id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IdPhoto"));
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(250)
+                        .HasColumnType("character varying(250)")
+                        .HasColumnName("pht_description");
+
+                    b.Property<string>("Titre")
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)")
+                        .HasColumnName("pht_titre");
+
+                    b.Property<string>("URL")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("pht_url");
+
+                    b.HasKey("IdPhoto")
+                        .HasName("pk_pht");
+
+                    b.ToTable("t_e_photo_pht");
                 });
 
             modelBuilder.Entity("FifApi.Models.EntityFramework.Poste", b =>
@@ -663,6 +712,25 @@ namespace FifApi.Migrations
                     b.Navigation("VilleAdresse");
                 });
 
+            modelBuilder.Entity("FifApi.Models.EntityFramework.AlbumPhoto", b =>
+                {
+                    b.HasOne("FifApi.Models.EntityFramework.Album", "AlbumPh")
+                        .WithMany("AlbumDesPhotos")
+                        .HasForeignKey("IdAlbum")
+                        .IsRequired()
+                        .HasConstraintName("fk_abp_alb");
+
+                    b.HasOne("FifApi.Models.EntityFramework.Photo", "PhotoDesAlbums")
+                        .WithMany("AlbumDesPhotos")
+                        .HasForeignKey("IdPhoto")
+                        .IsRequired()
+                        .HasConstraintName("fk_abp_pht");
+
+                    b.Navigation("AlbumPh");
+
+                    b.Navigation("PhotoDesAlbums");
+                });
+
             modelBuilder.Entity("FifApi.Models.EntityFramework.Commande", b =>
                 {
                     b.HasOne("FifApi.Models.EntityFramework.Utilisateur", "UtilisateurCommande")
@@ -885,6 +953,8 @@ namespace FifApi.Migrations
 
             modelBuilder.Entity("FifApi.Models.EntityFramework.Album", b =>
                 {
+                    b.Navigation("AlbumDesPhotos");
+
                     b.Navigation("ProduitAlbum");
                 });
 
@@ -932,6 +1002,11 @@ namespace FifApi.Migrations
                     b.Navigation("EquipeDuPays");
 
                     b.Navigation("VilleDuPays");
+                });
+
+            modelBuilder.Entity("FifApi.Models.EntityFramework.Photo", b =>
+                {
+                    b.Navigation("AlbumDesPhotos");
                 });
 
             modelBuilder.Entity("FifApi.Models.EntityFramework.Poste", b =>

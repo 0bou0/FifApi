@@ -11,7 +11,7 @@ namespace FifApi.Models.EntityFramework
         public int IdCommande { get; set; }
 
         [Key]
-        [Column("lcm_commande")]
+        [Column("lcm_stock")]
         public int IdStock { get; set; }
 
 

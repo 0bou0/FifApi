@@ -62,6 +62,21 @@ namespace FifApi.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "t_e_photo_pht",
+                columns: table => new
+                {
+                    pht_id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    pht_url = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: false),
+                    pht_titre = table.Column<string>(type: "character varying(150)", maxLength: 150, nullable: true),
+                    pht_description = table.Column<string>(type: "character varying(250)", maxLength: 250, nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("pk_pht", x => x.pht_id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "t_e_poste_pst",
                 columns: table => new
                 {
@@ -148,6 +163,28 @@ namespace FifApi.Migrations
                         column: x => x.vil_pays,
                         principalTable: "t_e_pays_pay",
                         principalColumn: "pay_id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "t_j_albumphoto_abp",
+                columns: table => new
+                {
+                    abp_album = table.Column<int>(type: "integer", nullable: false),
+                    apb_photo = table.Column<int>(type: "integer", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("pk_abp", x => new { x.apb_photo, x.abp_album });
+                    table.ForeignKey(
+                        name: "fk_abp_alb",
+                        column: x => x.abp_album,
+                        principalTable: "t_e_album_alb",
+                        principalColumn: "alb_id");
+                    table.ForeignKey(
+                        name: "fk_abp_pht",
+                        column: x => x.apb_photo,
+                        principalTable: "t_e_photo_pht",
+                        principalColumn: "pht_id");
                 });
 
             migrationBuilder.CreateTable(
@@ -418,11 +455,12 @@ namespace FifApi.Migrations
                 name: "t_j_lignecommande_lcm",
                 columns: table => new
                 {
-                    lcm_commande = table.Column<int>(type: "integer", nullable: false)
+                    lcm_commande = table.Column<int>(type: "integer", nullable: false),
+                    lcm_stock = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("pk_lcm", x => new { x.lcm_commande });
+                    table.PrimaryKey("pk_lcm", x => new { x.lcm_commande, x.lcm_stock });
                     table.ForeignKey(
                         name: "fk_lcm_cmd",
                         column: x => x.lcm_commande,
@@ -430,7 +468,7 @@ namespace FifApi.Migrations
                         principalColumn: "cmd_id");
                     table.ForeignKey(
                         name: "fk_lcm_stc",
-                        column: x => x.lcm_commande,
+                        column: x => x.lcm_stock,
                         principalTable: "t_e_stock_stc",
                         principalColumn: "stc_id");
                 });
@@ -501,6 +539,11 @@ namespace FifApi.Migrations
                 column: "vil_pays");
 
             migrationBuilder.CreateIndex(
+                name: "IX_t_j_albumphoto_abp_abp_album",
+                table: "t_j_albumphoto_abp",
+                column: "abp_album");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_t_j_couleurproduit_clp_clp_couleur",
                 table: "t_j_couleurproduit_clp",
                 column: "clp_couleur");
@@ -516,9 +559,9 @@ namespace FifApi.Migrations
                 column: "jrm_joueur");
 
             migrationBuilder.CreateIndex(
-                name: "IX_t_j_lignecommande_lcm_lcm_commande",
+                name: "IX_t_j_lignecommande_lcm_lcm_stock",
                 table: "t_j_lignecommande_lcm",
-                column: "lcm_commande");
+                column: "lcm_stock");
 
             migrationBuilder.CreateIndex(
                 name: "IX_t_j_sponsor_spc_spc_equipe",
@@ -532,6 +575,9 @@ namespace FifApi.Migrations
                 name: "t_e_infocb_icb");
 
             migrationBuilder.DropTable(
+                name: "t_j_albumphoto_abp");
+
+            migrationBuilder.DropTable(
                 name: "t_j_joueurmatch_jrm");
 
             migrationBuilder.DropTable(
@@ -539,6 +585,9 @@ namespace FifApi.Migrations
 
             migrationBuilder.DropTable(
                 name: "t_j_sponsor_spc");
+
+            migrationBuilder.DropTable(
+                name: "t_e_photo_pht");
 
             migrationBuilder.DropTable(
                 name: "t_e_joueur_jor");

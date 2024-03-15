@@ -30,7 +30,8 @@ namespace FifApi.Models.EntityFramework
         public virtual DbSet<Commande> Commandes { get; set; } = null!;
         public virtual DbSet<LigneCommande> LigneCommandes { get; set; } = null!;
         public virtual DbSet<Album> Albums { get; set; } = null!;
-
+        public virtual DbSet<AlbumPhoto> AlbumPhotos { get; set; } = null!;
+        public virtual DbSet<Photo> Photos { get; set; } = null!;
 
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -179,6 +180,31 @@ namespace FifApi.Models.EntityFramework
                .HasForeignKey(d => d.IdPays)
                .OnDelete(DeleteBehavior.ClientSetNull)
                .HasConstraintName("fk_vil_pay");
+            });
+
+            modelBuilder.Entity<AlbumPhoto>(entity =>
+            {
+                entity.HasKey(x => new { x.IdPhoto , x.IdAlbum})
+                    .HasName("pk_abp");
+
+                entity.HasOne(d => d.PhotoDesAlbums)
+               .WithMany(p => p.AlbumDesPhotos)
+               .HasForeignKey(d => d.IdPhoto)
+               .OnDelete(DeleteBehavior.ClientSetNull)
+               .HasConstraintName("fk_abp_pht");
+
+                entity.HasOne(d => d.AlbumPh)
+              .WithMany(p => p.AlbumDesPhotos)
+              .HasForeignKey(d => d.IdAlbum)
+              .OnDelete(DeleteBehavior.ClientSetNull)
+              .HasConstraintName("fk_abp_alb");
+            });
+
+
+            modelBuilder.Entity<Photo>(entity =>
+            {
+                entity.HasKey(x => x.IdPhoto)
+                    .HasName("pk_pht");
             });
 
             modelBuilder.Entity<Pays>(entity =>

@@ -17,6 +17,9 @@ namespace FifApi.Models.EntityFramework
         [InverseProperty(nameof(Produit.AlbumDuProduit))]
         public virtual ICollection<Produit> ProduitAlbum { get; set; } = null!;
 
+        [InverseProperty(nameof(AlbumPhoto.AlbumPh))]
+        public virtual ICollection<AlbumPhoto> AlbumDesPhotos { get; set; } = null!;
 
+        
     }
 }
