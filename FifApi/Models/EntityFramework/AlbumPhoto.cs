@@ -14,7 +14,7 @@ namespace FifApi.Models.EntityFramework
         public int IdAlbum { get; set; }
 
         [Key]
-        [Column("apb_photo")]
+        [Column("abp_photo")]
         public int IdPhoto { get; set; }
 
 
