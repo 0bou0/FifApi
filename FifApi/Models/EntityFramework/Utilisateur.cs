@@ -15,6 +15,10 @@ namespace FifApi.Models.EntityFramework
         [StringLength(100)]
         public string PseudoUtilisateur { get; set; }
 
+        [Required]
+        [Column("utl_mdp")]
+        public string MotDePasse { get; set; }
+
         [Column("utl_nom")]
         [StringLength(100)]
         public string? NomUtilisateur { get; set; }
