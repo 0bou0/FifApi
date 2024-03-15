@@ -35,9 +35,10 @@ namespace FifApi.Migrations
                         .HasColumnType("text")
                         .HasColumnName("alb_nom");
 
-                    b.HasKey("IdAlbum");
+                    b.HasKey("IdAlbum")
+                        .HasName("pk_alb");
 
-                    b.ToTable("t_e_album_alb");
+                    b.ToTable("t_j_album_alb");
                 });
 
             modelBuilder.Entity("FifApi.Models.EntityFramework.Couleur", b =>
@@ -95,6 +96,32 @@ namespace FifApi.Migrations
                     b.HasIndex("IdProduit");
 
                     b.ToTable("t_j_couleurproduit_clp");
+                });
+
+            modelBuilder.Entity("FifApi.Models.EntityFramework.Equipe", b =>
+                {
+                    b.Property<int>("IdEquipe")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("eqp_id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IdEquipe"));
+
+                    b.Property<string>("HistoireEquipe")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("eqp_histoire");
+
+                    b.Property<string>("NomEquipe")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("eqp_nom");
+
+                    b.HasKey("IdEquipe")
+                        .HasName("pk_eqp");
+
+                    b.ToTable("t_e_equipe_eqp");
                 });
 
             modelBuilder.Entity("FifApi.Models.EntityFramework.Joueur", b =>
@@ -193,7 +220,8 @@ namespace FifApi.Migrations
                         .HasColumnType("character varying(200)")
                         .HasColumnName("mrq_nom");
 
-                    b.HasKey("IdMarque");
+                    b.HasKey("IdMarque")
+                        .HasName("pk_mrq");
 
                     b.ToTable("t_e_marque_mrq");
                 });
@@ -211,6 +239,10 @@ namespace FifApi.Migrations
                         .HasColumnType("Date")
                         .HasColumnName("mch_date");
 
+                    b.Property<int>("IdEquipe")
+                        .HasColumnType("integer")
+                        .HasColumnName("mch_equipe");
+
                     b.Property<string>("NomMatch")
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)")
@@ -224,7 +256,10 @@ namespace FifApi.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("mch_scoreext");
 
-                    b.HasKey("IdMatch");
+                    b.HasKey("IdMatch")
+                        .HasName("pk_mch");
+
+                    b.HasIndex("IdEquipe");
 
                     b.ToTable("t_e_match_mch");
                 });
@@ -249,7 +284,8 @@ namespace FifApi.Migrations
                         .HasColumnType("character varying(150)")
                         .HasColumnName("pst_nom");
 
-                    b.HasKey("Idposte");
+                    b.HasKey("Idposte")
+                        .HasName("pk_pst");
 
                     b.ToTable("t_e_poste_pst");
                 });
@@ -303,6 +339,24 @@ namespace FifApi.Migrations
                     b.ToTable("t_e_produit_pdt");
                 });
 
+            modelBuilder.Entity("FifApi.Models.EntityFramework.Sponsor", b =>
+                {
+                    b.Property<int>("IdMarque")
+                        .HasColumnType("integer")
+                        .HasColumnName("spc_marque");
+
+                    b.Property<int>("IdEquipe")
+                        .HasColumnType("integer")
+                        .HasColumnName("spc_equipe");
+
+                    b.HasKey("IdMarque", "IdEquipe")
+                        .HasName("pk_spc");
+
+                    b.HasIndex("IdEquipe");
+
+                    b.ToTable("t_e_sponsor_spc");
+                });
+
             modelBuilder.Entity("FifApi.Models.EntityFramework.Stock", b =>
                 {
                     b.Property<string>("TailleId")
@@ -342,7 +396,8 @@ namespace FifApi.Migrations
                         .HasColumnType("character varying(50)")
                         .HasColumnName("tal_nom");
 
-                    b.HasKey("IdTaille");
+                    b.HasKey("IdTaille")
+                        .HasName("pk_tal");
 
                     b.ToTable("t_e_taille_tal");
                 });
@@ -362,7 +417,6 @@ namespace FifApi.Migrations
                         .HasColumnName("tpd_description");
 
                     b.Property<int?>("IdSurType")
-                        .IsRequired()
                         .HasColumnType("integer")
                         .HasColumnName("tpd_surtype");
 
@@ -378,6 +432,44 @@ namespace FifApi.Migrations
                     b.HasIndex("IdSurType");
 
                     b.ToTable("t_e_typeproduit_tpd");
+                });
+
+            modelBuilder.Entity("FifApi.Models.EntityFramework.Utilisateur", b =>
+                {
+                    b.Property<int>("IdUtilisateur")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("utl_id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IdUtilisateur"));
+
+                    b.Property<string>("MailUtilisateur")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)")
+                        .HasColumnName("utl_email");
+
+                    b.Property<string>("NomUtilisateur")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("utl_nom");
+
+                    b.Property<string>("PrenomUtilisateur")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("utl_prenom");
+
+                    b.Property<string>("PseudoUtilisateur")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("utl_pseudo");
+
+                    b.HasKey("IdUtilisateur");
+
+                    b.ToTable("t_e_utilisateur_utl");
                 });
 
             modelBuilder.Entity("FifApi.Models.EntityFramework.CouleurProduit", b =>
@@ -431,6 +523,17 @@ namespace FifApi.Migrations
                     b.Navigation("MatchPourJoueur");
                 });
 
+            modelBuilder.Entity("FifApi.Models.EntityFramework.Match", b =>
+                {
+                    b.HasOne("FifApi.Models.EntityFramework.Equipe", "EquipeEnMatch")
+                        .WithMany("MatchEnEquipe")
+                        .HasForeignKey("IdEquipe")
+                        .IsRequired()
+                        .HasConstraintName("fk_mch_eqp");
+
+                    b.Navigation("EquipeEnMatch");
+                });
+
             modelBuilder.Entity("FifApi.Models.EntityFramework.Produit", b =>
                 {
                     b.HasOne("FifApi.Models.EntityFramework.Album", "AlbumDuProduit")
@@ -458,6 +561,27 @@ namespace FifApi.Migrations
                     b.Navigation("TypePourLeProduit");
                 });
 
+            modelBuilder.Entity("FifApi.Models.EntityFramework.Sponsor", b =>
+                {
+                    b.HasOne("FifApi.Models.EntityFramework.Equipe", "EquipeSponsorise")
+                        .WithMany("SponsorMarque")
+                        .HasForeignKey("IdEquipe")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_spc_eqp");
+
+                    b.HasOne("FifApi.Models.EntityFramework.Marque", "MarqueDuSponsor")
+                        .WithMany("SponsorMarque")
+                        .HasForeignKey("IdMarque")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_spc_mrq");
+
+                    b.Navigation("EquipeSponsorise");
+
+                    b.Navigation("MarqueDuSponsor");
+                });
+
             modelBuilder.Entity("FifApi.Models.EntityFramework.Stock", b =>
                 {
                     b.HasOne("FifApi.Models.EntityFramework.CouleurProduit", "ProduitEncouleur")
@@ -483,7 +607,6 @@ namespace FifApi.Migrations
                         .WithMany("SousTypes")
                         .HasForeignKey("IdSurType")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
                         .HasConstraintName("fk_tpd_tpd");
 
                     b.Navigation("SurType");
@@ -504,6 +627,13 @@ namespace FifApi.Migrations
                     b.Navigation("ProduitStock");
                 });
 
+            modelBuilder.Entity("FifApi.Models.EntityFramework.Equipe", b =>
+                {
+                    b.Navigation("MatchEnEquipe");
+
+                    b.Navigation("SponsorMarque");
+                });
+
             modelBuilder.Entity("FifApi.Models.EntityFramework.Joueur", b =>
                 {
                     b.Navigation("JouabiliteMatch");
@@ -512,6 +642,8 @@ namespace FifApi.Migrations
             modelBuilder.Entity("FifApi.Models.EntityFramework.Marque", b =>
                 {
                     b.Navigation("ProduitMarque");
+
+                    b.Navigation("SponsorMarque");
                 });
 
             modelBuilder.Entity("FifApi.Models.EntityFramework.Match", b =>

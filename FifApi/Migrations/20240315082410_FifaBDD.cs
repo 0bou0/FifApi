@@ -11,19 +11,6 @@ namespace FifApi.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "t_e_album_alb",
-                columns: table => new
-                {
-                    alb_id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    alb_nom = table.Column<string>(type: "text", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_t_e_album_alb", x => x.alb_id);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "t_e_couleur_clr",
                 columns: table => new
                 {
@@ -37,6 +24,20 @@ namespace FifApi.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "t_e_equipe_eqp",
+                columns: table => new
+                {
+                    eqp_id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    eqp_nom = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    eqp_histoire = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("pk_eqp", x => x.eqp_id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "t_e_marque_mrq",
                 columns: table => new
                 {
@@ -46,23 +47,7 @@ namespace FifApi.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_t_e_marque_mrq", x => x.mrq_id);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "t_e_match_mch",
-                columns: table => new
-                {
-                    mch_id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    mch_scoreint = table.Column<int>(type: "integer", nullable: true),
-                    mch_scoreext = table.Column<int>(type: "integer", nullable: true),
-                    mch_nom = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
-                    mch_date = table.Column<DateTime>(type: "Date", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_t_e_match_mch", x => x.mch_id);
+                    table.PrimaryKey("pk_mrq", x => x.mrq_id);
                 });
 
             migrationBuilder.CreateTable(
@@ -76,7 +61,7 @@ namespace FifApi.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_t_e_poste_pst", x => x.pst_id);
+                    table.PrimaryKey("pk_pst", x => x.pst_id);
                 });
 
             migrationBuilder.CreateTable(
@@ -89,7 +74,7 @@ namespace FifApi.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_t_e_taille_tal", x => x.tal_taille);
+                    table.PrimaryKey("pk_tal", x => x.tal_taille);
                 });
 
             migrationBuilder.CreateTable(
@@ -100,7 +85,7 @@ namespace FifApi.Migrations
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     tpd_nom = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     tpd_description = table.Column<string>(type: "character varying(150)", maxLength: 150, nullable: true),
-                    tpd_surtype = table.Column<int>(type: "integer", nullable: false)
+                    tpd_surtype = table.Column<int>(type: "integer", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -110,6 +95,81 @@ namespace FifApi.Migrations
                         column: x => x.tpd_surtype,
                         principalTable: "t_e_typeproduit_tpd",
                         principalColumn: "tpd_id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "t_e_utilisateur_utl",
+                columns: table => new
+                {
+                    utl_id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    utl_pseudo = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    utl_nom = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    utl_prenom = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    utl_email = table.Column<string>(type: "character varying(150)", maxLength: 150, nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_t_e_utilisateur_utl", x => x.utl_id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "t_j_album_alb",
+                columns: table => new
+                {
+                    alb_id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    alb_nom = table.Column<string>(type: "text", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("pk_alb", x => x.alb_id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "t_e_match_mch",
+                columns: table => new
+                {
+                    mch_id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    mch_equipe = table.Column<int>(type: "integer", nullable: false),
+                    mch_scoreint = table.Column<int>(type: "integer", nullable: true),
+                    mch_scoreext = table.Column<int>(type: "integer", nullable: true),
+                    mch_nom = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
+                    mch_date = table.Column<DateTime>(type: "Date", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("pk_mch", x => x.mch_id);
+                    table.ForeignKey(
+                        name: "fk_mch_eqp",
+                        column: x => x.mch_equipe,
+                        principalTable: "t_e_equipe_eqp",
+                        principalColumn: "eqp_id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "t_e_sponsor_spc",
+                columns: table => new
+                {
+                    spc_equipe = table.Column<int>(type: "integer", nullable: false),
+                    spc_marque = table.Column<int>(type: "integer", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("pk_spc", x => new { x.spc_marque, x.spc_equipe });
+                    table.ForeignKey(
+                        name: "fk_spc_eqp",
+                        column: x => x.spc_equipe,
+                        principalTable: "t_e_equipe_eqp",
+                        principalColumn: "eqp_id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "fk_spc_mrq",
+                        column: x => x.spc_marque,
+                        principalTable: "t_e_marque_mrq",
+                        principalColumn: "mrq_id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -158,7 +218,7 @@ namespace FifApi.Migrations
                     table.ForeignKey(
                         name: "fk_pdt_alb",
                         column: x => x.pdt_album,
-                        principalTable: "t_e_album_alb",
+                        principalTable: "t_j_album_alb",
                         principalColumn: "alb_id");
                     table.ForeignKey(
                         name: "fk_pdt_mrq",
@@ -252,6 +312,11 @@ namespace FifApi.Migrations
                 column: "posteid");
 
             migrationBuilder.CreateIndex(
+                name: "IX_t_e_match_mch_mch_equipe",
+                table: "t_e_match_mch",
+                column: "mch_equipe");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_t_e_produit_pdt_pdt_album",
                 table: "t_e_produit_pdt",
                 column: "pdt_album");
@@ -265,6 +330,11 @@ namespace FifApi.Migrations
                 name: "IX_t_e_produit_pdt_pdt_type",
                 table: "t_e_produit_pdt",
                 column: "pdt_type");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_t_e_sponsor_spc_spc_equipe",
+                table: "t_e_sponsor_spc",
+                column: "spc_equipe");
 
             migrationBuilder.CreateIndex(
                 name: "IX_t_e_stock_stc_stc_couleurproduit",
@@ -295,7 +365,13 @@ namespace FifApi.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
+                name: "t_e_sponsor_spc");
+
+            migrationBuilder.DropTable(
                 name: "t_e_stock_stc");
+
+            migrationBuilder.DropTable(
+                name: "t_e_utilisateur_utl");
 
             migrationBuilder.DropTable(
                 name: "t_j_joueurmatch_jrm");
@@ -322,7 +398,10 @@ namespace FifApi.Migrations
                 name: "t_e_poste_pst");
 
             migrationBuilder.DropTable(
-                name: "t_e_album_alb");
+                name: "t_e_equipe_eqp");
+
+            migrationBuilder.DropTable(
+                name: "t_j_album_alb");
 
             migrationBuilder.DropTable(
                 name: "t_e_marque_mrq");

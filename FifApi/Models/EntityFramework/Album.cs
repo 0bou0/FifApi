@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace FifApi.Models.EntityFramework
 {
-    [Table("t_j_album_alb")]
+    [Table("t_e_album_alb")]
     public class Album
     {
         [Key]
