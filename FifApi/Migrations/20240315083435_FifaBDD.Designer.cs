@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace FifApi.Migrations
 {
     [DbContext(typeof(FifaDBContext))]
-    [Migration("20240315082410_FifaBDD")]
+    [Migration("20240315083435_FifaBDD")]
     partial class FifaBDD
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -40,7 +40,7 @@ namespace FifApi.Migrations
                     b.HasKey("IdAlbum")
                         .HasName("pk_alb");
 
-                    b.ToTable("t_j_album_alb");
+                    b.ToTable("t_e_album_alb");
                 });
 
             modelBuilder.Entity("FifApi.Models.EntityFramework.Couleur", b =>

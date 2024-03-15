@@ -30,22 +30,36 @@ namespace FifApi.Controllers
           {
               return NotFound();
           }
-            return _context.Produits
-                    .Join
-                    (
-                        inner: _context.CouleurProduits,
-                        outerKeySelector: p => p.Id,
-                        innerKeySelector: cp => cp.IdProduit,
-                        resultSelector: (p1, cp1) => new
-                        { 
-                            Id = p1.Id,
-                            Name = p1.Name,
-                            Description = p1.Description,
-                            Caracteristiques = p1.Caracteristiques,
-                            CouleursProduits = _context.CouleurProduits.Where(cp => p1.Id == cp.IdProduit).ToList()
-                        }).ToList();
-               
-            
+            //return _context.Produits
+            //        .Join
+            //        (
+            //            inner: _context.CouleurProduits,
+            //            outerKeySelector: p => p.Id,
+            //            innerKeySelector: cp => cp.IdProduit,
+            //            resultSelector: (p1, cp1) => new
+            //            {
+            //                Id = p1.Id,
+            //                Name = p1.Name,
+            //                Description = p1.Description,
+            //                Caracteristiques = p1.Caracteristiques,
+            //                CouleursProduits = _context.CouleurProduits.Where(cp => p1.Id == cp.IdProduit)
+            //                .OrderBy(cp => cp.Prix)
+            //                .FirstOrDefault().Prix
+            //            }).GroupBy(Id)
+            //            .ToList();
+
+            return (from p in _context.Produits
+            join cp in _context.CouleurProduits on p.Id equals cp.IdProduit
+            group new { p, cp } by p.Id into g
+            select new
+            {
+                Id = g.Key,
+                nom = g.FirstOrDefault().p.Name,
+                description = g.FirstOrDefault().p.Description,
+                min_clp_prix = g.Min(x => x.cp.Prix)
+            }).ToListAsync().Result;
+
+
         }
 
         // GET: api/Produits/5

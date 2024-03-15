@@ -38,7 +38,7 @@ namespace FifApi.Migrations
                     b.HasKey("IdAlbum")
                         .HasName("pk_alb");
 
-                    b.ToTable("t_j_album_alb");
+                    b.ToTable("t_e_album_alb");
                 });
 
             modelBuilder.Entity("FifApi.Models.EntityFramework.Couleur", b =>

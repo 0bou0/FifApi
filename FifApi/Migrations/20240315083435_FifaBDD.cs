@@ -11,6 +11,19 @@ namespace FifApi.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
+                name: "t_e_album_alb",
+                columns: table => new
+                {
+                    alb_id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    alb_nom = table.Column<string>(type: "text", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("pk_alb", x => x.alb_id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "t_e_couleur_clr",
                 columns: table => new
                 {
@@ -115,19 +128,6 @@ namespace FifApi.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "t_j_album_alb",
-                columns: table => new
-                {
-                    alb_id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    alb_nom = table.Column<string>(type: "text", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("pk_alb", x => x.alb_id);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "t_e_match_mch",
                 columns: table => new
                 {
@@ -218,7 +218,7 @@ namespace FifApi.Migrations
                     table.ForeignKey(
                         name: "fk_pdt_alb",
                         column: x => x.pdt_album,
-                        principalTable: "t_j_album_alb",
+                        principalTable: "t_e_album_alb",
                         principalColumn: "alb_id");
                     table.ForeignKey(
                         name: "fk_pdt_mrq",
@@ -401,7 +401,7 @@ namespace FifApi.Migrations
                 name: "t_e_equipe_eqp");
 
             migrationBuilder.DropTable(
-                name: "t_j_album_alb");
+                name: "t_e_album_alb");
 
             migrationBuilder.DropTable(
                 name: "t_e_marque_mrq");
