@@ -23,6 +23,15 @@ namespace FifApi.Models.EntityFramework
         public virtual DbSet<Sponsor> Sponsors { get; set; } = null!;
         public virtual DbSet<Equipe> Equipes { get; set; } = null!;
         public virtual DbSet<Utilisateur> Utilisateurs { get; set; } = null!;
+        public virtual DbSet<Adresse> Adresses { get; set; } = null!;
+        public virtual DbSet<Ville> Villes { get; set; } = null!;
+        public virtual DbSet<Pays> Pays { get; set; } = null!;
+        public virtual DbSet<InfoCB> InfoCBs { get; set; } = null!;
+        public virtual DbSet<Commande> Commandes { get; set; } = null!;
+        public virtual DbSet<LigneCommande> LigneCommandes { get; set; } = null!;
+        public virtual DbSet<Album> Albums { get; set; } = null!;
+
+
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -91,6 +100,93 @@ namespace FifApi.Models.EntityFramework
                  .HasConstraintName("fk_pdt_alb");
             });
 
+            modelBuilder.Entity<Utilisateur>(entity =>
+            {
+                entity.HasKey(x => x.IdUtilisateur)
+                    .HasName("pk_utl");
+
+                entity.HasOne(d => d.AdresseDeUtilisateur)
+                .WithMany(p => p.UtilisateurAdresse)
+                .HasForeignKey(d => d.IdAdresse)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("fk_utl_adr");
+            });
+
+            modelBuilder.Entity<InfoCB>(entity =>
+            {
+                entity.HasKey(x => x.IdCB)
+                    .HasName("pk_icb");
+
+                entity.HasOne(d => d.UtilisateurCB)
+                .WithMany(p => p.CBDeUtilisateur)
+                .HasForeignKey(d => d.IdCB)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("fk_icb_utl");
+            });
+
+            modelBuilder.Entity<Commande>(entity =>
+            {
+                entity.HasKey(e => new { e.IdCommande })
+                   .HasName("pk_cmd");
+
+                entity.HasOne(d => d.UtilisateurCommande)
+                    .WithMany(p => p.CommandeDeUtilisateur)
+                    .HasForeignKey(d => d.IdUtilisateur)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("fk_cmd_utl");
+            });
+
+
+            modelBuilder.Entity<LigneCommande>(entity =>
+            {
+                entity.HasKey(x => new{ x.IdCommande,x.IdStock})
+                    .HasName("pk_lcm");
+
+                entity.HasOne(d => d.CommandeLigne)
+                   .WithMany(p => p.LigneDeLaCommande)
+                   .HasForeignKey(d => d.IdCommande)
+                   .OnDelete(DeleteBehavior.ClientSetNull)
+                   .HasConstraintName("fk_lcm_cmd");
+
+                entity.HasOne(d => d.StockLigneCommande)
+                   .WithMany(p => p.LigneDuStock)
+                   .HasForeignKey(d => d.IdStock)
+                   .OnDelete(DeleteBehavior.ClientSetNull)
+                   .HasConstraintName("fk_lcm_stc");
+
+            });
+
+
+            modelBuilder.Entity<Adresse>(entity =>
+            {
+                entity.HasKey(x => x.IdAdresse)
+                    .HasName("pk_adr");
+
+                entity.HasOne(d => d.VilleAdresse)
+              .WithMany(p => p.AdresseDeLaVille)
+              .HasForeignKey(d => d.IdVille)
+              .OnDelete(DeleteBehavior.ClientSetNull)
+              .HasConstraintName("fk_adr_vil");
+            });
+
+            modelBuilder.Entity<Ville>(entity =>
+            {
+                entity.HasKey(x => x.IdVille)
+                    .HasName("pk_vil");
+
+                entity.HasOne(d => d.PaysVille)
+               .WithMany(p => p.VilleDuPays)
+               .HasForeignKey(d => d.IdPays)
+               .OnDelete(DeleteBehavior.ClientSetNull)
+               .HasConstraintName("fk_vil_pay");
+            });
+
+            modelBuilder.Entity<Pays>(entity =>
+            {
+                entity.HasKey(x => x.IdPays)
+                    .HasName("pk_pay");
+            });
+
             modelBuilder.Entity<Couleur>(entity =>
             {
                 entity.HasKey(x => x.Id)
@@ -137,6 +233,12 @@ namespace FifApi.Models.EntityFramework
             {
                 entity.HasKey(x => x.IdEquipe)
                     .HasName("pk_eqp");
+
+                entity.HasOne(x => x.PaysDeEquipe)
+                   .WithMany(x => x.EquipeDuPays)
+                   .HasForeignKey(x => x.IdPays)
+                   .OnDelete(DeleteBehavior.Cascade)
+                   .HasConstraintName("fk_eqp_pay");
             });
 
             modelBuilder.Entity<CouleurProduit>(entity =>
@@ -189,7 +291,7 @@ namespace FifApi.Models.EntityFramework
 
             modelBuilder.Entity<Stock>(entity =>
             {
-                entity.HasKey(e => new { e.TailleId, e.CouleurProduitId })
+                entity.HasKey(e => new { e.IdStock })
                     .HasName("pk_stc");
 
                 entity.HasOne(d => d.TailleDuProduit)

@@ -7,7 +7,7 @@ namespace FifApi.Models.EntityFramework
     [Table("t_e_stock_stc")]
     public class Stock
     {
-        [Key]
+        [Required]
         [Column("stc_taille", TypeName = "char(6)")]
         public string TailleId { get; set; }
 
@@ -15,9 +15,13 @@ namespace FifApi.Models.EntityFramework
         [Column("stc_quantite")]
         public int Quantite { get; set; }
 
-        [Key]
+        [Required]
         [Column("stc_couleurproduit")]
         public int CouleurProduitId { get; set; }
+
+        [Key]
+        [Column("stc_id")]
+        public int IdStock { get; set; }
 
 
         [ForeignKey(nameof(TailleId))]
@@ -27,5 +31,9 @@ namespace FifApi.Models.EntityFramework
         [ForeignKey(nameof(CouleurProduitId))]
         [InverseProperty(nameof(CouleurProduit.ProduitStock))]
         public virtual CouleurProduit ProduitEncouleur { get; set; }
+
+        [InverseProperty(nameof(LigneCommande.StockLigneCommande))]
+        public virtual ICollection<LigneCommande> LigneDuStock { get; set; } = null!;
+
     }
 }

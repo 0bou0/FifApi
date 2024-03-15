@@ -20,9 +20,21 @@ namespace FifApi.Models.EntityFramework
         public string? HistoireEquipe { get; set; }
 
 
+        [Required]
+        [Column("eqp_pays")]
+        public string IdPays { get; set; }
+
+
 
         [InverseProperty(nameof(Sponsor.EquipeSponsorise))]
         public virtual ICollection<Sponsor> SponsorMarque { get; set; } = null!;
+
+
+
+        [ForeignKey(nameof(IdPays))]
+        [InverseProperty(nameof(Pays.EquipeDuPays))]
+        public virtual Pays PaysDeEquipe { get; set; } = null!;
+        
 
         [InverseProperty(nameof(Match.EquipeEnMatch))]
         public virtual ICollection<Match> MatchEnEquipe { get; set; } = null!;

@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace FifApi.Models.EntityFramework
 {
-    [Table("t_e_sponsor_spc")]
+    [Table("t_j_sponsor_spc")]
     public class Sponsor
     {
         [Key]

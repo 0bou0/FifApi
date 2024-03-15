@@ -22,5 +22,23 @@ namespace FifApi.Models.EntityFramework
         [Column("adr_numrue")]
         public int? NumRue { get; set; }
 
+        [Column("adr_long", TypeName = "numeric(20,15)")]
+        public decimal? Longitude { get; set; }
+
+        [Column("adr_lat", TypeName = "numeric(20,15)")]
+        public decimal? Lattitude { get; set; }
+
+        [Required]
+        [Column("adr_ville")]
+        public int IdVille { get; set; }
+
+
+        [InverseProperty(nameof(Utilisateur.AdresseDeUtilisateur))]
+        public virtual ICollection<Utilisateur> UtilisateurAdresse { get; set; } = null!;
+
+
+        [ForeignKey(nameof(IdVille))]
+        [InverseProperty(nameof(Ville.AdresseDeLaVille))]
+        public virtual Ville VilleAdresse { get; set; } = null!;
     }
 }

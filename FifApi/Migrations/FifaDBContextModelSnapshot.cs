@@ -22,6 +22,49 @@ namespace FifApi.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("FifApi.Models.EntityFramework.Adresse", b =>
+                {
+                    b.Property<int>("IdAdresse")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("adr_id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IdAdresse"));
+
+                    b.Property<string>("CodePostal")
+                        .IsRequired()
+                        .HasColumnType("char(15)")
+                        .HasColumnName("adr_codepostal");
+
+                    b.Property<int>("IdVille")
+                        .HasColumnType("integer")
+                        .HasColumnName("adr_ville");
+
+                    b.Property<decimal?>("Lattitude")
+                        .HasColumnType("numeric(20,15)")
+                        .HasColumnName("adr_lat");
+
+                    b.Property<decimal?>("Longitude")
+                        .HasColumnType("numeric(20,15)")
+                        .HasColumnName("adr_long");
+
+                    b.Property<int?>("NumRue")
+                        .HasColumnType("integer")
+                        .HasColumnName("adr_numrue");
+
+                    b.Property<string>("Rue")
+                        .HasMaxLength(250)
+                        .HasColumnType("character varying(250)")
+                        .HasColumnName("adr_rue");
+
+                    b.HasKey("IdAdresse")
+                        .HasName("pk_adr");
+
+                    b.HasIndex("IdVille");
+
+                    b.ToTable("t_e_adresse_adr");
+                });
+
             modelBuilder.Entity("FifApi.Models.EntityFramework.Album", b =>
                 {
                     b.Property<int>("IdAlbum")
@@ -39,6 +82,27 @@ namespace FifApi.Migrations
                         .HasName("pk_alb");
 
                     b.ToTable("t_e_album_alb");
+                });
+
+            modelBuilder.Entity("FifApi.Models.EntityFramework.Commande", b =>
+                {
+                    b.Property<int>("IdCommande")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("cmd_id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IdCommande"));
+
+                    b.Property<int>("IdUtilisateur")
+                        .HasColumnType("integer")
+                        .HasColumnName("mcd_utilisateur");
+
+                    b.HasKey("IdCommande")
+                        .HasName("pk_cmd");
+
+                    b.HasIndex("IdUtilisateur");
+
+                    b.ToTable("t_e_commande_cmd");
                 });
 
             modelBuilder.Entity("FifApi.Models.EntityFramework.Couleur", b =>
@@ -112,6 +176,11 @@ namespace FifApi.Migrations
                         .HasColumnType("character varying(500)")
                         .HasColumnName("eqp_histoire");
 
+                    b.Property<string>("IdPays")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("eqp_pays");
+
                     b.Property<string>("NomEquipe")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -121,7 +190,37 @@ namespace FifApi.Migrations
                     b.HasKey("IdEquipe")
                         .HasName("pk_eqp");
 
+                    b.HasIndex("IdPays");
+
                     b.ToTable("t_e_equipe_eqp");
+                });
+
+            modelBuilder.Entity("FifApi.Models.EntityFramework.InfoCB", b =>
+                {
+                    b.Property<int>("IdCB")
+                        .HasColumnType("integer")
+                        .HasColumnName("icb_id");
+
+                    b.Property<decimal>("Cryptogramme")
+                        .HasColumnType("numeric(3,0)")
+                        .HasColumnName("icb_cryptogramme");
+
+                    b.Property<DateTime>("DateExpiration")
+                        .HasColumnType("date")
+                        .HasColumnName("icb_dateexpiration");
+
+                    b.Property<decimal>("NumeroCB")
+                        .HasColumnType("numeric(16,0)")
+                        .HasColumnName("icb_numcb");
+
+                    b.Property<int>("UtilisateurId")
+                        .HasColumnType("integer")
+                        .HasColumnName("icb_utilisateur");
+
+                    b.HasKey("IdCB")
+                        .HasName("pk_icb");
+
+                    b.ToTable("t_e_infocb_icb");
                 });
 
             modelBuilder.Entity("FifApi.Models.EntityFramework.Joueur", b =>
@@ -205,6 +304,24 @@ namespace FifApi.Migrations
                     b.ToTable("t_j_joueurmatch_jrm");
                 });
 
+            modelBuilder.Entity("FifApi.Models.EntityFramework.LigneCommande", b =>
+                {
+                    b.Property<int>("IdCommande")
+                        .HasColumnType("integer")
+                        .HasColumnName("lcm_commande");
+
+                    b.Property<int>("IdStock")
+                        .HasColumnType("integer")
+                        .HasColumnName("lcm_commande");
+
+                    b.HasKey("IdCommande", "IdStock")
+                        .HasName("pk_lcm");
+
+                    b.HasIndex("IdStock");
+
+                    b.ToTable("t_j_lignecommande_lcm");
+                });
+
             modelBuilder.Entity("FifApi.Models.EntityFramework.Marque", b =>
                 {
                     b.Property<int>("IdMarque")
@@ -262,6 +379,23 @@ namespace FifApi.Migrations
                     b.HasIndex("IdEquipe");
 
                     b.ToTable("t_e_match_mch");
+                });
+
+            modelBuilder.Entity("FifApi.Models.EntityFramework.Pays", b =>
+                {
+                    b.Property<string>("IdPays")
+                        .HasColumnType("text")
+                        .HasColumnName("pay_id");
+
+                    b.Property<int?>("NomPays")
+                        .HasMaxLength(75)
+                        .HasColumnType("integer")
+                        .HasColumnName("pay_nom");
+
+                    b.HasKey("IdPays")
+                        .HasName("pk_pay");
+
+                    b.ToTable("t_e_pays_pay");
                 });
 
             modelBuilder.Entity("FifApi.Models.EntityFramework.Poste", b =>
@@ -354,14 +488,17 @@ namespace FifApi.Migrations
 
                     b.HasIndex("IdEquipe");
 
-                    b.ToTable("t_e_sponsor_spc");
+                    b.ToTable("t_j_sponsor_spc");
                 });
 
             modelBuilder.Entity("FifApi.Models.EntityFramework.Stock", b =>
                 {
-                    b.Property<string>("TailleId")
-                        .HasColumnType("char(6)")
-                        .HasColumnName("stc_taille");
+                    b.Property<int>("IdStock")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("stc_id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IdStock"));
 
                     b.Property<int>("CouleurProduitId")
                         .HasColumnType("int")
@@ -371,10 +508,17 @@ namespace FifApi.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("stc_quantite");
 
-                    b.HasKey("TailleId", "CouleurProduitId")
+                    b.Property<string>("TailleId")
+                        .IsRequired()
+                        .HasColumnType("char(6)")
+                        .HasColumnName("stc_taille");
+
+                    b.HasKey("IdStock")
                         .HasName("pk_stc");
 
                     b.HasIndex("CouleurProduitId");
+
+                    b.HasIndex("TailleId");
 
                     b.ToTable("t_e_stock_stc");
                 });
@@ -443,6 +587,10 @@ namespace FifApi.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IdUtilisateur"));
 
+                    b.Property<int>("IdAdresse")
+                        .HasColumnType("integer")
+                        .HasColumnName("utl_adresse");
+
                     b.Property<string>("MailUtilisateur")
                         .IsRequired()
                         .HasMaxLength(150)
@@ -450,13 +598,11 @@ namespace FifApi.Migrations
                         .HasColumnName("utl_email");
 
                     b.Property<string>("NomUtilisateur")
-                        .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)")
                         .HasColumnName("utl_nom");
 
                     b.Property<string>("PrenomUtilisateur")
-                        .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)")
                         .HasColumnName("utl_prenom");
@@ -467,9 +613,65 @@ namespace FifApi.Migrations
                         .HasColumnType("character varying(100)")
                         .HasColumnName("utl_pseudo");
 
-                    b.HasKey("IdUtilisateur");
+                    b.HasKey("IdUtilisateur")
+                        .HasName("pk_utl");
+
+                    b.HasIndex("IdAdresse");
 
                     b.ToTable("t_e_utilisateur_utl");
+                });
+
+            modelBuilder.Entity("FifApi.Models.EntityFramework.Ville", b =>
+                {
+                    b.Property<int>("IdVille")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("vil_id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IdVille"));
+
+                    b.Property<string>("IdPays")
+                        .IsRequired()
+                        .HasColumnType("char(1)")
+                        .HasColumnName("vil_pays");
+
+                    b.Property<string>("NomVille")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("vil_nom");
+
+                    b.Property<string>("NumDep")
+                        .HasColumnType("char(1)")
+                        .HasColumnName("vil_numdep");
+
+                    b.HasKey("IdVille")
+                        .HasName("pk_vil");
+
+                    b.HasIndex("IdPays");
+
+                    b.ToTable("t_e_ville_vil");
+                });
+
+            modelBuilder.Entity("FifApi.Models.EntityFramework.Adresse", b =>
+                {
+                    b.HasOne("FifApi.Models.EntityFramework.Ville", "VilleAdresse")
+                        .WithMany("AdresseDeLaVille")
+                        .HasForeignKey("IdVille")
+                        .IsRequired()
+                        .HasConstraintName("fk_adr_vil");
+
+                    b.Navigation("VilleAdresse");
+                });
+
+            modelBuilder.Entity("FifApi.Models.EntityFramework.Commande", b =>
+                {
+                    b.HasOne("FifApi.Models.EntityFramework.Utilisateur", "UtilisateurCommande")
+                        .WithMany("CommandeDeUtilisateur")
+                        .HasForeignKey("IdUtilisateur")
+                        .IsRequired()
+                        .HasConstraintName("fk_cmd_utl");
+
+                    b.Navigation("UtilisateurCommande");
                 });
 
             modelBuilder.Entity("FifApi.Models.EntityFramework.CouleurProduit", b =>
@@ -491,6 +693,29 @@ namespace FifApi.Migrations
                     b.Navigation("Couleur_CouleurProduit");
 
                     b.Navigation("Produit_CouleurProduit");
+                });
+
+            modelBuilder.Entity("FifApi.Models.EntityFramework.Equipe", b =>
+                {
+                    b.HasOne("FifApi.Models.EntityFramework.Pays", "PaysDeEquipe")
+                        .WithMany("EquipeDuPays")
+                        .HasForeignKey("IdPays")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_eqp_pay");
+
+                    b.Navigation("PaysDeEquipe");
+                });
+
+            modelBuilder.Entity("FifApi.Models.EntityFramework.InfoCB", b =>
+                {
+                    b.HasOne("FifApi.Models.EntityFramework.Utilisateur", "UtilisateurCB")
+                        .WithMany("CBDeUtilisateur")
+                        .HasForeignKey("IdCB")
+                        .IsRequired()
+                        .HasConstraintName("fk_icb_utl");
+
+                    b.Navigation("UtilisateurCB");
                 });
 
             modelBuilder.Entity("FifApi.Models.EntityFramework.Joueur", b =>
@@ -521,6 +746,25 @@ namespace FifApi.Migrations
                     b.Navigation("JoueurDansMatch");
 
                     b.Navigation("MatchPourJoueur");
+                });
+
+            modelBuilder.Entity("FifApi.Models.EntityFramework.LigneCommande", b =>
+                {
+                    b.HasOne("FifApi.Models.EntityFramework.Commande", "CommandeLigne")
+                        .WithMany("LigneDeLaCommande")
+                        .HasForeignKey("IdCommande")
+                        .IsRequired()
+                        .HasConstraintName("fk_lcm_cmd");
+
+                    b.HasOne("FifApi.Models.EntityFramework.Stock", "StockLigneCommande")
+                        .WithMany("LigneDuStock")
+                        .HasForeignKey("IdStock")
+                        .IsRequired()
+                        .HasConstraintName("fk_lcm_stc");
+
+                    b.Navigation("CommandeLigne");
+
+                    b.Navigation("StockLigneCommande");
                 });
 
             modelBuilder.Entity("FifApi.Models.EntityFramework.Match", b =>
@@ -612,9 +856,41 @@ namespace FifApi.Migrations
                     b.Navigation("SurType");
                 });
 
+            modelBuilder.Entity("FifApi.Models.EntityFramework.Utilisateur", b =>
+                {
+                    b.HasOne("FifApi.Models.EntityFramework.Adresse", "AdresseDeUtilisateur")
+                        .WithMany("UtilisateurAdresse")
+                        .HasForeignKey("IdAdresse")
+                        .IsRequired()
+                        .HasConstraintName("fk_utl_adr");
+
+                    b.Navigation("AdresseDeUtilisateur");
+                });
+
+            modelBuilder.Entity("FifApi.Models.EntityFramework.Ville", b =>
+                {
+                    b.HasOne("FifApi.Models.EntityFramework.Pays", "PaysVille")
+                        .WithMany("VilleDuPays")
+                        .HasForeignKey("IdPays")
+                        .IsRequired()
+                        .HasConstraintName("fk_vil_pay");
+
+                    b.Navigation("PaysVille");
+                });
+
+            modelBuilder.Entity("FifApi.Models.EntityFramework.Adresse", b =>
+                {
+                    b.Navigation("UtilisateurAdresse");
+                });
+
             modelBuilder.Entity("FifApi.Models.EntityFramework.Album", b =>
                 {
                     b.Navigation("ProduitAlbum");
+                });
+
+            modelBuilder.Entity("FifApi.Models.EntityFramework.Commande", b =>
+                {
+                    b.Navigation("LigneDeLaCommande");
                 });
 
             modelBuilder.Entity("FifApi.Models.EntityFramework.Couleur", b =>
@@ -651,6 +927,13 @@ namespace FifApi.Migrations
                     b.Navigation("JouabiliteMatch");
                 });
 
+            modelBuilder.Entity("FifApi.Models.EntityFramework.Pays", b =>
+                {
+                    b.Navigation("EquipeDuPays");
+
+                    b.Navigation("VilleDuPays");
+                });
+
             modelBuilder.Entity("FifApi.Models.EntityFramework.Poste", b =>
                 {
                     b.Navigation("JoueurPoste");
@@ -659,6 +942,11 @@ namespace FifApi.Migrations
             modelBuilder.Entity("FifApi.Models.EntityFramework.Produit", b =>
                 {
                     b.Navigation("CouleursProduits");
+                });
+
+            modelBuilder.Entity("FifApi.Models.EntityFramework.Stock", b =>
+                {
+                    b.Navigation("LigneDuStock");
                 });
 
             modelBuilder.Entity("FifApi.Models.EntityFramework.Taille", b =>
@@ -671,6 +959,18 @@ namespace FifApi.Migrations
                     b.Navigation("SousTypes");
 
                     b.Navigation("TypographieDuProduit");
+                });
+
+            modelBuilder.Entity("FifApi.Models.EntityFramework.Utilisateur", b =>
+                {
+                    b.Navigation("CBDeUtilisateur");
+
+                    b.Navigation("CommandeDeUtilisateur");
+                });
+
+            modelBuilder.Entity("FifApi.Models.EntityFramework.Ville", b =>
+                {
+                    b.Navigation("AdresseDeLaVille");
                 });
 #pragma warning restore 612, 618
         }
