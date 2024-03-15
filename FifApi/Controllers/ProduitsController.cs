@@ -42,7 +42,7 @@ namespace FifApi.Controllers
                             Name = p1.Name,
                             Description = p1.Description,
                             Caracteristiques = p1.Caracteristiques,
-                            CouleursProduit = _context.CouleurProduits.Where(cp => p1.Id == cp.IdProduit).ToList()
+                            CouleursProduits = _context.CouleurProduits.Where(cp => p1.Id == cp.IdProduit).ToList()
                         }).ToList();
                
             
