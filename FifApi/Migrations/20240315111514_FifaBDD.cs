@@ -373,6 +373,7 @@ namespace FifApi.Migrations
                     utl_id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     utl_pseudo = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    utl_mdp = table.Column<string>(type: "text", nullable: false),
                     utl_nom = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
                     utl_prenom = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
                     utl_email = table.Column<string>(type: "character varying(150)", maxLength: 150, nullable: false),

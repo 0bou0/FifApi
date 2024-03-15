@@ -646,6 +646,11 @@ namespace FifApi.Migrations
                         .HasColumnType("character varying(150)")
                         .HasColumnName("utl_email");
 
+                    b.Property<string>("MotDePasse")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("utl_mdp");
+
                     b.Property<string>("NomUtilisateur")
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)")

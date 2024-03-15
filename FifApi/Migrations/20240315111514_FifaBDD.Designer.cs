@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace FifApi.Migrations
 {
     [DbContext(typeof(FifaDBContext))]
-    [Migration("20240315104746_FifaBDD")]
+    [Migration("20240315111514_FifaBDD")]
     partial class FifaBDD
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -647,6 +647,11 @@ namespace FifApi.Migrations
                         .HasMaxLength(150)
                         .HasColumnType("character varying(150)")
                         .HasColumnName("utl_email");
+
+                    b.Property<string>("MotDePasse")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("utl_mdp");
 
                     b.Property<string>("NomUtilisateur")
                         .HasMaxLength(100)
