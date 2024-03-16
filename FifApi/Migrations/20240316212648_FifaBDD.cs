@@ -170,11 +170,11 @@ namespace FifApi.Migrations
                 columns: table => new
                 {
                     abp_album = table.Column<int>(type: "integer", nullable: false),
-                    apb_photo = table.Column<int>(type: "integer", nullable: false)
+                    abp_photo = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("pk_abp", x => new { x.apb_photo, x.abp_album });
+                    table.PrimaryKey("pk_abp", x => new { x.abp_photo, x.abp_album });
                     table.ForeignKey(
                         name: "fk_abp_alb",
                         column: x => x.abp_album,
@@ -182,7 +182,7 @@ namespace FifApi.Migrations
                         principalColumn: "alb_id");
                     table.ForeignKey(
                         name: "fk_abp_pht",
-                        column: x => x.apb_photo,
+                        column: x => x.abp_photo,
                         principalTable: "t_e_photo_pht",
                         principalColumn: "pht_id");
                 });

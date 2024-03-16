@@ -17,7 +17,7 @@ namespace FifApi.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "6.0.12")
+                .HasAnnotation("ProductVersion", "6.0.28")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -88,7 +88,7 @@ namespace FifApi.Migrations
                 {
                     b.Property<int>("IdPhoto")
                         .HasColumnType("integer")
-                        .HasColumnName("apb_photo");
+                        .HasColumnName("abp_photo");
 
                     b.Property<int>("IdAlbum")
                         .HasColumnType("integer")

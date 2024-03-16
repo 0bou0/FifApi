@@ -43,21 +43,35 @@ namespace FifApi.Controllers
                     select new
                     {
                         idProduct = g.Key,
-                        title = g.FirstOrDefault().p.Name,
+                        title = g.FirstOrDefault()!.p.Name,
                         price = g.Min(x => x.cp.Prix),
-                        image = g.FirstOrDefault().ph.URL
+                        image = g.FirstOrDefault()!.ph.URL
                     }).ToListAsync();
         }
 
         // GET: api/Produits/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Produit>> GetProduitById(int id)
+        public async Task<ActionResult<object>> GetProduitById(int id)
         {
           if (_context.Produits == null)
           {
               return NotFound();
           }
-            var produit = await _context.Produits.FindAsync(id);
+            var produit = await (from p in _context.Produits
+                    join a in _context.Albums on p.AlbumId equals a.IdAlbum into aGroup
+                    from a in aGroup.DefaultIfEmpty()
+                    join aph in _context.AlbumPhotos on a.IdAlbum equals aph.IdAlbum into aphGroup
+                    from aph in aphGroup.DefaultIfEmpty()
+                    join ph in _context.Photos on aph.IdPhoto equals ph.IdPhoto into phGroup
+                    from ph in phGroup.DefaultIfEmpty()
+                    group new { p, a, aph, ph } by p.Id into g
+                    select new
+                    {
+                        idProduct = g.Key,
+                        title = g.FirstOrDefault()!.p.Name,
+                        image = g.FirstOrDefault()!.ph.URL,
+                        couleurs = _context.CouleurProduits.Where(x => x.IdProduit == g.Key).ToList()
+                    }).Where(x => x.idProduct == id).ToListAsync();
 
             if (produit == null)    
             {
