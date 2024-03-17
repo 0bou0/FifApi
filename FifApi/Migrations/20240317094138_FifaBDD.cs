@@ -453,6 +453,30 @@ namespace FifApi.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "t_j_vote_vot",
+                columns: table => new
+                {
+                    vot_joueur = table.Column<int>(type: "integer", nullable: false),
+                    vot_utilisateur = table.Column<int>(type: "integer", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("pk_vot", x => new { x.vot_joueur, x.vot_utilisateur });
+                    table.ForeignKey(
+                        name: "fk_vot_jor",
+                        column: x => x.vot_joueur,
+                        principalTable: "t_e_joueur_jor",
+                        principalColumn: "jor_id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "fk_vot_utl",
+                        column: x => x.vot_utilisateur,
+                        principalTable: "t_e_utilisateur_utl",
+                        principalColumn: "utl_id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "t_j_lignecommande_lcm",
                 columns: table => new
                 {
@@ -568,6 +592,11 @@ namespace FifApi.Migrations
                 name: "IX_t_j_sponsor_spc_spc_equipe",
                 table: "t_j_sponsor_spc",
                 column: "spc_equipe");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_t_j_vote_vot_vot_utilisateur",
+                table: "t_j_vote_vot",
+                column: "vot_utilisateur");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
@@ -588,10 +617,10 @@ namespace FifApi.Migrations
                 name: "t_j_sponsor_spc");
 
             migrationBuilder.DropTable(
-                name: "t_e_photo_pht");
+                name: "t_j_vote_vot");
 
             migrationBuilder.DropTable(
-                name: "t_e_joueur_jor");
+                name: "t_e_photo_pht");
 
             migrationBuilder.DropTable(
                 name: "t_e_match_mch");
@@ -603,7 +632,7 @@ namespace FifApi.Migrations
                 name: "t_e_stock_stc");
 
             migrationBuilder.DropTable(
-                name: "t_e_poste_pst");
+                name: "t_e_joueur_jor");
 
             migrationBuilder.DropTable(
                 name: "t_e_equipe_eqp");
@@ -616,6 +645,9 @@ namespace FifApi.Migrations
 
             migrationBuilder.DropTable(
                 name: "t_e_taille_tal");
+
+            migrationBuilder.DropTable(
+                name: "t_e_poste_pst");
 
             migrationBuilder.DropTable(
                 name: "t_e_adresse_adr");
