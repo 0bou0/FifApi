@@ -48,6 +48,9 @@ namespace FifApi.Models.EntityFramework
         [InverseProperty(nameof(JoueurMatch.JoueurDansMatch))]
         public virtual ICollection<JoueurMatch> JouabiliteMatch { get; set; } = null!;
 
+        [InverseProperty(nameof(Vote.JoueurVoter))]
+        public virtual ICollection<Vote> VotePourJoueur { get; set; } = null!;
+
         [ForeignKey(nameof(PosteId))]
         [InverseProperty(nameof(Poste.JoueurPoste))]
         public virtual Poste PostePourJoueur { get; set; } = null!;

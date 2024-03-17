@@ -12,14 +12,14 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace FifApi.Migrations
 {
     [DbContext(typeof(FifaDBContext))]
-    [Migration("20240316212648_FifaBDD")]
+    [Migration("20240317094138_FifaBDD")]
     partial class FifaBDD
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "6.0.28")
+                .HasAnnotation("ProductVersion", "6.0.12")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -708,6 +708,24 @@ namespace FifApi.Migrations
                     b.ToTable("t_e_ville_vil");
                 });
 
+            modelBuilder.Entity("FifApi.Models.EntityFramework.Vote", b =>
+                {
+                    b.Property<int>("IdJoueur")
+                        .HasColumnType("integer")
+                        .HasColumnName("vot_joueur");
+
+                    b.Property<int>("IdUtilisateur")
+                        .HasColumnType("integer")
+                        .HasColumnName("vot_utilisateur");
+
+                    b.HasKey("IdJoueur", "IdUtilisateur")
+                        .HasName("pk_vot");
+
+                    b.HasIndex("IdUtilisateur");
+
+                    b.ToTable("t_j_vote_vot");
+                });
+
             modelBuilder.Entity("FifApi.Models.EntityFramework.Adresse", b =>
                 {
                     b.HasOne("FifApi.Models.EntityFramework.Ville", "VilleAdresse")
@@ -953,6 +971,27 @@ namespace FifApi.Migrations
                     b.Navigation("PaysVille");
                 });
 
+            modelBuilder.Entity("FifApi.Models.EntityFramework.Vote", b =>
+                {
+                    b.HasOne("FifApi.Models.EntityFramework.Joueur", "JoueurVoter")
+                        .WithMany("VotePourJoueur")
+                        .HasForeignKey("IdJoueur")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_vot_jor");
+
+                    b.HasOne("FifApi.Models.EntityFramework.Utilisateur", "UtilisateurVote")
+                        .WithMany("VoteDeUtilisateur")
+                        .HasForeignKey("IdUtilisateur")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_vot_utl");
+
+                    b.Navigation("JoueurVoter");
+
+                    b.Navigation("UtilisateurVote");
+                });
+
             modelBuilder.Entity("FifApi.Models.EntityFramework.Adresse", b =>
                 {
                     b.Navigation("UtilisateurAdresse");
@@ -990,6 +1029,8 @@ namespace FifApi.Migrations
             modelBuilder.Entity("FifApi.Models.EntityFramework.Joueur", b =>
                 {
                     b.Navigation("JouabiliteMatch");
+
+                    b.Navigation("VotePourJoueur");
                 });
 
             modelBuilder.Entity("FifApi.Models.EntityFramework.Marque", b =>
@@ -1048,6 +1089,8 @@ namespace FifApi.Migrations
                     b.Navigation("CBDeUtilisateur");
 
                     b.Navigation("CommandeDeUtilisateur");
+
+                    b.Navigation("VoteDeUtilisateur");
                 });
 
             modelBuilder.Entity("FifApi.Models.EntityFramework.Ville", b =>

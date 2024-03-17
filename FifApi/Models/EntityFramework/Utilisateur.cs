@@ -47,6 +47,10 @@ namespace FifApi.Models.EntityFramework
         public virtual ICollection<InfoCB> CBDeUtilisateur { get; set; } = null!;
 
 
+        [InverseProperty(nameof(Vote.UtilisateurVote))]
+        public virtual ICollection<Vote> VoteDeUtilisateur { get; set; } = null!;
+
+
         [InverseProperty(nameof(Commande.UtilisateurCommande))]
         public virtual ICollection<Commande> CommandeDeUtilisateur { get; set; } = null!;
 

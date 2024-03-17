@@ -32,6 +32,7 @@ namespace FifApi.Models.EntityFramework
         public virtual DbSet<Album> Albums { get; set; } = null!;
         public virtual DbSet<AlbumPhoto> AlbumPhotos { get; set; } = null!;
         public virtual DbSet<Photo> Photos { get; set; } = null!;
+        public virtual DbSet<Vote> Votes { get; set; } = null!;
 
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -283,6 +284,24 @@ namespace FifApi.Models.EntityFramework
                     .HasForeignKey(x => x.IdCouleur)
                     .OnDelete(DeleteBehavior.Cascade)
                     .HasConstraintName("fk_clp_clr");
+            });
+
+            modelBuilder.Entity<Vote>(entity =>
+            {
+                entity.HasKey(x => new { x.IdJoueur, x.IdUtilisateur })
+                    .HasName("pk_vot");
+
+                entity.HasOne(x => x.JoueurVoter)
+                    .WithMany(x => x.VotePourJoueur)
+                    .HasForeignKey(x => x.IdJoueur)
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .HasConstraintName("fk_vot_jor");
+
+                entity.HasOne(x => x.UtilisateurVote)
+                    .WithMany(x => x.VoteDeUtilisateur)
+                    .HasForeignKey(x => x.IdUtilisateur)
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .HasConstraintName("fk_vot_utl");
             });
 
             modelBuilder.Entity<Sponsor>(entity =>
