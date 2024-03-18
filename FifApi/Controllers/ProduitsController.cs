@@ -162,6 +162,10 @@ namespace FifApi.Controllers
                               .Where(tp => tp.Nom == categorie || categorie == null)
                                   .Where(tp => p.TypeId == tp.Id)
                               .Any()
+                          where _context.Pays
+                              .Where(pys =>  pys.NomPays == nation || nation == null)
+                                  .Where(pys => p.PaysId == pys.IdPays)
+                              .Any()
                           select new
                           {
                               idProduct = p.Id,
