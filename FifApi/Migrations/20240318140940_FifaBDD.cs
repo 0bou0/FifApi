@@ -53,8 +53,8 @@ namespace FifApi.Migrations
                 name: "t_e_pays_pay",
                 columns: table => new
                 {
-                    pay_id = table.Column<string>(type: "text", nullable: false),
-                    pay_nom = table.Column<int>(type: "integer", maxLength: 75, nullable: true)
+                    pay_id = table.Column<string>(type: "char(3)", nullable: false),
+                    pay_nom = table.Column<string>(type: "character varying(75)", maxLength: 75, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -132,7 +132,7 @@ namespace FifApi.Migrations
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     eqp_nom = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     eqp_histoire = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
-                    eqp_pays = table.Column<string>(type: "text", nullable: false)
+                    eqp_pays = table.Column<string>(type: "char(3)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -152,8 +152,8 @@ namespace FifApi.Migrations
                     vil_id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     vil_nom = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
-                    vil_numdep = table.Column<string>(type: "char(1)", nullable: true),
-                    vil_pays = table.Column<string>(type: "char(1)", nullable: false)
+                    vil_numdep = table.Column<string>(type: "char(3)", nullable: true),
+                    vil_pays = table.Column<string>(type: "char(3)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -224,7 +224,8 @@ namespace FifApi.Migrations
                     pdt_caracteristiques = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
                     pdt_marque = table.Column<int>(type: "int", nullable: false),
                     pdt_type = table.Column<int>(type: "int", nullable: false),
-                    pdt_album = table.Column<int>(type: "int", nullable: false)
+                    pdt_album = table.Column<int>(type: "int", nullable: false),
+                    pdt_pays = table.Column<string>(type: "char(3)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -239,6 +240,11 @@ namespace FifApi.Migrations
                         column: x => x.pdt_marque,
                         principalTable: "t_e_marque_mrq",
                         principalColumn: "mrq_id");
+                    table.ForeignKey(
+                        name: "fk_pdt_pay",
+                        column: x => x.pdt_pays,
+                        principalTable: "t_e_pays_pay",
+                        principalColumn: "pay_id");
                     table.ForeignKey(
                         name: "fk_pdt_tpd",
                         column: x => x.pdt_type,
@@ -420,14 +426,14 @@ namespace FifApi.Migrations
                 {
                     cmd_id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    mcd_utilisateur = table.Column<int>(type: "integer", nullable: false)
+                    cmd_utilisateur = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("pk_cmd", x => x.cmd_id);
                     table.ForeignKey(
                         name: "fk_cmd_utl",
-                        column: x => x.mcd_utilisateur,
+                        column: x => x.cmd_utilisateur,
                         principalTable: "t_e_utilisateur_utl",
                         principalColumn: "utl_id");
                 });
@@ -504,9 +510,9 @@ namespace FifApi.Migrations
                 column: "adr_ville");
 
             migrationBuilder.CreateIndex(
-                name: "IX_t_e_commande_cmd_mcd_utilisateur",
+                name: "IX_t_e_commande_cmd_cmd_utilisateur",
                 table: "t_e_commande_cmd",
-                column: "mcd_utilisateur");
+                column: "cmd_utilisateur");
 
             migrationBuilder.CreateIndex(
                 name: "IX_t_e_equipe_eqp_eqp_pays",
@@ -532,6 +538,11 @@ namespace FifApi.Migrations
                 name: "IX_t_e_produit_pdt_pdt_marque",
                 table: "t_e_produit_pdt",
                 column: "pdt_marque");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_t_e_produit_pdt_pdt_pays",
+                table: "t_e_produit_pdt",
+                column: "pdt_pays");
 
             migrationBuilder.CreateIndex(
                 name: "IX_t_e_produit_pdt_pdt_type",

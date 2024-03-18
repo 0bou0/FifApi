@@ -89,6 +89,13 @@ namespace FifApi.Models.EntityFramework
                    .OnDelete(DeleteBehavior.ClientSetNull)
                    .HasConstraintName("fk_pdt_mrq");
 
+                entity.HasOne(d => d.PaysDuProduit)
+                  .WithMany(p => p.ProduitPays)
+                  .HasForeignKey(d => d.PaysId)
+                  .OnDelete(DeleteBehavior.ClientSetNull)
+                  .HasConstraintName("fk_pdt_pay");
+
+
                 entity.HasOne(d => d.TypePourLeProduit)
                    .WithMany(p => p.TypographieDuProduit)
                    .HasForeignKey(d => d.TypeId)

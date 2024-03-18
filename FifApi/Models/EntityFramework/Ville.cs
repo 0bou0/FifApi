@@ -15,12 +15,12 @@ namespace FifApi.Models.EntityFramework
         [StringLength(50)]
         public string? NomVille { get; set; }
 
-        [Column("vil_numdep", TypeName="char(5,0)")]
+        [Column("vil_numdep", TypeName="char(3)")]
         public string? NumDep { get; set; }
 
 
         [Required]
-        [Column("vil_pays", TypeName = "char(5,0)")]
+        [Column("vil_pays", TypeName = "char(3)")]
         public string IdPays { get; set; }
 
         [InverseProperty(nameof(Adresse.VilleAdresse))]

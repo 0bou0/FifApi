@@ -7,19 +7,23 @@ namespace FifApi.Models.EntityFramework
     public class Pays
     {
         [Key]
-        [Column("pay_id")]
+        [Column("pay_id", TypeName = "char(3)")]
         public string IdPays { get; set; }
 
-        
+        [Required]
         [Column("pay_nom")]
         [StringLength(75)]
-        public int? NomPays { get; set; }
+        public string NomPays { get; set; }
 
         [InverseProperty(nameof(Ville.PaysVille))]
         public virtual ICollection<Ville> VilleDuPays { get; set; } = null!;
 
         [InverseProperty(nameof(Equipe.PaysDeEquipe))]
         public virtual ICollection<Equipe> EquipeDuPays { get; set; } = null!;
+
+
+        [InverseProperty(nameof(Produit.PaysDuProduit))]
+        public virtual ICollection<Produit> ProduitPays { get; set; } = null!;
 
 
     }

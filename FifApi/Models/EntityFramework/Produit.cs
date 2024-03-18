@@ -23,15 +23,21 @@ namespace FifApi.Models.EntityFramework
         [StringLength(500)]
         public string? Caracteristiques { get; set; }
 
-
+        [Required]
         [Column("pdt_marque", TypeName = "int")]
         public int MarqueId { get; set; }
 
+        [Required]
         [Column("pdt_type", TypeName = "int")]
         public int TypeId { get; set; }
 
+        [Required]
         [Column("pdt_album", TypeName = "int")]
         public int AlbumId { get; set; }
+
+        [Required]
+        [Column("pdt_pays", TypeName = "char(3)")]
+        public string PaysId { get; set; }
 
         [ForeignKey(nameof(AlbumId))]
         [InverseProperty(nameof(Album.ProduitAlbum))]
@@ -44,6 +50,11 @@ namespace FifApi.Models.EntityFramework
         [ForeignKey(nameof(TypeId))]
         [InverseProperty(nameof(TypeProduit.TypographieDuProduit))]
         public virtual TypeProduit TypePourLeProduit { get; set; } = null!;
+
+        [ForeignKey(nameof(PaysId))]
+        [InverseProperty(nameof(Pays.ProduitPays))]
+        public virtual Pays PaysDuProduit { get; set; } = null!;
+
 
 
         [InverseProperty(nameof(CouleurProduit.Produit_CouleurProduit))]
