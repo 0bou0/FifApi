@@ -15,6 +15,11 @@ namespace FifApi.Models.EntityFramework
         [StringLength(150)]
         public string Nom { get; set; }
 
+        [Required]
+        [Column("clr_hexa")]
+        [StringLength(7)]
+        public string Hexa { get; set; }
+
 
         [InverseProperty(nameof(CouleurProduit.Couleur_CouleurProduit))]
         public virtual ICollection<CouleurProduit> CouleurProduits { get; set; } = null!;

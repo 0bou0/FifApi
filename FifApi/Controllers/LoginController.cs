@@ -1,4 +1,5 @@
 ﻿using FifApi.Models;
+using FifApi.Models.EntityFramework;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -13,50 +14,48 @@ namespace FifApi.Controllers
     [ApiController]
     public class LoginController : ControllerBase
     {
+        private readonly FifaDBContext _context;
         private readonly IConfiguration _config;
-        private List<User> appUsers = new List<User>
+
+        public LoginController(FifaDBContext context, IConfiguration config)
         {
-        new User { FullName = "Vincent COUTURIER", UserName = "vince", Password = "1234",
-        UserRole = "Admin" },
-        new User { FullName = "Marc MACHIN", UserName = "marc", Password = "1234", UserRole =
-        "User" }
-        };
-        public LoginController(IConfiguration config)
-        {
+            _context = context;
             _config = config;
         }
+
+        
         [HttpPost]
         [AllowAnonymous]
         public IActionResult Login([FromBody] User login)
         {
             IActionResult response = Unauthorized();
-            User user = AuthenticateUser(login);
+            Utilisateur user = AuthenticateUser(login);
             if (user != null)
             {
                 var tokenString = GenerateJwtToken(user);
                 response = Ok(new
                 {
                     token = tokenString,
-                    userDetails = user,
+                    //userDetails = user,
                 });
             }
             return response;
         }
-        private User AuthenticateUser(User user)
+        private Utilisateur? AuthenticateUser(User utlilsateur)
         {
-            return appUsers.SingleOrDefault(x => x.UserName.ToUpper() == user.UserName.ToUpper() &&
-            x.Password == user.Password);
+            return _context.Utilisateurs.SingleOrDefault(x => x.PseudoUtilisateur.ToLower() == utlilsateur.UserName.ToLower() && x.MotDePasse == utlilsateur.Password);
         }
-        private string GenerateJwtToken(User userInfo)
+
+        private string GenerateJwtToken(Utilisateur utlilsateur)
         {
             var securityKey = new
             SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:SecretKey"]));
             var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
             var claims = new[]
             {
-                new Claim(JwtRegisteredClaimNames.Sub, userInfo.UserName),
-                new Claim("fullName", userInfo.FullName.ToString()),
-                new Claim("role",userInfo.UserRole),
+                new Claim(JwtRegisteredClaimNames.Sub, utlilsateur.PseudoUtilisateur),
+                new Claim("fullName", utlilsateur.MailUtilisateur.ToString()),  // a remplacé par e-mail
+                new Claim("role", utlilsateur.Role),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
             };
             var token = new JwtSecurityToken(

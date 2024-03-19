@@ -13,7 +13,7 @@ namespace FifApi
         {
             var builder = WebApplication.CreateBuilder(args);
             builder.Services.AddDbContext<FifaDBContext>(options =>
-                options.UseNpgsql("Server=localhost;port=5432;Database=FifaBDD; uid=postgres; password=postgres;"));
+                options.UseNpgsql("Server=fifa-srv.postgres.database.azure.com;Database=postgres;Port=5432;User Id=s212;Password=bQ3i2%C$;Ssl Mode=Require;Trust Server Certificate=true;"));
 
             // Add services to the container.
 
@@ -60,6 +60,7 @@ namespace FifApi
             app.UseAuthentication();
             app.UseAuthorization();
 
+            app.UseCors(options => options.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
 
             app.MapControllers();
 

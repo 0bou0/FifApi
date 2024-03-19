@@ -32,9 +32,13 @@ namespace FifApi.Models.EntityFramework
         [StringLength(150)]
         public string MailUtilisateur { get; set; }
 
-        [Required]
         [Column("utl_adresse")]
-        public int IdAdresse { get; set; }
+        public int? IdAdresse { get; set; }
+
+        [Required]
+        [Column("utl_role")]
+        [StringLength(10)]
+        public string Role { get; set; }
 
 
         [ForeignKey(nameof(IdUtilisateur))]

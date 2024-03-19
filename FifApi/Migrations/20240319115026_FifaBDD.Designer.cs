@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace FifApi.Migrations
 {
     [DbContext(typeof(FifaDBContext))]
-    [Migration("20240319052816_FifaBDD")]
+    [Migration("20240319115026_FifaBDD")]
     partial class FifaBDD
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -133,6 +133,12 @@ namespace FifApi.Migrations
                         .HasColumnName("clr_id");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Hexa")
+                        .IsRequired()
+                        .HasMaxLength(7)
+                        .HasColumnType("character varying(7)")
+                        .HasColumnName("clr_hexa");
 
                     b.Property<string>("Nom")
                         .IsRequired()
@@ -646,7 +652,7 @@ namespace FifApi.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IdUtilisateur"));
 
-                    b.Property<int>("IdAdresse")
+                    b.Property<int?>("IdAdresse")
                         .HasColumnType("integer")
                         .HasColumnName("utl_adresse");
 
@@ -676,6 +682,12 @@ namespace FifApi.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)")
                         .HasColumnName("utl_pseudo");
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("utl_role");
 
                     b.HasKey("IdUtilisateur")
                         .HasName("pk_utl");
@@ -970,7 +982,6 @@ namespace FifApi.Migrations
                     b.HasOne("FifApi.Models.EntityFramework.Adresse", "AdresseDeUtilisateur")
                         .WithMany("UtilisateurAdresse")
                         .HasForeignKey("IdAdresse")
-                        .IsRequired()
                         .HasConstraintName("fk_utl_adr");
 
                     b.Navigation("AdresseDeUtilisateur");

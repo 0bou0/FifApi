@@ -53,7 +53,8 @@ namespace FifApi.Controllers
                     select new {
                         prix = cp.Prix,
                         codebarre = cp.CodeBarre,
-                        couleur = c.Nom
+                        couleur = c.Nom,
+                        hexa = c.Hexa
                     }).ToList()
                 }).ToListAsync();
         }
@@ -88,7 +89,8 @@ namespace FifApi.Controllers
                     select new {
                         prix = cp.Prix,
                         codebarre = cp.CodeBarre,
-                        couleur = c.Nom
+                        couleur = c.Nom,
+                        hexa = c.Hexa
                     }).ToList()
                 }).Where(x => x.idProduct == id).ToListAsync();
 
@@ -100,50 +102,7 @@ namespace FifApi.Controllers
             return produit;
         }
 
-        [HttpGet("Couleur/{couleur}")]
-        public async Task<ActionResult<object>> GetProduitsByColor(string couleur)
-        {
-            if (_context.Produits == null)
-            {
-                return NotFound();
-            }
-
-            return await (from p in _context.Produits
-                    where _context.Couleurs
-                        .Where(c => c.Nom == couleur)
-                        .SelectMany(c => _context.CouleurProduits
-                            .Where(cp => cp.IdCouleur == c.Id && cp.IdProduit == p.Id))
-                        .Any()
-                    select new
-                    {
-                        idProduct = p.Id,
-                        title = p.Name,
-                        price = _context.CouleurProduits
-                            .Where(cp => cp.IdProduit == p.Id)
-                            .Min(cp => cp.Prix),
-                        image = _context.Photos
-                            .Join
-                            (_context.AlbumPhotos, alb => alb.IdPhoto, pth => pth.IdAlbum, (pth, alb) => new { photo = pth.URL })
-                            .Select(aph => aph.photo)
-                            .FirstOrDefault(),
-                        couleurs = _context.Couleurs
-                            .Select(c => new
-                            {
-                                prix = _context.CouleurProduits
-                                    .Where(cp => cp.IdProduit == p.Id && cp.IdCouleur == c.Id)
-                                    .Select(cp => cp.Prix)
-                                    .First(),
-                                codebarre = _context.CouleurProduits
-                                    .Where(cp => cp.IdProduit == p.Id && cp.IdCouleur == c.Id)
-                                    .Select(cp => cp.CodeBarre)
-                                    .FirstOrDefault(),
-                                couleur = c.Nom
-                            }).Where(c => c.prix != null).ToList()
-                    }).ToListAsync();
-
-
-        }
-
+        // GET: api/Produits/Filter?
         [HttpGet("Filter")]
         public async Task<ActionResult<object>> GetProduitsByFilter(string? couleur, string? nation, string? categorie)
         {
@@ -189,7 +148,8 @@ namespace FifApi.Controllers
                                           .Where(cp => cp.IdProduit == p.Id && cp.IdCouleur == c.Id)
                                           .Select(cp => cp.CodeBarre)
                                           .FirstOrDefault(),
-                                      couleur = c.Nom
+                                      couleur = c.Nom,
+                                      hexa = c.Hexa
                                   }).Where(c => c.prix != null).ToList()
                           }).ToListAsync();
 

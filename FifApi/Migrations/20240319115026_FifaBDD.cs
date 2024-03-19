@@ -29,7 +29,8 @@ namespace FifApi.Migrations
                 {
                     clr_id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    clr_nom = table.Column<string>(type: "character varying(150)", maxLength: 150, nullable: false)
+                    clr_nom = table.Column<string>(type: "character varying(150)", maxLength: 150, nullable: false),
+                    clr_hexa = table.Column<string>(type: "character varying(7)", maxLength: 7, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -383,7 +384,8 @@ namespace FifApi.Migrations
                     utl_nom = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
                     utl_prenom = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
                     utl_email = table.Column<string>(type: "character varying(150)", maxLength: 150, nullable: false),
-                    utl_adresse = table.Column<int>(type: "integer", nullable: false)
+                    utl_adresse = table.Column<int>(type: "integer", nullable: true),
+                    utl_role = table.Column<string>(type: "character varying(10)", maxLength: 10, nullable: false)
                 },
                 constraints: table =>
                 {
