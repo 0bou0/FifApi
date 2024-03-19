@@ -16,9 +16,49 @@ namespace FifApi.Controllers
             _context = context;
         }
 
-        // GET: api/Commandes
+
         [HttpGet]
         public async Task<ActionResult<IEnumerable<object>>> GetCommandes()
+        {
+            if (_context.Commandes == null)
+            {
+                return NotFound();
+            }
+
+
+
+            return await (from co in _context.Commandes
+                          join ut in _context.Utilisateurs on co.IdUtilisateur equals ut.IdUtilisateur
+                          select new
+                          {
+                              IdCommande = co.IdUtilisateur,
+                              IdUtilisateur = ut.IdUtilisateur,
+                              Pseudo = ut.PseudoUtilisateur,
+                              NomUtilisateur = ut.NomUtilisateur,
+                              PrenomUtilisateur = ut.PrenomUtilisateur,
+                              LigneCommandes = (
+                                 from lc in _context.LigneCommandes
+                                 join st in _context.Stocks on lc.IdStock equals st.IdStock
+                                 where lc.IdCommande == co.IdCommande
+                                 select new
+                                 {
+                                     LigneCommande = lc.CommandeLigne,
+                                     Stock = st.IdStock,
+                                     Quantite = st.Quantite
+                                 }
+                             ).ToList()
+
+
+                          }
+
+                ).ToListAsync();
+
+
+        }
+
+        // GET: api/Commandes
+        [HttpGet("{idUtilisateur}")]
+        public async Task<ActionResult<IEnumerable<object>>> GetCommandes(int idut)
         {
             if (_context.Commandes == null)
             {
@@ -32,6 +72,7 @@ namespace FifApi.Controllers
                          select new
                          {
                             IdCommande = co.IdUtilisateur,
+                            IdUtilisateur = ut.IdUtilisateur,
                             Pseudo = ut.PseudoUtilisateur,
                             NomUtilisateur = ut.NomUtilisateur,
                             PrenomUtilisateur = ut.PrenomUtilisateur,
@@ -50,7 +91,7 @@ namespace FifApi.Controllers
 
                          }
 
-                ).ToListAsync();
+                ).Where(x => x.IdUtilisateur == idut).ToListAsync();
 
           
         }
