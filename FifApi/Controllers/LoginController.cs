@@ -35,8 +35,8 @@ namespace FifApi.Controllers
                 var tokenString = GenerateJwtToken(user);
                 response = Ok(new
                 {
-                    //token = tokenString,
-                    userDetails = user,
+                    token = tokenString,
+                    //userDetails = user,
                 });
             }
             return response;
