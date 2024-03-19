@@ -28,20 +28,17 @@ namespace FifApi.Controllers
 
 
             return await(from co in _context.Commandes
-                         join ut in _context.Utilisateurs on co.IdUtilisateur equals ut.IdUtilisateur
-                         join lc in _context.LigneCommandes on co.IdCommande equals lc.IdCommande
-                         join st in _context.Stocks on lc.IdStock equals st.IdStock
-                         group new { co, ut, lc, st } by co.IdCommande into g
+                         join ut in _context.Utilisateurs on co.IdUtilisateur equals ut.IdUtilisateur                     
                          select new
                          {
-                            IdCommande = g.Key,
-                            Pseudo = g.FirstOrDefault()!.ut.PseudoUtilisateur,
-                            NomUtilisateur = g.FirstOrDefault()!.ut.NomUtilisateur,
-                            PrenomUtilisateur = g.FirstOrDefault()!.ut.PrenomUtilisateur,
+                            IdCommande = co.IdUtilisateur,
+                            Pseudo = ut.PseudoUtilisateur,
+                            NomUtilisateur = ut.NomUtilisateur,
+                            PrenomUtilisateur = ut.PrenomUtilisateur,
                             LigneCommandes = (
                                 from lc in _context.LigneCommandes
                                 join st in _context.Stocks on lc.IdStock equals st.IdStock
-                                where lc.IdCommande == g.Key
+                                where lc.IdCommande == co.IdCommande
                                     select new
                                     {
                                         LigneCommande = lc.CommandeLigne,
