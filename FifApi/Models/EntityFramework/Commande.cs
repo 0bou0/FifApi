@@ -11,7 +11,7 @@ namespace FifApi.Models.EntityFramework
         public int IdCommande { get; set; }
 
         [Required]
-        [Column("mcd_utilisateur")]
+        [Column("cmd_utilisateur")]
         public int IdUtilisateur { get; set; }
 
 

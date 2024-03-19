@@ -1,5 +1,9 @@
+using FifApi.Models;
 using FifApi.Models.EntityFramework;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 namespace FifApi
 {
@@ -9,7 +13,7 @@ namespace FifApi
         {
             var builder = WebApplication.CreateBuilder(args);
             builder.Services.AddDbContext<FifaDBContext>(options =>
-                options.UseNpgsql("Server=localhost;port=5432;Database=FifaBDD; uid=postgres; password=386974;"));
+                options.UseNpgsql("Server=localhost;port=5432;Database=FifaBDD; uid=postgres; password=postgres;"));
 
             // Add services to the container.
 
@@ -17,6 +21,30 @@ namespace FifApi
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
+
+            builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            .AddJwtBearer(options =>
+            {
+                options.RequireHttpsMetadata = false;
+                options.SaveToken = true;
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    ValidIssuer = builder.Configuration["Jwt:Issuer"],
+                    ValidAudience = builder.Configuration["Jwt:Audience"],
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:SecretKey"])),
+                    ClockSkew = TimeSpan.Zero
+                };
+            });
+
+            builder.Services.AddAuthorization(config =>
+            {
+                config.AddPolicy(Policies.Admin, Policies.AdminPolicy());
+                config.AddPolicy(Policies.User, Policies.UserPolicy());
+            });
 
             var app = builder.Build();
 
@@ -29,6 +57,7 @@ namespace FifApi
 
             app.UseHttpsRedirection();
 
+            app.UseAuthentication();
             app.UseAuthorization();
 
 

@@ -113,7 +113,7 @@ namespace FifApi.Migrations
 
                     b.Property<int>("IdUtilisateur")
                         .HasColumnType("integer")
-                        .HasColumnName("mcd_utilisateur");
+                        .HasColumnName("cmd_utilisateur");
 
                     b.HasKey("IdCommande")
                         .HasName("pk_cmd");
@@ -196,7 +196,7 @@ namespace FifApi.Migrations
 
                     b.Property<string>("IdPays")
                         .IsRequired()
-                        .HasColumnType("text")
+                        .HasColumnType("char(3)")
                         .HasColumnName("eqp_pays");
 
                     b.Property<string>("NomEquipe")
@@ -402,12 +402,13 @@ namespace FifApi.Migrations
             modelBuilder.Entity("FifApi.Models.EntityFramework.Pays", b =>
                 {
                     b.Property<string>("IdPays")
-                        .HasColumnType("text")
+                        .HasColumnType("char(3)")
                         .HasColumnName("pay_id");
 
-                    b.Property<int?>("NomPays")
+                    b.Property<string>("NomPays")
+                        .IsRequired()
                         .HasMaxLength(75)
-                        .HasColumnType("integer")
+                        .HasColumnType("character varying(75)")
                         .HasColumnName("pay_nom");
 
                     b.HasKey("IdPays")
@@ -506,6 +507,11 @@ namespace FifApi.Migrations
                         .HasColumnType("character varying(150)")
                         .HasColumnName("pdt_nom");
 
+                    b.Property<string>("PaysId")
+                        .IsRequired()
+                        .HasColumnType("char(3)")
+                        .HasColumnName("pdt_pays");
+
                     b.Property<int>("TypeId")
                         .HasColumnType("int")
                         .HasColumnName("pdt_type");
@@ -516,6 +522,8 @@ namespace FifApi.Migrations
                     b.HasIndex("AlbumId");
 
                     b.HasIndex("MarqueId");
+
+                    b.HasIndex("PaysId");
 
                     b.HasIndex("TypeId");
 
@@ -686,7 +694,7 @@ namespace FifApi.Migrations
 
                     b.Property<string>("IdPays")
                         .IsRequired()
-                        .HasColumnType("char(1)")
+                        .HasColumnType("char(3)")
                         .HasColumnName("vil_pays");
 
                     b.Property<string>("NomVille")
@@ -695,7 +703,7 @@ namespace FifApi.Migrations
                         .HasColumnName("vil_nom");
 
                     b.Property<string>("NumDep")
-                        .HasColumnType("char(1)")
+                        .HasColumnType("char(3)")
                         .HasColumnName("vil_numdep");
 
                     b.HasKey("IdVille")
@@ -883,6 +891,12 @@ namespace FifApi.Migrations
                         .IsRequired()
                         .HasConstraintName("fk_pdt_mrq");
 
+                    b.HasOne("FifApi.Models.EntityFramework.Pays", "PaysDuProduit")
+                        .WithMany("ProduitPays")
+                        .HasForeignKey("PaysId")
+                        .IsRequired()
+                        .HasConstraintName("fk_pdt_pay");
+
                     b.HasOne("FifApi.Models.EntityFramework.TypeProduit", "TypePourLeProduit")
                         .WithMany("TypographieDuProduit")
                         .HasForeignKey("TypeId")
@@ -892,6 +906,8 @@ namespace FifApi.Migrations
                     b.Navigation("AlbumDuProduit");
 
                     b.Navigation("MarqueduProduit");
+
+                    b.Navigation("PaysDuProduit");
 
                     b.Navigation("TypePourLeProduit");
                 });
@@ -1046,6 +1062,8 @@ namespace FifApi.Migrations
             modelBuilder.Entity("FifApi.Models.EntityFramework.Pays", b =>
                 {
                     b.Navigation("EquipeDuPays");
+
+                    b.Navigation("ProduitPays");
 
                     b.Navigation("VilleDuPays");
                 });

@@ -132,14 +132,66 @@ namespace FifApi.Controllers
                                 prix = _context.CouleurProduits
                                     .Where(cp => cp.IdProduit == p.Id && cp.IdCouleur == c.Id)
                                     .Select(cp => cp.Prix)
-                                    .FirstOrDefault(),
+                                    .First(),
                                 codebarre = _context.CouleurProduits
                                     .Where(cp => cp.IdProduit == p.Id && cp.IdCouleur == c.Id)
                                     .Select(cp => cp.CodeBarre)
                                     .FirstOrDefault(),
                                 couleur = c.Nom
-                            }).ToList()
+                            }).Where(c => c.prix != null).ToList()
                     }).ToListAsync();
+
+
+        }
+
+        [HttpGet("Filter")]
+        public async Task<ActionResult<object>> GetProduitsByFilter(string? couleur, string? nation, string? categorie)
+        {
+            if (_context.Produits == null)
+            {
+                return NotFound();
+            }
+
+            return await (from p in _context.Produits
+                          where _context.Couleurs
+                              .Where(c => c.Nom == couleur || couleur == null)
+                              .SelectMany(c => _context.CouleurProduits
+                                  .Where(cp => cp.IdCouleur == c.Id && cp.IdProduit == p.Id))
+                              .Any()
+                          where _context.TypeProduits
+                              .Where(tp => tp.Nom == categorie || categorie == null)
+                                  .Where(tp => p.TypeId == tp.Id)
+                              .Any()
+                          where _context.Pays
+                              .Where(pys =>  pys.NomPays == nation || nation == null)
+                                  .Where(pys => p.PaysId == pys.IdPays)
+                              .Any()
+                          select new
+                          {
+                              idProduct = p.Id,
+                              title = p.Name,
+                              price = _context.CouleurProduits
+                                  .Where(cp => cp.IdProduit == p.Id)
+                                  .Min(cp => cp.Prix),
+                              image = _context.Photos
+                                  .Join
+                                  (_context.AlbumPhotos, alb => alb.IdPhoto, pth => pth.IdAlbum, (pth, alb) => new { photo = pth.URL })
+                                  .Select(aph => aph.photo)
+                                  .FirstOrDefault(),
+                              couleurs = _context.Couleurs
+                                  .Select(c => new
+                                  {
+                                      prix = _context.CouleurProduits
+                                          .Where(cp => cp.IdProduit == p.Id && cp.IdCouleur == c.Id)
+                                          .Select(cp => cp.Prix)
+                                          .First(),
+                                      codebarre = _context.CouleurProduits
+                                          .Where(cp => cp.IdProduit == p.Id && cp.IdCouleur == c.Id)
+                                          .Select(cp => cp.CodeBarre)
+                                          .FirstOrDefault(),
+                                      couleur = c.Nom
+                                  }).Where(c => c.prix != null).ToList()
+                          }).ToListAsync();
 
 
         }
