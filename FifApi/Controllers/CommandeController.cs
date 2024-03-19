@@ -16,11 +16,11 @@ namespace FifApi.Controllers
             _context = context;
         }
 
-        // GET: api/Produits
+        // GET: api/Commandes
         [HttpGet]
         public async Task<ActionResult<IEnumerable<object>>> GetCommandes()
         {
-            if (_context.Produits == null)
+            if (_context.Commandes == null)
             {
                 return NotFound();
             }
