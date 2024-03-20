@@ -77,32 +77,17 @@ namespace FifApi.Controllers
         // PUT: api/Utilisateurs/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutUtilisateur(int id, Utilisateur utilisateur)
+        public async Task<ActionResult<object>> PutUtilisateur(int id, User user)
         {
-            if (id != utilisateur.IdUtilisateur)
-            {
-                return BadRequest();
-            }
+            Utilisateur utilisateur = await _context.Utilisateurs.FindAsync(id);
 
-            _context.Entry(utilisateur).State = EntityState.Modified;
+            utilisateur.PseudoUtilisateur = user.UserName ?? utilisateur.PseudoUtilisateur;
+            utilisateur.MailUtilisateur = user.Email ?? utilisateur.MailUtilisateur;
+            utilisateur.MotDePasse = user.Password ?? utilisateur.MotDePasse;
 
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!UtilisateurExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
+            await _context.SaveChangesAsync();
 
-            return NoContent();
+            return utilisateur;
         }
 
         // POST: api/Utilisateurs
