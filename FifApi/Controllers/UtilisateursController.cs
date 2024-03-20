@@ -108,12 +108,21 @@ namespace FifApi.Controllers
         // POST: api/Utilisateurs
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Utilisateur>> PostUtilisateur(Utilisateur utilisateur)
+        public async Task<ActionResult<Utilisateur>> PostUtilisateur(User user)
         {
-          if (_context.Utilisateurs == null)
-          {
-              return Problem("Entity set 'FifaDBContext.Utilisateurs'  is null.");
-          }
+            if (_context.Utilisateurs == null)
+            {
+                return Problem("Entity set 'FifaDBContext.Utilisateurs'  is null.");
+            }
+
+            Utilisateur utilisateur = new Utilisateur
+            {
+                PseudoUtilisateur = user.UserName,
+                MailUtilisateur = user.Email,
+                MotDePasse = user.Password,
+                Role = "user"
+            };
+
             _context.Utilisateurs.Add(utilisateur);
             await _context.SaveChangesAsync();
 
