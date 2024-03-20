@@ -63,7 +63,8 @@ namespace FifApi.Controllers
                           select new
                           {
                               id = c.Id,
-                              nom = c.Nom
+                              nom = c.Nom,
+                              hexa = c.Hexa
                           }).ToListAsync();
         }
 

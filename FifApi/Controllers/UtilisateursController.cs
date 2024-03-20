@@ -108,7 +108,7 @@ namespace FifApi.Controllers
         // POST: api/Utilisateurs
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Utilisateur>> PostUtilisateur(User user)
+        public async Task<ActionResult<object>> PostUtilisateur(User user)
         {
             if (_context.Utilisateurs == null)
             {
@@ -126,7 +126,7 @@ namespace FifApi.Controllers
             _context.Utilisateurs.Add(utilisateur);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetUtilisateur", new { id = utilisateur.IdUtilisateur }, utilisateur);
+            return new { created = CreatedAtAction("GetUtilisateur", new { id = utilisateur.IdUtilisateur }, utilisateur).StatusCode == StatusCode(201).StatusCode };
         }
 
         // DELETE: api/Utilisateurs/5
