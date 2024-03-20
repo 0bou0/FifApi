@@ -36,7 +36,7 @@ namespace FifApi.Controllers
                 response = Ok(new
                 {
                     token = tokenString,
-                    userDetails = user,
+                    //userDetails = user,
                 });
             }
             return response;
