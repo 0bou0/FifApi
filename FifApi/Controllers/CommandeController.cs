@@ -3,6 +3,8 @@ using FifApi.Models.EntityFramework;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json.Serialization;
+using System.Text.Json;
 
 namespace FifApi.Controllers
 {
@@ -32,7 +34,7 @@ namespace FifApi.Controllers
                           join ut in _context.Utilisateurs on co.IdUtilisateur equals ut.IdUtilisateur
                           select new
                           {
-                              IdCommande = co.IdUtilisateur,
+                              IdCommande = co.IdCommande,
                               IdUtilisateur = ut.IdUtilisateur,
                               Date = co.DateCommande,
                               LigneCommandes = (
@@ -68,7 +70,7 @@ namespace FifApi.Controllers
                           join ut in _context.Utilisateurs on co.IdUtilisateur equals ut.IdUtilisateur
                           select new
                           {
-                              IdCommande = co.IdUtilisateur,
+                              IdCommande = co.IdCommande,
                               IdUtilisateur = ut.IdUtilisateur,
                               LigneCommandes = (
                                  from lc in _context.LigneCommandes
@@ -103,22 +105,38 @@ namespace FifApi.Controllers
 
 
         [HttpPost]
-        public async Task<ActionResult<Produit>> PostCommande(int IdUtilisateur, List<CommandLine> commandLines)
+        public async Task<ActionResult<Commande>> PostCommande(int IdUtilisateur, List<CommandLine> commandLines)
         {
+
             if (_context.Commandes == null)
             {
-                return Problem("Entity set 'FifaDBContext.Commandes'  is null.");
+                return Problem("Entity set 'FifaDBContext.Commandes' is null.");
             }
 
+            // Créer une nouvelle commande
             Commande commande = new Commande
             {
-               IdUtilisateur = IdUtilisateur,
-               DateCommande = DateTime.Now
+                IdUtilisateur = IdUtilisateur,
+                DateCommande = DateTime.Now
             };
             _context.Commandes.Add(commande);
+            await _context.SaveChangesAsync();
 
+            // Récupérer l'identifiant de la commande créée
+            int commandeId = commande.IdCommande;
+
+            // Parcourir chaque ligne de commande
             foreach (CommandLine commandLine in commandLines)
             {
+                // Vérifier si une ligne de commande avec le même stock et la même commande existe déjà
+                if (_context.LigneCommandes.Any(x => x.IdStock == commandLine.IdStock && x.IdCommande == commandeId))
+                {
+                    // Si une telle ligne de commande existe, lever une exception
+                    //throw new ArgumentOutOfRangeException("La ligne commande existe déjà.");
+                }
+
+
+
                 LigneCommande ligneCommande = new LigneCommande()
                 {
                     IdStock = commandLine.IdStock,
@@ -133,48 +151,33 @@ namespace FifApi.Controllers
                 {
                     throw new ArgumentOutOfRangeException("Le stock nexiste pas ou est null");
                 }
-                var stock = await _context.Stocks.FindAsync(commandLine);
+                var stock = await _context.Stocks.FindAsync(ligneCommande.IdStock);
 
                 if (stock == null)
                 {
                     return NotFound();
                 }
-                stock = new Stock{
+                stock = new Stock
+                {
                     IdStock = stock.IdStock,
                     Quantite = stock.Quantite - commandLine.quantite,
-                   CouleurProduitId = stock.CouleurProduitId,
-                   TailleId = stock.TailleId
+                    CouleurProduitId = stock.CouleurProduitId,
+                    TailleId = stock.TailleId
                 };
 
-                if(stock.Quantite < 0)
+                if (stock.Quantite < 0)
                 {
-                    throw new ArgumentException("quantité du stock est null ou inferieur à 0");
+                    return Unauthorized("quantité du stock est null ou inferieur à 0");
                 }
 
-                _context.Entry(stock).State = EntityState.Modified;
-
-                try
-                {
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    var stockexist = (_context.Stocks?.Any(e => e.IdStock == stock.IdStock)).GetValueOrDefault();
-                    if (!stockexist)
-                    {
-                        throw new ArgumentException("le stock n'a plus de stock");
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
 
             }
 
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetCommande", new { id = commande.IdCommande }, commande);
+
+            return NoContent();
+
         }
     }
 }
