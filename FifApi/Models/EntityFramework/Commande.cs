@@ -13,6 +13,10 @@ namespace FifApi.Models.EntityFramework
         [Required]
         [Column("cmd_utilisateur")]
         public int IdUtilisateur { get; set; }
+        
+        [Required]
+        [Column("cmd_date", TypeName = "date")]
+        public DateTime DateCommande { get; set; } = DateTime.Now;
 
 
 

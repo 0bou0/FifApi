@@ -14,6 +14,10 @@ namespace FifApi.Models.EntityFramework
         [Column("lcm_stock")]
         public int IdStock { get; set; }
 
+        [Required]
+        [Column("lcm_quantite")]
+        public int QuantiteAchat { get; set; } = 1;
+
 
         [ForeignKey(nameof(IdStock))]
         [InverseProperty(nameof(Stock.LigneDuStock))]
