@@ -428,7 +428,8 @@ namespace FifApi.Migrations
                 {
                     cmd_id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    cmd_utilisateur = table.Column<int>(type: "integer", nullable: false)
+                    cmd_utilisateur = table.Column<int>(type: "integer", nullable: false),
+                    cmd_date = table.Column<DateTime>(type: "date", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -489,7 +490,8 @@ namespace FifApi.Migrations
                 columns: table => new
                 {
                     lcm_commande = table.Column<int>(type: "integer", nullable: false),
-                    lcm_stock = table.Column<int>(type: "integer", nullable: false)
+                    lcm_stock = table.Column<int>(type: "integer", nullable: false),
+                    lcm_quantite = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {

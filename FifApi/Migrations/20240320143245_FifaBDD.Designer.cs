@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace FifApi.Migrations
 {
     [DbContext(typeof(FifaDBContext))]
-    [Migration("20240320092242_FifaBDD")]
+    [Migration("20240320143245_FifaBDD")]
     partial class FifaBDD
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -112,6 +112,10 @@ namespace FifApi.Migrations
                         .HasColumnName("cmd_id");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IdCommande"));
+
+                    b.Property<DateTime>("DateCommande")
+                        .HasColumnType("date")
+                        .HasColumnName("cmd_date");
 
                     b.Property<int>("IdUtilisateur")
                         .HasColumnType("integer")
@@ -339,6 +343,10 @@ namespace FifApi.Migrations
                     b.Property<int>("IdStock")
                         .HasColumnType("integer")
                         .HasColumnName("lcm_stock");
+
+                    b.Property<int>("QuantiteAchat")
+                        .HasColumnType("integer")
+                        .HasColumnName("lcm_quantite");
 
                     b.HasKey("IdCommande", "IdStock")
                         .HasName("pk_lcm");

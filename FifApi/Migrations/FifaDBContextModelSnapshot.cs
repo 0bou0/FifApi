@@ -111,6 +111,10 @@ namespace FifApi.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IdCommande"));
 
+                    b.Property<DateTime>("DateCommande")
+                        .HasColumnType("date")
+                        .HasColumnName("cmd_date");
+
                     b.Property<int>("IdUtilisateur")
                         .HasColumnType("integer")
                         .HasColumnName("cmd_utilisateur");
@@ -337,6 +341,10 @@ namespace FifApi.Migrations
                     b.Property<int>("IdStock")
                         .HasColumnType("integer")
                         .HasColumnName("lcm_stock");
+
+                    b.Property<int>("QuantiteAchat")
+                        .HasColumnType("integer")
+                        .HasColumnName("lcm_quantite");
 
                     b.HasKey("IdCommande", "IdStock")
                         .HasName("pk_lcm");

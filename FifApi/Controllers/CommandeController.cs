@@ -1,4 +1,5 @@
-﻿using FifApi.Models.EntityFramework;
+﻿using FifApi.Models;
+using FifApi.Models.EntityFramework;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -33,6 +34,7 @@ namespace FifApi.Controllers
                           {
                               IdCommande = co.IdUtilisateur,
                               IdUtilisateur = ut.IdUtilisateur,
+                              Date = co.DateCommande,
                               LigneCommandes = (
                                  from lc in _context.LigneCommandes
                                  join st in _context.Stocks on lc.IdStock equals st.IdStock
@@ -101,13 +103,75 @@ namespace FifApi.Controllers
 
 
         [HttpPost]
-        public async Task<ActionResult<Produit>> PostCommande(Commande commande)
+        public async Task<ActionResult<Produit>> PostCommande(int IdUtilisateur, List<CommandLine> commandLines)
         {
             if (_context.Commandes == null)
             {
                 return Problem("Entity set 'FifaDBContext.Commandes'  is null.");
             }
+
+            Commande commande = new Commande
+            {
+               IdUtilisateur = IdUtilisateur,
+               DateCommande = DateTime.Now
+            };
             _context.Commandes.Add(commande);
+
+            foreach (CommandLine commandLine in commandLines)
+            {
+                LigneCommande ligneCommande = new LigneCommande()
+                {
+                    IdStock = commandLine.IdStock,
+                    IdCommande = commande.IdCommande,
+                    QuantiteAchat = commandLine.quantite
+                };
+                _context.LigneCommandes.Add(ligneCommande);
+
+
+
+                if (_context.Stocks == null)
+                {
+                    throw new ArgumentOutOfRangeException("Le stock nexiste pas ou est null");
+                }
+                var stock = await _context.Stocks.FindAsync(commandLine);
+
+                if (stock == null)
+                {
+                    return NotFound();
+                }
+                stock = new Stock{
+                    IdStock = stock.IdStock,
+                    Quantite = stock.Quantite - commandLine.quantite,
+                   CouleurProduitId = stock.CouleurProduitId,
+                   TailleId = stock.TailleId
+                };
+
+                if(stock.Quantite < 0)
+                {
+                    throw new ArgumentException("quantité du stock est null ou inferieur à 0");
+                }
+
+                _context.Entry(stock).State = EntityState.Modified;
+
+                try
+                {
+                    await _context.SaveChangesAsync();
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    var stockexist = (_context.Stocks?.Any(e => e.IdStock == stock.IdStock)).GetValueOrDefault();
+                    if (!stockexist)
+                    {
+                        throw new ArgumentException("le stock n'a plus de stock");
+                    }
+                    else
+                    {
+                        throw;
+                    }
+                }
+
+            }
+
             await _context.SaveChangesAsync();
 
             return CreatedAtAction("GetCommande", new { id = commande.IdCommande }, commande);
