@@ -39,10 +39,6 @@ namespace FifApi.Controllers
                     userDetails = user,
                 });
             }
-            response = Ok(new
-            {
-                response = "bou"
-            });
             return response;
         }
         private Utilisateur? AuthenticateUser(User utlilsateur)
