@@ -107,19 +107,17 @@ namespace FifApi.Controllers
         [HttpPost]
         public async Task<ActionResult<Commande>> PostCommande(int IdUtilisateur, List<CommandLine> commandLines)
         {
-
-            if (_context.Commandes == null)
-            {
-                return Problem("Entity set 'FifaDBContext.Commandes' is null.");
-            }
-
             // Créer une nouvelle commande
             Commande commande = new Commande
             {
                 IdUtilisateur = IdUtilisateur,
                 DateCommande = DateTime.Now
             };
+
+            // Ajouter la nouvelle commande au contexte EF
             _context.Commandes.Add(commande);
+
+            // Enregistrer les modifications dans la base de données
             await _context.SaveChangesAsync();
 
             // Récupérer l'identifiant de la commande créée
@@ -128,56 +126,27 @@ namespace FifApi.Controllers
             // Parcourir chaque ligne de commande
             foreach (CommandLine commandLine in commandLines)
             {
-                // Vérifier si une ligne de commande avec le même stock et la même commande existe déjà
-                if (_context.LigneCommandes.Any(x => x.IdStock == commandLine.IdStock && x.IdCommande == commandeId))
-                {
-                    // Si une telle ligne de commande existe, lever une exception
-                    //throw new ArgumentOutOfRangeException("La ligne commande existe déjà.");
-                }
-
-
-
+                // Créer une nouvelle ligne de commande
                 LigneCommande ligneCommande = new LigneCommande()
                 {
                     IdStock = commandLine.IdStock,
-                    IdCommande = commande.IdCommande,
+                    IdCommande = commandeId,
                     QuantiteAchat = commandLine.quantite
                 };
+
+                // Ajouter la nouvelle ligne de commande au contexte EF
                 _context.LigneCommandes.Add(ligneCommande);
 
-
-
-                if (_context.Stocks == null)
-                {
-                    throw new ArgumentOutOfRangeException("Le stock nexiste pas ou est null");
-                }
+                // Mettre à jour le stock
                 var stock = await _context.Stocks.FindAsync(ligneCommande.IdStock);
+                stock.Quantite -= commandLine.quantite;
 
-                if (stock == null)
-                {
-                    return NotFound();
-                }
-                stock = new Stock
-                {
-                    IdStock = stock.IdStock,
-                    Quantite = stock.Quantite - commandLine.quantite,
-                    CouleurProduitId = stock.CouleurProduitId,
-                    TailleId = stock.TailleId
-                };
-
-                if (stock.Quantite < 0)
-                {
-                    return Unauthorized("quantité du stock est null ou inferieur à 0");
-                }
-
-
+                // Enregistrer les modifications dans la base de données
+                await _context.SaveChangesAsync();
             }
 
-            await _context.SaveChangesAsync();
-
-
             return NoContent();
-
         }
+
     }
 }
