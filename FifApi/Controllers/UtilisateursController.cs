@@ -42,7 +42,7 @@ namespace FifApi.Controllers
 
         // GET: api/Utilisateurs/5
         [HttpPut("ViewUtilisateur")]
-        public async Task<ActionResult<Utilisateur>> ViewUtilisateur([FromBody] User user)
+        public async Task<ActionResult<object>> ViewUtilisateur([FromBody] User user)
         {
             if (_context.Utilisateurs == null)
             {
@@ -71,7 +71,13 @@ namespace FifApi.Controllers
                     return NotFound();
                 }
 
-                return utilisateur;
+                return new
+                {
+                    PseudoUtilisateur = utilisateur.PseudoUtilisateur,
+                    EmailUtilisateur = utilisateur.MailUtilisateur,
+                    PrenomUtilisateur = utilisateur.PrenomUtilisateur,
+                    NomUtilisateur = utilisateur.NomUtilisateur
+                };
             }
             catch
             {
