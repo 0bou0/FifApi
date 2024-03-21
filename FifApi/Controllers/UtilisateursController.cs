@@ -160,7 +160,7 @@ namespace FifApi.Controllers
                     return NotFound();
                 }
 
-                utilisateur.PseudoUtilisateur = user.Email ?? utilisateur.MailUtilisateur;
+                utilisateur.MailUtilisateur = user.Email ?? utilisateur.MailUtilisateur;
 
                 await _context.SaveChangesAsync();
 
@@ -202,7 +202,7 @@ namespace FifApi.Controllers
                     return BadRequest();
                 }
 
-                utilisateur.PseudoUtilisateur = user.NewPassword ?? utilisateur.MotDePasse;
+                utilisateur.MotDePasse = user.NewPassword ?? utilisateur.MotDePasse;
 
                 await _context.SaveChangesAsync();
 
@@ -239,7 +239,7 @@ namespace FifApi.Controllers
                     return NotFound();
                 }
 
-                utilisateur.PseudoUtilisateur = user.LastName ?? utilisateur.NomUtilisateur;
+                utilisateur.NomUtilisateur = user.LastName ?? utilisateur.NomUtilisateur;
 
                 await _context.SaveChangesAsync();
 
@@ -276,7 +276,7 @@ namespace FifApi.Controllers
                     return NotFound();
                 }
 
-                utilisateur.PseudoUtilisateur = user.FirstName ?? utilisateur.PrenomUtilisateur;
+                utilisateur.PrenomUtilisateur = user.FirstName ?? utilisateur.PrenomUtilisateur;
 
                 await _context.SaveChangesAsync();
 
