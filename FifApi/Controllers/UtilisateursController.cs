@@ -78,7 +78,7 @@ namespace FifApi.Controllers
 
                 ClaimsPrincipal claims = CheckToken(user, out token);
 
-                var utilisateur = await _context.Utilisateurs.Where(x => x.PseudoUtilisateur == claims.Claims.ToList()[0].Value).FirstAsync();
+                var utilisateur = await _context.Utilisateurs.Where(x => x.IdUtilisateur.ToString() == claims.Claims.ToList()[0].Value).FirstAsync();
 
                 if (utilisateur == null)
                 {
