@@ -197,12 +197,12 @@ namespace FifApi.Controllers
                     return NotFound();
                 }
 
-                if (user.OldPassword != utilisateur.MotDePasse)
+                if (user.Password != utilisateur.MotDePasse)
                 {
                     return BadRequest();
                 }
 
-                utilisateur.PseudoUtilisateur = user.Password ?? utilisateur.MotDePasse;
+                utilisateur.PseudoUtilisateur = user.NewPassword ?? utilisateur.MotDePasse;
 
                 await _context.SaveChangesAsync();
 
