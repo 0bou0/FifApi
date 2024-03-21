@@ -61,7 +61,7 @@ namespace FifApi.Controllers
             issuer: _config["Jwt:Issuer"],
             audience: _config["Jwt:Audience"],
             claims: claims,
-            expires: DateTime.Now.AddMinutes(1),
+            expires: DateTime.Now.AddMinutes(5),
             signingCredentials: credentials);
             return new JwtSecurityTokenHandler().WriteToken(token);
         }

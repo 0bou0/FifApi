@@ -319,6 +319,11 @@ namespace FifApi.Controllers
                 return Problem("Entity set 'FifaDBContext.Utilisateurs'  is null.");
             }
 
+            if (user.UserName == null || user.Email == null || user.Password == null)
+            {
+                return BadRequest();
+            }
+
             Utilisateur utilisateur = new Utilisateur
             {
                 PseudoUtilisateur = user.UserName,
@@ -334,21 +339,37 @@ namespace FifApi.Controllers
         }
 
         // DELETE: api/Utilisateurs/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteUtilisateur(int id)
+        [HttpDelete]
+        public async Task<IActionResult> DeleteUtilisateur(User user)
         {
             if (_context.Utilisateurs == null)
             {
                 return NotFound();
             }
-            var utilisateur = await _context.Utilisateurs.FindAsync(id);
-            if (utilisateur == null)
+            try
             {
-                return NotFound();
-            }
+                SecurityToken token;
 
-            _context.Utilisateurs.Remove(utilisateur);
-            await _context.SaveChangesAsync();
+                ClaimsPrincipal claims = CheckToken(user, out token);
+
+                var utilisateur = await _context.Utilisateurs.Where(x => x.IdUtilisateur.ToString() == claims.Claims.ToList()[0].Value.ToString()).FirstAsync();
+
+                if (utilisateur == null)
+                {
+                    return NotFound();
+                }
+
+                await _context.SaveChangesAsync();
+
+                _context.Utilisateurs.Remove(utilisateur);
+                await _context.SaveChangesAsync();
+
+
+            }
+            catch
+            {
+                return Unauthorized();
+            }
 
             return NoContent();
         }
