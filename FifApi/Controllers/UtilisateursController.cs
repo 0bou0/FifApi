@@ -9,6 +9,10 @@ using FifApi.Models.EntityFramework;
 using NuGet.Protocol;
 using FifApi.Models;
 using Microsoft.AspNetCore.Authorization;
+using System.IdentityModel.Tokens.Jwt;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+using System.Security.Claims;
 
 namespace FifApi.Controllers
 {
@@ -17,10 +21,12 @@ namespace FifApi.Controllers
     public class UtilisateursController : ControllerBase
     {
         private readonly FifaDBContext _context;
+        private readonly IConfiguration _config;
 
-        public UtilisateursController(FifaDBContext context)
+        public UtilisateursController(FifaDBContext context, IConfiguration config)
         {
             _context = context;
+            _config = config;
         }
 
         // GET: api/Utilisateurs
@@ -35,21 +41,45 @@ namespace FifApi.Controllers
         }
 
         // GET: api/Utilisateurs/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<Utilisateur>> GetUtilisateur(int id)
+        [HttpPost("ViewUtilisateur")]
+        public async Task<ActionResult<Utilisateur>> ViewUtilisateur([FromBody] string tokenString)
         {
             if (_context.Utilisateurs == null)
             {
                 return NotFound();
             }
-            var utilisateur = await _context.Utilisateurs.FindAsync(id);
-
-            if (utilisateur == null)
+            try
             {
-                return NotFound();
-            }
+                SecurityToken token;
 
-            return utilisateur;
+                ClaimsPrincipal claims = new JwtSecurityTokenHandler().ValidateToken(tokenString, new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    ValidIssuer = _config["Jwt:Issuer"],
+                    ValidAudience = _config["Jwt:Audience"],
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:SecretKey"])),
+                    ClockSkew = TimeSpan.Zero
+                }, out token);
+
+                var utilisateur = await _context.Utilisateurs.Where(x => x.PseudoUtilisateur == claims.Claims.ToList()[0].Value).FirstAsync();
+
+                if (utilisateur == null)
+                {
+                    return NotFound();
+                }
+
+                return utilisateur;
+            }
+            catch
+            {
+                return Unauthorized();
+            }
+           
+
+            
         }
 
         // GET: api/Utilisateurs/checkusername/bou
