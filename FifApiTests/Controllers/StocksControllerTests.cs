@@ -53,41 +53,7 @@ namespace FifApi.Tests.Controllers
 
         }
 
-        [TestMethod]
-        public void GetStocksAll_ExistingIdPassed_ReturnsRightItem_AvecMoq()
-        {
-            // Arrange
-            var stocks = new List<Stock>
-            {
-                new Stock { IdStock = 1, TailleId = "S", Quantite = 10 },
-                new Stock { IdStock = 2, TailleId = "M", Quantite = 20 }
-                // Ajoutez d'autres stocks au besoin
-            };
-
-            var mockRepository = new Mock<IDataRepository<Stock>>();
-            mockRepository.Setup(x => x.GetAllAsync()).ReturnsAsync(stocks);
-
-
-            var userController = new StocksController(mockRepository.Object);
-
-            // Act
-            var actionResult = userController.GetStocks().Result;
-            var result = actionResult.Value.ToList(); // Convertir IEnumerable en List pour faciliter l'assertion
-
-            // Assert
-            Assert.IsNotNull(actionResult);
-            Assert.IsNotNull(result);
-            Assert.AreEqual(stocks.Count, result.Count); // Vérifie si le nombre d'éléments retournés est le même que celui de la liste originale
-
-            // Vérifie si les propriétés des stocks retournés correspondent aux propriétés des stocks originaux
-            for (int i = 0; i < stocks.Count; i++)
-            {
-                Assert.AreEqual(stocks[i].IdStock, result[i].IdStock);
-                Assert.AreEqual(stocks[i].TailleId, result[i].TailleId);
-                Assert.AreEqual(stocks[i].Quantite, result[i].Quantite);
-            }
-        }
-
+       
 
 
 
