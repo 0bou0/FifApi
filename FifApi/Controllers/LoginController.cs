@@ -53,8 +53,7 @@ namespace FifApi.Controllers
             var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
             var claims = new[]
             {
-                new Claim(JwtRegisteredClaimNames.Name, utlilsateur.PseudoUtilisateur.ToString()),
-                new Claim(JwtRegisteredClaimNames.Email, utlilsateur.MailUtilisateur.ToString()),
+                new Claim(JwtRegisteredClaimNames.NameId, utlilsateur.IdUtilisateur.ToString()),
                 new Claim("role", utlilsateur.Role.ToString()),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
             };

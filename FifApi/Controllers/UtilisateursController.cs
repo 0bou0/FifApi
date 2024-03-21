@@ -13,6 +13,7 @@ using System.IdentityModel.Tokens.Jwt;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using System.Security.Claims;
+using NuGet.Common;
 
 namespace FifApi.Controllers
 {
@@ -40,53 +41,6 @@ namespace FifApi.Controllers
             return await _context.Utilisateurs.ToListAsync();
         }
 
-        // GET: api/Utilisateurs/5
-        [HttpPut("ViewUtilisateur")]
-        public async Task<ActionResult<object>> ViewUtilisateur([FromBody] User user)
-        {
-            if (_context.Utilisateurs == null)
-            {
-                return NotFound();
-            }
-            try
-            {
-                SecurityToken token;
-
-                ClaimsPrincipal claims = new JwtSecurityTokenHandler().ValidateToken(user.Token, new TokenValidationParameters
-                {
-                    ValidateIssuer = true,
-                    ValidateAudience = true,
-                    ValidateLifetime = true,
-                    ValidateIssuerSigningKey = true,
-                    ValidIssuer = _config["Jwt:Issuer"],
-                    ValidAudience = _config["Jwt:Audience"],
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:SecretKey"])),
-                    ClockSkew = TimeSpan.Zero
-                }, out token);
-
-                var utilisateur = await _context.Utilisateurs.Where(x => x.PseudoUtilisateur == claims.Claims.ToList()[0].Value).FirstAsync();
-
-                if (utilisateur == null)
-                {
-                    return NotFound();
-                }
-
-                return new
-                {
-                    PseudoUtilisateur = utilisateur.PseudoUtilisateur,
-                    EmailUtilisateur = utilisateur.MailUtilisateur,
-                    PrenomUtilisateur = utilisateur.PrenomUtilisateur,
-                    NomUtilisateur = utilisateur.NomUtilisateur
-                };
-            }
-            catch
-            {
-                return Unauthorized();
-            }
-           
-
-            
-        }
 
         // GET: api/Utilisateurs/checkusername/bou
         [HttpGet("checkusername/{username}")]
@@ -109,6 +63,82 @@ namespace FifApi.Controllers
             }
             return new { email = (await _context.Utilisateurs.Where(x => x.MailUtilisateur == email).CountAsync()) == 0 }.ToJson();
         }
+
+        // PUT: api/Utilisateurs/ViewUtilisateur
+        [HttpPut("ViewUtilisateur")]
+        public async Task<ActionResult<object>> ViewUtilisateur([FromBody] User user)
+        {
+            if (_context.Utilisateurs == null)
+            {
+                return NotFound();
+            }
+            try
+            {
+                SecurityToken token;
+
+                ClaimsPrincipal claims = CheckToken(user, out token);
+
+                var utilisateur = await _context.Utilisateurs.Where(x => x.PseudoUtilisateur == claims.Claims.ToList()[0].Value).FirstAsync();
+
+                if (utilisateur == null)
+                {
+                    return NotFound();
+                }
+
+                return new
+                {
+                    PseudoUtilisateur = utilisateur.PseudoUtilisateur,
+                    EmailUtilisateur = utilisateur.MailUtilisateur,
+                    PrenomUtilisateur = utilisateur.PrenomUtilisateur,
+                    NomUtilisateur = utilisateur.NomUtilisateur
+                };
+            }
+            catch
+            {
+                return Unauthorized();
+            }
+
+
+
+        }
+
+        // PUT: api/Utilisateurs/ViewUtilisateur
+        [HttpPut("ChangeUserName")]
+        public async Task<ActionResult<object>> ChangeUserName([FromBody] User user)
+        {
+            if (_context.Utilisateurs == null)
+            {
+                return NotFound();
+            }
+            try
+            {
+                SecurityToken token;
+
+                ClaimsPrincipal claims = CheckToken(user, out token);
+
+                var utilisateur = await _context.Utilisateurs.Where(x => x.IdUtilisateur.ToString() == claims.Claims.ToList()[0].Value.ToString()).FirstAsync();
+
+                if (utilisateur == null)
+                {
+                    return NotFound();
+                }
+
+                utilisateur.PseudoUtilisateur = user.UserName ?? utilisateur.PseudoUtilisateur;
+
+                await _context.SaveChangesAsync();
+
+                return new { changed = true };
+
+            }
+            catch
+            {
+                return new { changed = false };
+            }
+
+
+
+        }
+
 
         // PUT: api/Utilisateurs/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
@@ -190,15 +220,25 @@ namespace FifApi.Controllers
         }
 
 
-
-
-
-
-
-
         private bool UtilisateurExists(int id)
         {
             return (_context.Utilisateurs?.Any(e => e.IdUtilisateur == id)).GetValueOrDefault();
         }
+
+        private ClaimsPrincipal CheckToken(User user, out SecurityToken token)
+        {
+            return new JwtSecurityTokenHandler().ValidateToken(user.Token, new TokenValidationParameters
+            {
+                ValidateIssuer = true,
+                ValidateAudience = true,
+                ValidateLifetime = true,
+                ValidateIssuerSigningKey = true,
+                ValidIssuer = _config["Jwt:Issuer"],
+                ValidAudience = _config["Jwt:Audience"],
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:SecretKey"])),
+                ClockSkew = TimeSpan.Zero
+            }, out token);
+        }
+
     }
 }
