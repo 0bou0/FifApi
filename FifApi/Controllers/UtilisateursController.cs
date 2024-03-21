@@ -102,7 +102,7 @@ namespace FifApi.Controllers
 
         }
 
-        // PUT: api/Utilisateurs/ViewUtilisateur
+        // PUT: api/Utilisateurs/ChangeUserName
         [HttpPut("ChangeUserName")]
         public async Task<ActionResult<object>> ChangeUserName([FromBody] User user)
         {
@@ -124,6 +124,159 @@ namespace FifApi.Controllers
                 }
 
                 utilisateur.PseudoUtilisateur = user.UserName ?? utilisateur.PseudoUtilisateur;
+
+                await _context.SaveChangesAsync();
+
+                return new { changed = true };
+
+            }
+            catch
+            {
+                return new { changed = false };
+            }
+
+
+
+        }
+
+        // PUT: api/Utilisateurs/ChangeEmail
+        [HttpPut("ChangeEmail")]
+        public async Task<ActionResult<object>> ChangeEmail([FromBody] User user)
+        {
+            if (_context.Utilisateurs == null)
+            {
+                return NotFound();
+            }
+            try
+            {
+                SecurityToken token;
+
+                ClaimsPrincipal claims = CheckToken(user, out token);
+
+                var utilisateur = await _context.Utilisateurs.Where(x => x.IdUtilisateur.ToString() == claims.Claims.ToList()[0].Value.ToString()).FirstAsync();
+
+                if (utilisateur == null)
+                {
+                    return NotFound();
+                }
+
+                utilisateur.PseudoUtilisateur = user.Email ?? utilisateur.MailUtilisateur;
+
+                await _context.SaveChangesAsync();
+
+                return new { changed = true };
+
+            }
+            catch
+            {
+                return new { changed = false };
+            }
+
+
+
+        }
+
+        // PUT: api/Utilisateurs/ChangePassword
+        [HttpPut("ChangePassword")]
+        public async Task<ActionResult<object>> ChangePassword([FromBody] User user)
+        {
+            if (_context.Utilisateurs == null)
+            {
+                return NotFound();
+            }
+            try
+            {
+                SecurityToken token;
+
+                ClaimsPrincipal claims = CheckToken(user, out token);
+
+                var utilisateur = await _context.Utilisateurs.Where(x => x.IdUtilisateur.ToString() == claims.Claims.ToList()[0].Value.ToString()).FirstAsync();
+
+                if (utilisateur == null)
+                {
+                    return NotFound();
+                }
+
+                if (user.OldPassword != utilisateur.MotDePasse)
+                {
+                    return BadRequest();
+                }
+
+                utilisateur.PseudoUtilisateur = user.Password ?? utilisateur.MotDePasse;
+
+                await _context.SaveChangesAsync();
+
+                return new { changed = true };
+
+            }
+            catch
+            {
+                return new { changed = false };
+            }
+
+
+
+        }
+
+        // PUT: api/Utilisateurs/ChangeLastName
+        [HttpPut("ChangeLastName")]
+        public async Task<ActionResult<object>> ChangeLastName([FromBody] User user)
+        {
+            if (_context.Utilisateurs == null)
+            {
+                return NotFound();
+            }
+            try
+            {
+                SecurityToken token;
+
+                ClaimsPrincipal claims = CheckToken(user, out token);
+
+                var utilisateur = await _context.Utilisateurs.Where(x => x.IdUtilisateur.ToString() == claims.Claims.ToList()[0].Value.ToString()).FirstAsync();
+
+                if (utilisateur == null)
+                {
+                    return NotFound();
+                }
+
+                utilisateur.PseudoUtilisateur = user.LastName ?? utilisateur.NomUtilisateur;
+
+                await _context.SaveChangesAsync();
+
+                return new { changed = true };
+
+            }
+            catch
+            {
+                return new { changed = false };
+            }
+
+
+
+        }
+
+        // PUT: api/Utilisateurs/ChangeFirstName
+        [HttpPut("ChangeFirstName")]
+        public async Task<ActionResult<object>> ChangeFirstName([FromBody] User user)
+        {
+            if (_context.Utilisateurs == null)
+            {
+                return NotFound();
+            }
+            try
+            {
+                SecurityToken token;
+
+                ClaimsPrincipal claims = CheckToken(user, out token);
+
+                var utilisateur = await _context.Utilisateurs.Where(x => x.IdUtilisateur.ToString() == claims.Claims.ToList()[0].Value.ToString()).FirstAsync();
+
+                if (utilisateur == null)
+                {
+                    return NotFound();
+                }
+
+                utilisateur.PseudoUtilisateur = user.FirstName ?? utilisateur.PrenomUtilisateur;
 
                 await _context.SaveChangesAsync();
 
