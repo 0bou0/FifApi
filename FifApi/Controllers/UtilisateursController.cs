@@ -41,8 +41,8 @@ namespace FifApi.Controllers
         }
 
         // GET: api/Utilisateurs/5
-        [HttpPost("ViewUtilisateur")]
-        public async Task<ActionResult<Utilisateur>> ViewUtilisateur([FromBody] string tokenString)
+        [HttpPut("ViewUtilisateur")]
+        public async Task<ActionResult<Utilisateur>> ViewUtilisateur([FromBody] User user)
         {
             if (_context.Utilisateurs == null)
             {
@@ -52,7 +52,7 @@ namespace FifApi.Controllers
             {
                 SecurityToken token;
 
-                ClaimsPrincipal claims = new JwtSecurityTokenHandler().ValidateToken(tokenString, new TokenValidationParameters
+                ClaimsPrincipal claims = new JwtSecurityTokenHandler().ValidateToken(user.Token, new TokenValidationParameters
                 {
                     ValidateIssuer = true,
                     ValidateAudience = true,
