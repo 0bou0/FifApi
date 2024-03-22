@@ -11,14 +11,50 @@ using Microsoft.AspNetCore.Mvc;
 using FifApi.Models;
 using System.Collections;
 using System.Linq.Expressions;
+using System.Threading.Tasks;
+using NuGet.Protocol.Core.Types;
+
 
 namespace FifApi.Tests.Controllers
 {
     [TestClass]
     public class StocksControllerTests
     {
+        private StocksController _controller;
+        private FifaDBContext _context;
+
+        public StocksControllerTests()
+        {
+            var builder = new DbContextOptionsBuilder<FifaDBContext>()
+                .UseNpgsql("SerieDB"); // Chaine de connexion à mettre dans les ( )
+            _context = new FifaDBContext(builder.Options);
+            _controller = new StocksController(_context);
+        }
+
+
+
         [TestMethod]
-        public void GetStock_ExistingIdPassed_ReturnsRightItem_AvecMoq()
+        public async Task GetStocks_ExistingIdPassed_ReturnsRightItem()
+        {
+
+            // Act : Appelez la méthode à tester
+            var actionTask = _controller.GetStocks();
+            actionTask.Wait(); // Attend que la tâche soit terminée
+            var actionResult = actionTask.Result;
+
+            // Assert : Vérifiez que le résultat correspond à ce qui est attendu
+
+            // Vérifiez si le résultat n'est pas null
+            Assert.IsNotNull(actionResult);
+
+            // Vérifiez si le résultat est une instance de ActionResult<IEnumerable<Stock>>
+            Assert.IsInstanceOfType(actionResult, typeof(ActionResult<IEnumerable<Stock>>));
+
+
+        }
+
+        [TestMethod]
+        public void GetStockbyId_ExistingIdPassed_ReturnsRightItem_AvecMoq()
         {
             // Arrange
             var stock = new Stock
@@ -53,7 +89,8 @@ namespace FifApi.Tests.Controllers
 
         }
 
-       
+
+
 
 
 

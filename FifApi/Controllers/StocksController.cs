@@ -13,6 +13,7 @@ namespace FifApi.Controllers
     [ApiController]
     public class StocksController : ControllerBase
     {
+
         private readonly FifaDBContext _context;
 
         public StocksController(FifaDBContext context)
