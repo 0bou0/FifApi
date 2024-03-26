@@ -340,7 +340,7 @@ namespace FifApi.Controllers
 
         // DELETE: api/Utilisateurs/5
         [HttpDelete]
-        public async Task<IActionResult> DeleteUtilisateur([FromBody]User user)
+        public async Task<IActionResult> DeleteUtilisateur([FromBody] User user)
         {
             if (_context.Utilisateurs == null)
             {
@@ -358,13 +358,17 @@ namespace FifApi.Controllers
                 {
                     return NotFound();
                 }
+                List<Commande> commandes = await _context.Commandes.Where(x => x.IdUtilisateur.ToString() == claims.Claims.ToString()[0].ToString()).ToListAsync();
 
+                foreach(Commande commande in commandes)
+                {
+                    commande.IdUtilisateur = null;
+                }
                 await _context.SaveChangesAsync();
+
 
                 _context.Utilisateurs.Remove(utilisateur);
                 await _context.SaveChangesAsync();
-
-
             }
             catch
             {
