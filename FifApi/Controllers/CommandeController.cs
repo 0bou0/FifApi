@@ -57,51 +57,50 @@ namespace FifApi.Controllers
 
         }
 
-        // GET: api/Commande/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<object>> GetCommandeById(int id)
+       [HttpGet("{id}")]
+        public async Task<ActionResult<Commande>> GetCommandeById(int id)
         {
-            if (_context.Produits == null)
+            var commande = await (from co in _context.Commandes
+                                  join ut in _context.Utilisateurs on co.IdUtilisateur equals ut.IdUtilisateur
+                                  where co.IdUtilisateur == id
+                                  select new Commande
+                                  {
+                                      IdCommande = co.IdCommande,
+                                      IdUtilisateur = ut.IdUtilisateur,
+                                      LigneDeLaCommande = (
+                                         from lc in _context.LigneCommandes
+                                         join st in _context.Stocks on lc.IdStock equals st.IdStock
+                                         join cp in _context.CouleurProduits on st.CouleurProduitId equals cp.IdCouleurProduit
+                                         join tl in _context.Tailles on st.TailleId equals tl.IdTaille
+                                         join pr in _context.Produits on cp.IdProduit equals pr.Id
+                                         join cl in _context.Couleurs on cp.IdCouleur equals cl.Id
+                                         where lc.IdCommande == co.IdCommande
+                                         select new LigneCommande
+                                         {
+                                             StockLigneCommande = new Stock
+                                             {
+                                                 IdStock = st.IdStock,
+                                                 ProduitEncouleur = new CouleurProduit
+                                                 {
+                                                     Couleur_CouleurProduit = new Couleur { Id = cl.Id, Nom = cl.Nom },
+                                                     Produit_CouleurProduit = new Produit { Id = pr.Id, Name = pr.Name }
+                                                 },
+                                                 TailleId = tl.NomTaille
+                                             },
+                                             QuantiteAchat = st.Quantite
+                                         }
+                                     ).ToList()
+                                  }
+                        ).FirstOrDefaultAsync();
+
+            if (commande == null)
             {
                 return NotFound();
             }
 
-            var produit = await (from co in _context.Commandes
-                          join ut in _context.Utilisateurs on co.IdUtilisateur equals ut.IdUtilisateur
-                          select new
-                          {
-                              IdCommande = co.IdCommande,
-                              IdUtilisateur = ut.IdUtilisateur,
-                              LigneCommandes = (
-                                 from lc in _context.LigneCommandes
-                                 join st in _context.Stocks on lc.IdStock equals st.IdStock
-                                 join cp in _context.CouleurProduits on st.CouleurProduitId equals cp.IdCouleurProduit
-                                 join tl in _context.Tailles on st.TailleId equals tl.IdTaille
-                                 join pr in _context.Produits on cp.IdProduit equals pr.Id
-                                 join cl in _context.Couleurs on cp.IdCouleur equals cl.Id
-                                 where lc.IdCommande == co.IdCommande
-                                 select new
-                                 {
-                                     Stock = st.IdStock,
-                                     Quantite = st.Quantite,
-                                     Couleur = cl.Nom,
-                                     Produit = pr.Name,
-                                     Taille = tl.NomTaille
-                                 }
-                             ).ToList()
-
-
-                          }
-
-                ).Where(x => x.IdUtilisateur == id).ToListAsync();
-
-            if (produit == null)
-            {
-                return NotFound();
-            }
-
-            return produit;
+            return commande;
         }
+
 
 
         [HttpPost]

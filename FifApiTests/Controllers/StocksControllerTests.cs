@@ -39,7 +39,7 @@ namespace FifApi.Tests.Controllers
         }
 
         [TestMethod]
-        public async Task GetSeriesTest()
+        public async Task GetAllStocks()
         {
             // Act : Appelez la méthode à tester
             var actionResult = await _controller.GetStocks();
