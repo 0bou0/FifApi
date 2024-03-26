@@ -358,12 +358,24 @@ namespace FifApi.Controllers
                 {
                     return NotFound();
                 }
-                List<Commande> commandes = await _context.Commandes.Where(x => x.IdUtilisateur.ToString() == claims.Claims.ToString()[0].ToString()).ToListAsync();
 
-                foreach(Commande commande in commandes)
+                List<Commande> commandes = await _context.Commandes.Where(x => x.IdUtilisateur.ToString() == claims.Claims.ToList()[0].Value).ToListAsync();
+                List<InfoCB> infoscb = await _context.InfoCBs.Where(x => x.UtilisateurId.ToString() == claims.Claims.ToList()[0].Value).ToListAsync();
+                List<Vote> votes = await _context.Votes.Where(x => x.IdUtilisateur.ToString() == claims.Claims.ToList()[0].Value).ToListAsync();
+
+                foreach (Commande commande in commandes)
                 {
                     commande.IdUtilisateur = null;
                 }
+                foreach (InfoCB infocb in infoscb)
+                {
+                    _context.InfoCBs.Remove(infocb);
+                }
+                foreach(Vote vote in votes)
+                {
+                    _context.Votes.Remove(vote);
+                }
+
                 await _context.SaveChangesAsync();
 
 
