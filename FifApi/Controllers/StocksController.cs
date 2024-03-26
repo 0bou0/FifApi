@@ -55,7 +55,7 @@ namespace FifApi.Controllers
         // PUT: api/Stocks/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutStock(int id, Stock stock)
+        public async Task<ActionResult<Stock>> PutStock(int id, Stock stock)
         {
             if (id != stock.IdStock)
             {
@@ -80,7 +80,7 @@ namespace FifApi.Controllers
                 }
             }
 
-            return NoContent();
+            return CreatedAtAction("GetStock", stock);
         }
 
         // POST: api/Stocks

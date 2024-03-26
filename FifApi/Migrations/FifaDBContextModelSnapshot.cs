@@ -17,7 +17,7 @@ namespace FifApi.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "6.0.12")
+                .HasAnnotation("ProductVersion", "6.0.28")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -115,7 +115,7 @@ namespace FifApi.Migrations
                         .HasColumnType("date")
                         .HasColumnName("cmd_date");
 
-                    b.Property<int>("IdUtilisateur")
+                    b.Property<int?>("IdUtilisateur")
                         .HasColumnType("integer")
                         .HasColumnName("cmd_utilisateur");
 
@@ -787,7 +787,6 @@ namespace FifApi.Migrations
                     b.HasOne("FifApi.Models.EntityFramework.Utilisateur", "UtilisateurCommande")
                         .WithMany("CommandeDeUtilisateur")
                         .HasForeignKey("IdUtilisateur")
-                        .IsRequired()
                         .HasConstraintName("fk_cmd_utl");
 
                     b.Navigation("UtilisateurCommande");

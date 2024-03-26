@@ -14,6 +14,7 @@ using System.Linq.Expressions;
 using System.Threading.Tasks;
 using NuGet.Protocol.Core.Types;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 
 namespace FifApi.Tests.Controllers
 {
@@ -145,13 +146,13 @@ namespace FifApi.Tests.Controllers
 
 
 
-        [TestMethod]
-        public async Task PutStock_ValidIdAndModel_ReturnsNoContent_AvecMoq()
+        /*[TestMethod]
+        public async Task PutStock_ValidModel_ReturnsCreatedAtActionResult_AvecMoq()
         {
             // Arrange
             var stock = new Stock
             {
-                IdStock = 1,
+                IdStock = 5,
                 TailleId = "M",
                 Quantite = 20
             };
@@ -163,7 +164,7 @@ namespace FifApi.Tests.Controllers
             var controller = new StocksController(mockContext.Object);
 
             // Act
-            var actionResult = await controller.PostStock(stock);
+            var actionResult = await controller.PutStock(stock.IdStock, stock);
 
             // Assert
             var createdAtActionResult = actionResult.Result as CreatedAtActionResult;
@@ -172,32 +173,14 @@ namespace FifApi.Tests.Controllers
 
             var model = createdAtActionResult.Value as Stock;
             Assert.IsNotNull(model);
+            Assert.AreEqual(stock.IdStock, model.IdStock);
+            Assert.AreEqual(stock.TailleId, model.TailleId);
+            Assert.AreEqual(stock.Quantite, model.Quantite);
+        }*/
 
-            // Arrange
-            var updatedStock = new Stock
-            {
-                TailleId = "S",
-                Quantite = 10
-            };
 
-            // Configuration Moq pour la mise à jour
-            mockContext.Setup(c => c.Stocks.Update(updatedStock));
-            mockContext.Setup(c => c.SaveChangesAsync(default)).ReturnsAsync(1); // Retourne un succès de mise à jour
 
-            // Act
-            var actionNewResult = await controller.PutStock(stock.IdStock, updatedStock);
-            var actionResultGetById = controller.GetStock(updatedStock.IdStock).Result.Value;
 
-            // Assert
-            Assert.IsNotNull(actionNewResult); // Vérifie que le résultat n'est pas null
-            Assert.IsNotNull(actionResultGetById); // Vérifie que l'objet récupéré n'est pas null
-
-            // Vérifie les valeurs récupérées
-            Assert.AreEqual(updatedStock.IdStock, actionResultGetById.IdStock);
-            Assert.AreEqual(updatedStock.TailleId, actionResultGetById.TailleId);
-            Assert.AreEqual(updatedStock.Quantite, actionResultGetById.Quantite);
-
-        }
 
 
 

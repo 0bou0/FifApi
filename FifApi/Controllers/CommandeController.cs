@@ -145,7 +145,7 @@ namespace FifApi.Controllers
                 await _context.SaveChangesAsync();
             }
 
-            return NoContent();
+            return CreatedAtAction("GetStock", commande);
         }
 
     }
