@@ -84,14 +84,42 @@ namespace FifApi.Controllers
                     caracteristiques = g.FirstOrDefault()!.p.Caracteristiques,
                     image = g.FirstOrDefault()!.ph.URL,
                     couleurs = (from cp in _context.CouleurProduits
-                    join c in _context.Couleurs on cp.IdCouleur equals c.Id
-                    where cp.IdProduit == g.Key
-                    select new {
-                        prix = cp.Prix,
-                        codebarre = cp.CodeBarre,
-                        couleur = c.Nom,
-                        hexa = c.Hexa
-                    }).ToList()
+                                join c in _context.Couleurs on cp.IdCouleur equals c.Id
+                                where cp.IdProduit == g.Key
+                                select new {
+                                    prix = cp.Prix,
+                                    codebarre = cp.CodeBarre,
+                                    couleur = c.Nom,
+                                    hexa = c.Hexa,
+                                    taille = (from cp2 in _context.CouleurProduits
+                                              join s in _context.Stocks on cp2.IdCouleurProduit equals s.CouleurProduitId
+                                              join t in _context.Tailles on s.TailleId equals t.IdTaille
+                                              where cp2.IdCouleurProduit == cp.IdCouleurProduit
+                                              select new
+                                              {
+                                                  taille = t.IdTaille,
+                                                  nomtaille = t.NomTaille,
+                                                  description = t.DescriptionTaille,
+                                                  quantite = s.Quantite
+                                              }).ToList(),
+                                    quantite = (from cp2 in _context.CouleurProduits
+                                                join s in _context.Stocks on cp2.IdCouleurProduit equals s.CouleurProduitId
+                                                join t in _context.Tailles on s.TailleId equals t.IdTaille
+                                                where cp2.IdCouleurProduit == cp.IdCouleurProduit
+                                                select s.Quantite
+                                                ).Sum()
+                                }).ToList(),
+                    quantite = (
+                        from cp in _context.CouleurProduits
+                        join c in _context.Couleurs on cp.IdCouleur equals c.Id
+                        where cp.IdProduit == g.Key
+                        select (from cp2 in _context.CouleurProduits
+                                join s in _context.Stocks on cp2.IdCouleurProduit equals s.CouleurProduitId
+                                join t in _context.Tailles on s.TailleId equals t.IdTaille
+                                where cp2.IdCouleurProduit == cp.IdCouleurProduit
+                                select s.Quantite
+                                ).Sum()
+                            ).Sum()
                 }).Where(x => x.idProduct == id).ToListAsync();
 
             if (produit == null)    
