@@ -13,6 +13,7 @@ using System.Collections;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 using NuGet.Protocol.Core.Types;
+using Microsoft.AspNetCore.Routing;
 
 namespace FifApi.Tests.Controllers
 {
@@ -28,7 +29,7 @@ namespace FifApi.Tests.Controllers
         public StocksControllerTests()
         {
             var builder = new DbContextOptionsBuilder<FifaDBContext>()
-                .UseNpgsql("SerieDB"); // Chaine de connexion à mettre dans les ( )
+               .UseNpgsql("Server=projet-fifapi.postgres.database.azure.com;Database=postgres;Port=5432;User Id=s212;Password=bQ3i2%C$;Ssl Mode=Require;Trust Server Certificate=true;"); // Chaine de connexion à mettre dans les ( )
             _context = new FifaDBContext(builder.Options);
             _controller = new StocksController(_context);
             _mockRepository = new Mock<IDataRepository<Stock>>();
@@ -36,26 +37,41 @@ namespace FifApi.Tests.Controllers
 
         }
 
+        [TestMethod]
+        public async Task GetSeriesTest()
+        {
+            // Act : Appelez la méthode à tester
+            var actionResult = await _controller.GetStocks();
+            var result = actionResult.Value.ToList();
+
+            // Assert : Vérifiez que le résultat correspond à ce qui est attendu
+            Assert.IsNotNull(result);
+        }
 
 
         [TestMethod]
-        public async Task GetStocks_ExistingIdPassed_ReturnsRightItem()
+        public void GetStockbyId_ExistingIdPassed_ReturnsNotFoundResult_AvecMoq()
         {
-            // Act : Appelez la méthode à tester
-            var actionTask = _controller.GetStocks();
-            actionTask.Wait(); // Attend que la tâche soit terminée
-            var actionResult = actionTask.Result;
 
-            // Récupérer les stocks de la base de données
-            var stocksFromDb = await _context.Stocks.ToListAsync();
+            // Arrange
+            var stock = new Stock
+            {
+                IdStock = 0,
+                TailleId = "S",
+                Quantite = 10
+            };
 
-            // Assert : Vérifiez que le résultat correspond à ce qui est attendu
+            var mockContext = new Mock<FifaDBContext>();
+            mockContext.Setup(c => c.Stocks.FindAsync(1)).ReturnsAsync(stock);
 
-            // Vérifiez si le résultat n'est pas null
-            Assert.IsNotNull(actionResult);
+            var userController = new StocksController(mockContext.Object);
 
-            // Vérifiez si le résultat est bien du type ICollection<Stock>
-            Assert.IsInstanceOfType(actionResult.Value, typeof(ICollection<Stock>));
+
+            
+            // Act
+            var actionResult = userController.GetStock(0).Result;
+            // Assert
+            Assert.IsInstanceOfType(actionResult.Result, typeof(NotFoundResult));
         }
 
 
@@ -126,57 +142,63 @@ namespace FifApi.Tests.Controllers
             Assert.AreEqual(stock.TailleId, model.TailleId);
             Assert.AreEqual(stock.Quantite, model.Quantite);
         }
+
+
+
         [TestMethod]
         public async Task PutStock_ValidIdAndModel_ReturnsNoContent_AvecMoq()
         {
             // Arrange
-            var initialStock = new Stock
+            var stock = new Stock
             {
-                IdStock = 20,
+                IdStock = 1,
                 TailleId = "M",
                 Quantite = 20
             };
 
-            var updatedStock = new Stock
-            {
-                IdStock = 20,
-                TailleId = "S",
-                Quantite = 10
-            };
-
             var mockContext = new Mock<FifaDBContext>();
-            mockContext.Setup(c => c.Stocks.AddAsync(initialStock, default));
+            mockContext.Setup(c => c.Stocks.AddAsync(stock, default));
             mockContext.Setup(c => c.SaveChangesAsync(default));
 
             var controller = new StocksController(mockContext.Object);
 
             // Act
-            var actionResult = await controller.PostStock(initialStock);
-
-            mockContext.Setup(c => c.Stocks.Update(updatedStock));
-            mockContext.Setup(c => c.SaveChangesAsync(default));
-
-            // Act
-            var actionNewResult = await controller.PutStock(initialStock.IdStock, updatedStock);
+            var actionResult = await controller.PostStock(stock);
 
             // Assert
-            var createdAtActionResult = await controller.GetStock(initialStock.IdStock);
+            var createdAtActionResult = actionResult.Result as CreatedAtActionResult;
             Assert.IsNotNull(createdAtActionResult);
+            Assert.AreEqual("GetStock", createdAtActionResult.ActionName);
 
-            // Vérifiez si l'action a renvoyé un objet OkObjectResult
-            if (createdAtActionResult.Result is OkObjectResult okObjectResult)
+            var model = createdAtActionResult.Value as Stock;
+            Assert.IsNotNull(model);
+
+            // Arrange
+            var updatedStock = new Stock
             {
-                var model = (Stock)okObjectResult.Value;
-                Assert.IsNotNull(model);
-                Assert.AreEqual(updatedStock.IdStock, model.IdStock);
-                Assert.AreEqual(updatedStock.TailleId, model.TailleId);
-                Assert.AreEqual(updatedStock.Quantite, model.Quantite);
-            }
-            else
-            {
-                Assert.Fail("La méthode GetStock n'a pas renvoyé un OkObjectResult.");
-            }
+                TailleId = "S",
+                Quantite = 10
+            };
+
+            // Configuration Moq pour la mise à jour
+            mockContext.Setup(c => c.Stocks.Update(updatedStock));
+            mockContext.Setup(c => c.SaveChangesAsync(default)).ReturnsAsync(1); // Retourne un succès de mise à jour
+
+            // Act
+            var actionNewResult = await controller.PutStock(stock.IdStock, updatedStock);
+            var actionResultGetById = controller.GetStock(updatedStock.IdStock).Result.Value;
+
+            // Assert
+            Assert.IsNotNull(actionNewResult); // Vérifie que le résultat n'est pas null
+            Assert.IsNotNull(actionResultGetById); // Vérifie que l'objet récupéré n'est pas null
+
+            // Vérifie les valeurs récupérées
+            Assert.AreEqual(updatedStock.IdStock, actionResultGetById.IdStock);
+            Assert.AreEqual(updatedStock.TailleId, actionResultGetById.TailleId);
+            Assert.AreEqual(updatedStock.Quantite, actionResultGetById.Quantite);
+
         }
+
 
 
         [TestMethod]

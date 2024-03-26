@@ -1,5 +1,4 @@
-﻿using FifApi.Models.EntityFramework;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 
 public interface IDataRepository<T>
@@ -10,5 +9,3 @@ public interface IDataRepository<T>
     Task UpdateAsync(T entity);
     Task DeleteAsync(int id);
 }
-
-

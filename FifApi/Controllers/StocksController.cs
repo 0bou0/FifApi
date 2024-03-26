@@ -21,6 +21,8 @@ namespace FifApi.Controllers
             _context = context;
         }
 
+       
+
         // GET: api/Stocks
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Stock>>> GetStocks()

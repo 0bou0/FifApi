@@ -340,7 +340,7 @@ namespace FifApi.Controllers
 
         // DELETE: api/Utilisateurs/5
         [HttpDelete]
-        public async Task<IActionResult> DeleteUtilisateur(User user)
+        public async Task<IActionResult> DeleteUtilisateur([FromBody]User user)
         {
             if (_context.Utilisateurs == null)
             {
