@@ -10,13 +10,14 @@ using Microsoft.EntityFrameworkCore.Internal;
 using NuGet.Protocol;
 using Microsoft.AspNetCore.Routing.Constraints;
 using FifApi.Models;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
 namespace FifApi.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
     public class ProduitsController : ControllerBase
-    {/*
+    {
         private readonly IDataRepository<Produit> _produitRepository;
         private readonly IDataRepository<Album> _albumRepository;
         private readonly IDataRepository<AlbumPhoto> _albumPhotoRepository;
@@ -48,7 +49,7 @@ namespace FifApi.Controllers
             _tailleRepository = tailleRepository;
         }
 
-
+        /*
         // GET: api/Produits
         [HttpGet]
         public async Task<ActionResult<IEnumerable<object>>> GetProduits()
@@ -115,84 +116,79 @@ namespace FifApi.Controllers
             }).ToList();
         }*/
 
-        private readonly FifaDBContext _context;
+        //private readonly FifaDBContext _context;
 
-        public ProduitsController( FifaDBContext context)
-        {
-            _context = context;
-        }
+        //public ProduitsController( FifaDBContext context)
+        //{
+        //    _context = context;
+        //}
 
         // GET: api/Produits/5
         [HttpGet("{id}")]
         public async Task<ActionResult<object>> GetProduitById(int id)
         {
-            if (_context.Produits == null)
+            try
             {
-                return NotFound();
-            }
+                var produit = await _produitRepository.GetByIdAsync(x => x.Id == id);
 
-            var produit = await (from p in _context.Produits
-                join a in _context.Albums on p.AlbumId equals a.IdAlbum into aGroup
-                from a in aGroup.DefaultIfEmpty()
-                join aph in _context.AlbumPhotos on a.IdAlbum equals aph.IdAlbum into aphGroup
-                from aph in aphGroup.DefaultIfEmpty()
-                join ph in _context.Photos on aph.IdPhoto equals ph.IdPhoto into phGroup
-                from ph in phGroup.DefaultIfEmpty()
-                group new { p, a, aph, ph } by p.Id into g
-                select new
+                if (produit == null)
                 {
-                    idProduct = g.Key,
-                    title = g.FirstOrDefault()!.p.Name,
-                    description = g.FirstOrDefault()!.p.Description,
-                    caracteristiques = g.FirstOrDefault()!.p.Caracteristiques,
-                    image = g.FirstOrDefault()!.ph.URL,
-                    couleurs = (from cp in _context.CouleurProduits
-                                join c in _context.Couleurs on cp.IdCouleur equals c.Id
-                                where cp.IdProduit == g.Key
-                                select new {
-                                    prix = cp.Prix,
-                                    codebarre = cp.CodeBarre,
-                                    couleur = c.Nom,
-                                    hexa = c.Hexa,
-                                    taille = (from cp2 in _context.CouleurProduits
-                                              join s in _context.Stocks on cp2.IdCouleurProduit equals s.CouleurProduitId
-                                              join t in _context.Tailles on s.TailleId equals t.IdTaille
-                                              where cp2.IdCouleurProduit == cp.IdCouleurProduit
-                                              select new
-                                              {
-                                                  taille = t.IdTaille,
-                                                  nomtaille = t.NomTaille,
-                                                  description = t.DescriptionTaille,
-                                                  quantite = s.Quantite
-                                              }).ToList(),
-                                    quantite = (from cp2 in _context.CouleurProduits
-                                                join s in _context.Stocks on cp2.IdCouleurProduit equals s.CouleurProduitId
-                                                join t in _context.Tailles on s.TailleId equals t.IdTaille
-                                                where cp2.IdCouleurProduit == cp.IdCouleurProduit
-                                                select s.Quantite
-                                                ).Sum()
-                                }).ToList(),
-                    quantite = (
-                        from cp in _context.CouleurProduits
-                        join c in _context.Couleurs on cp.IdCouleur equals c.Id
-                        where cp.IdProduit == g.Key
-                        select (from cp2 in _context.CouleurProduits
-                                join s in _context.Stocks on cp2.IdCouleurProduit equals s.CouleurProduitId
-                                join t in _context.Tailles on s.TailleId equals t.IdTaille
-                                where cp2.IdCouleurProduit == cp.IdCouleurProduit
-                                select s.Quantite
-                                ).Sum()
-                            ).Sum()
-                }).Where(x => x.idProduct == id).FirstOrDefaultAsync();
+                    return NotFound();
+                }
 
-            if (produit == null)    
-            {
-                return NotFound();
+                return Ok(_produitRepository.GetAll().Select(x => new
+                {
+                    id = x.Id,
+                    titre = x.Name,
+                    description = x.Description,
+                    caracteristiques = x.Caracteristiques,
+                    image = _albumRepository.GetAll().Join
+                        (
+                            _albumPhotoRepository.GetAllAsEnumerable(),
+                            x => x.IdAlbum,
+                            x => x.IdAlbum,
+                            (album, albumPhoto) => new
+                            {
+                                albumid = album.IdAlbum,
+                                url = albumPhoto.PhotoDesAlbums.URL
+                            }
+                        ).Where(album => album.albumid == x.AlbumId).FirstOrDefault(),
+                    couleur = _couleurProduitRepository.GetAll().Join
+                        (
+                            _couleurRepository.GetAllAsEnumerable(),
+                            x => x.IdCouleur,
+                            x => x.Id,
+                            (couleurproduit, couleur) => new
+                            {
+                                idproduit = couleurproduit.IdProduit,
+                                couleurproduitId = couleurproduit.IdCouleurProduit,
+                                prix = couleurproduit.Prix,
+                                couleur = couleur.Nom,
+                                hexa = couleur.Hexa,
+                                taille = _stockRepository.GetAll().Join
+                                    (
+                                        _tailleRepository.GetAllAsEnumerable(),
+                                        x => x.TailleId,
+                                        x => x.IdTaille,
+                                        (stock, taille) => new
+                                        {
+                                            stock.CouleurProduitId,
+                                            stock.Quantite,
+                                            taille.NomTaille
+                                        }
+                                    ).Where(stock => stock.CouleurProduitId == couleurproduit.IdCouleurProduit).ToList()
+                            }
+                        ).Where(couleur => couleur.idproduit == id).ToList()
+                }).Where(x => x.id == id));
+
             }
-
-            return produit;
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Une erreur s'est produite : {ex.Message}");
+            }
         }
 
+        /*
         // GET: api/Produits/Filter?
         [HttpGet("Filter")]
         public async Task<ActionResult<object>> GetProduitsByFilter(string? couleur, string? nation, string? categorie, string? taille)
@@ -348,7 +344,7 @@ namespace FifApi.Controllers
         {
             return (_context.Produits?.Any(e => e.Id == id)).GetValueOrDefault();
         }
-
+        */
         
     }
 }

@@ -23,6 +23,10 @@ public class EfDataRepository<T> : IDataRepository<T> where T : class
     {
         return await _context.Set<T>().FindAsync(id);
     }
+    public async Task<T> GetByIdAsync(Expression<Func<T, bool>> predicate)
+    {
+        return await _context.Set<T>().FirstOrDefaultAsync(predicate);
+    }
 
     public async Task<T> AddAsync(T entity)
     {
@@ -58,6 +62,25 @@ public class EfDataRepository<T> : IDataRepository<T> where T : class
     }
 
 
-   
+    public IQueryable<T> GetAll()
+    {
+        return _context.Set<T>().AsQueryable();
+    }
+
+    public IQueryable<T> Where(Expression<Func<T, bool>> expression)
+    {
+        return _context.Set<T>().Where(expression).AsQueryable();
+    }
+
+    public IQueryable<TResult> Select<TResult>(Expression<Func<T, TResult>> selector)
+    {
+        return _context.Set<T>().Select(selector);
+    }
+
+    public IEnumerable<T> GetAllAsEnumerable()
+    {
+        return _context.Set<T>().AsEnumerable();
+    }
+
 
 }

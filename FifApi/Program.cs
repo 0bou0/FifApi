@@ -53,6 +53,7 @@ namespace FifApi
             builder.Services.AddControllers()
             .AddJsonOptions(options =>
             {
+                options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
                 options.JsonSerializerOptions.IgnoreNullValues = true;
                 options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
             });
