@@ -3,7 +3,9 @@ using FifApi.Models.EntityFramework;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Newtonsoft.Json.Converters;
 using System.Text;
+using System.Text.Json.Serialization;
 
 namespace FifApi
 {
@@ -45,6 +47,18 @@ namespace FifApi
                 config.AddPolicy(Policies.Admin, Policies.AdminPolicy());
                 config.AddPolicy(Policies.User, Policies.UserPolicy());
             });
+
+            builder.Services.AddScoped(typeof(IDataRepository<>), typeof(EfDataRepository<>));
+
+            builder.Services.AddControllers()
+            .AddJsonOptions(options =>
+            {
+                options.JsonSerializerOptions.IgnoreNullValues = true;
+                options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+            });
+
+
+
 
             var app = builder.Build();
 

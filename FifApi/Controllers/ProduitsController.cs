@@ -9,82 +9,117 @@ using FifApi.Models.EntityFramework;
 using Microsoft.EntityFrameworkCore.Internal;
 using NuGet.Protocol;
 using Microsoft.AspNetCore.Routing.Constraints;
+using FifApi.Models;
 
 namespace FifApi.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
     public class ProduitsController : ControllerBase
-    {
-        private readonly FifaDBContext _context;
+    {/*
+        private readonly IDataRepository<Produit> _produitRepository;
+        private readonly IDataRepository<Album> _albumRepository;
+        private readonly IDataRepository<AlbumPhoto> _albumPhotoRepository;
+        private readonly IDataRepository<Photo> _photoRepository;
+        private readonly IDataRepository<CouleurProduit> _couleurProduitRepository;
+        private readonly IDataRepository<Couleur> _couleurRepository;
+        private readonly IDataRepository<Stock> _stockRepository;
+        private readonly IDataRepository<Taille> _tailleRepository;
 
-        public ProduitsController(FifaDBContext context)
+
+
+        public ProduitsController(
+         IDataRepository<Produit> produitRepository,
+         IDataRepository<Album> albumRepository,
+         IDataRepository<AlbumPhoto> albumPhotoRepository,
+         IDataRepository<Photo> photoRepository,
+         IDataRepository<CouleurProduit> couleurProduitRepository,
+         IDataRepository<Couleur> couleurRepository,
+         IDataRepository<Stock> stockRepository,
+         IDataRepository<Taille> tailleRepository)
         {
-            _context = context;
+            _produitRepository = produitRepository;
+            _albumRepository = albumRepository;
+            _albumPhotoRepository = albumPhotoRepository;
+            _photoRepository = photoRepository;
+            _couleurProduitRepository = couleurProduitRepository;
+            _couleurRepository = couleurRepository;
+            _stockRepository = stockRepository;
+            _tailleRepository = tailleRepository;
         }
+
 
         // GET: api/Produits
         [HttpGet]
         public async Task<ActionResult<IEnumerable<object>>> GetProduits()
         {
-            if (_context.Produits == null)
+            var produits = await _produitRepository.GetAllAsync();
+
+            if (produits == null || !produits.Any())
             {
                 return NotFound();
             }
 
-            return await (from p in _context.Produits
-                          join a in _context.Albums on p.AlbumId equals a.IdAlbum into aGroup
-                          from a in aGroup.DefaultIfEmpty()
-                          join aph in _context.AlbumPhotos on a.IdAlbum equals aph.IdAlbum into aphGroup
-                          from aph in aphGroup.DefaultIfEmpty()
-                          join ph in _context.Photos on aph.IdPhoto equals ph.IdPhoto into phGroup
-                          from ph in phGroup.DefaultIfEmpty()
-                          group new { p, a, aph, ph } by p.Id into g
-                          select new
-                          {
-                              idProduct = g.Key,
-                              title = g.FirstOrDefault()!.p.Name,
-                              description = g.FirstOrDefault()!.p.Description,
-                              caracteristiques = g.FirstOrDefault()!.p.Caracteristiques,
-                              image = g.FirstOrDefault()!.ph.URL,
-                              couleurs = (from cp in _context.CouleurProduits
-                                          join c in _context.Couleurs on cp.IdCouleur equals c.Id
-                                          where cp.IdProduit == g.Key
-                                          select new
-                                          {
-                                              prix = cp.Prix,
-                                              codebarre = cp.CodeBarre,
-                                              couleur = c.Nom,
-                                              hexa = c.Hexa,
-                                              taille = (from s in _context.Stocks
-                                                        join t in _context.Tailles on s.TailleId equals t.IdTaille
-                                                        where s.CouleurProduitId == cp.IdCouleurProduit
-                                                        select new
-                                                        {
-                                                            taille = t.IdTaille,
-                                                            nomtaille = t.NomTaille,
-                                                            description = t.DescriptionTaille,
-                                                            quantite = s.Quantite
-                                                        }).ToList(),
-                                              quantite = (from cp2 in _context.CouleurProduits
-                                                          join s in _context.Stocks on cp2.IdCouleurProduit equals s.CouleurProduitId
-                                                          join t in _context.Tailles on s.TailleId equals t.IdTaille
-                                                          where cp2.IdCouleurProduit == cp.IdCouleurProduit
-                                                          select s.Quantite
-                                                          ).Sum()
-                                          }).ToList(),
-                              quantite = (
-                                  from cp in _context.CouleurProduits
-                                  join c in _context.Couleurs on cp.IdCouleur equals c.Id
-                                  where cp.IdProduit == g.Key
-                                  select (from cp2 in _context.CouleurProduits
-                                          join s in _context.Stocks on cp2.IdCouleurProduit equals s.CouleurProduitId
-                                          join t in _context.Tailles on s.TailleId equals t.IdTaille
-                                          where cp2.IdCouleurProduit == cp.IdCouleurProduit
-                                          select s.Quantite
-                                          ).Sum()
-                                      ).Sum()
-                          }).ToListAsync();
+            return produits.Select(async p =>
+            {
+                var albums = await _albumRepository.SingleOrDefaultAsync(a => a.IdAlbum == p.AlbumId);
+                var albumId = albums?.IdAlbum;
+
+                var albumPhotos = await _albumPhotoRepository.SingleOrDefaultAsync(aph => aph.IdAlbum == albumId);
+                var albumPhotoId = albumPhotos?.IdPhoto;
+
+                var photo = await _photoRepository.SingleOrDefaultAsync(ph => ph.IdPhoto == albumPhotoId);
+
+                var couleurProduits = await _couleurProduitRepository.GetAllAsync();
+                var stock = await _stockRepository.GetAllAsync();
+
+                var couleurs = couleurProduits.Select(async cp =>
+                {
+                    var couleur = await _couleurRepository.SingleOrDefaultAsync(c => c.Id == cp.IdCouleur);
+                    var stocks = await _stockRepository.GetAllAsync();
+                    var quantite = stocks.Sum(s => s.Quantite);
+                    var tailles = stocks.Select(async s =>
+                    {
+                        var tailles = await _tailleRepository.GetAllAsync();
+                        var tailleFind = tailles.FirstOrDefault(t => t.IdTaille == s.TailleId); return new
+                        {
+                            tailleFind.IdTaille,
+                            tailleFind.NomTaille,
+                            tailleFind.DescriptionTaille,
+                            s.Quantite
+                        };
+                    });
+                    return new
+                    {
+                        cp.Prix,
+                        cp.CodeBarre,
+                        couleur = couleur?.Nom,
+                        couleur?.Hexa,
+                        Tailles = await Task.WhenAll(tailles),
+                        quantite
+                    };
+                });
+
+                var result = new
+                {
+                    idProduct = p.Id,
+                    title = p.Name,
+                    description = p.Description,
+                    caracteristiques = p.Caracteristiques,
+                    image = photo?.URL,
+                    couleurs = await Task.WhenAll(couleurs),
+                    quantite = stock.Sum(cp => cp.Quantite)
+                };
+
+                return result;
+            }).ToList();
+        }*/
+
+        private readonly FifaDBContext _context;
+
+        public ProduitsController( FifaDBContext context)
+        {
+            _context = context;
         }
 
         // GET: api/Produits/5
@@ -313,5 +348,7 @@ namespace FifApi.Controllers
         {
             return (_context.Produits?.Any(e => e.Id == id)).GetValueOrDefault();
         }
+
+        
     }
 }

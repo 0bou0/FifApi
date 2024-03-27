@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace FifApi.Models.EntityFramework
 {
@@ -45,6 +46,7 @@ namespace FifApi.Models.EntityFramework
         [Column("posteid", TypeName = "int")]
         public int PosteId { get; set; }
 
+        [JsonIgnore]
         [InverseProperty(nameof(JoueurMatch.JoueurDansMatch))]
         public virtual ICollection<JoueurMatch> JouabiliteMatch { get; set; } = null!;
 

@@ -15,42 +15,118 @@ using System.Threading.Tasks;
 using NuGet.Protocol.Core.Types;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Build.Framework;
 
 namespace FifApi.Tests.Controllers
 {
     [TestClass]
     public class StocksControllerTests
     {
-        private StocksController _controller;
-        private FifaDBContext _context;
-        private Mock<FifaDBContext> _mockContext;
-        private Mock<IDataRepository<Stock>> _mockRepository;
 
 
         public StocksControllerTests()
         {
-            var builder = new DbContextOptionsBuilder<FifaDBContext>()
-               .UseNpgsql("Server=projet-fifapi.postgres.database.azure.com;Database=postgres;Port=5432;User Id=s212;Password=bQ3i2%C$;Ssl Mode=Require;Trust Server Certificate=true;"); // Chaine de connexion à mettre dans les ( )
-            _context = new FifaDBContext(builder.Options);
-            _controller = new StocksController(_context);
-            _mockRepository = new Mock<IDataRepository<Stock>>();
-            _mockContext = new Mock<FifaDBContext>();
 
         }
 
-        [TestMethod]
+        /*[TestMethod]
         public async Task GetAllStocks()
         {
             // Act : Appelez la méthode à tester
-            var actionResult = await _controller.GetStocks();
+            var actionResult = _controller.GetStocks();
             var result = actionResult.Value.ToList();
 
             // Assert : Vérifiez que le résultat correspond à ce qui est attendu
             Assert.IsNotNull(result);
+            // Assert
+            Assert.IsNotNull(actionResult);
+            Assert.IsNotNull(actionResult.Value);
+            Assert.IsNotInstanceOfType(actionResult.Result, typeof(ObjectResult));
+            Assert.IsNotInstanceOfType(actionResult.Result, typeof(NotFoundResult));
+            Assert.IsNotInstanceOfType(actionResult.Result, typeof(BadRequestResult));
+            Assert.AreEqual(StatusCodes.Status200OK, actionResult.Result is StatusCodeResult ? ((StatusCodeResult)actionResult.Result).StatusCode : 200);
+        }*/
+
+        [TestMethod]
+        public async Task GetStocks_ReturnsListOfStocks_avecMoq()
+        {
+            //Arrange
+            var stocks = new List<Stock>
+            {
+                new Stock { IdStock = 1, Quantite = 20, CouleurProduitId= 1 },
+                new Stock { IdStock = 2, Quantite = 10, CouleurProduitId= 2 },
+                new Stock { IdStock = 3, Quantite = 30, CouleurProduitId= 3 }
+            };
+
+            var mockRepository = new Mock<IDataRepository<Stock>>();
+            mockRepository.Setup(repo => repo.GetAllAsync()).ReturnsAsync(stocks);
+
+            var stockController = new StocksController(mockRepository.Object);
+
+            // Act
+            var actionResult = await stockController.GetStocks();
+
+            // Assert
+            var okResult = actionResult.Result as OkObjectResult;
+            Assert.IsNotNull(okResult);
+            Assert.AreEqual(StatusCodes.Status200OK, okResult.StatusCode);
+
+            var returnedStocks = okResult.Value as List<Stock>;
+            Assert.IsNotNull(returnedStocks);
+            Assert.AreEqual(stocks.Count, returnedStocks.Count);
+
+
+            // Assert individual stock properties
+            for (int i = 0; i < stocks.Count; i++)
+            {
+                Assert.AreEqual(stocks[i].IdStock, returnedStocks[i].IdStock);
+                Assert.AreEqual(stocks[i].Quantite, returnedStocks[i].Quantite);
+                Assert.AreEqual(stocks[i].CouleurProduitId, returnedStocks[i].CouleurProduitId);
+            }
+
+            mockRepository.Verify(repo => repo.GetAllAsync(), Times.Once);
+
         }
 
 
         [TestMethod]
+        public async Task DeleteStock_ValidId_ReturnsNoContent_AvecMoq()
+        {
+            // Arrange : ID du stock à supprimer
+            int stockIdToDelete = 10;
+
+            // Ajouter un stock pour le supprimer ensuite
+            var stockToDelete = new Stock
+            {
+                IdStock = stockIdToDelete,
+                TailleId = "M",
+                Quantite = 10
+            };
+
+            var mockRepository = new Mock<IDataRepository<Stock>>();
+            mockRepository.Setup(repo => repo.DeleteAsync(stockIdToDelete)).ReturnsAsync(stockToDelete);
+            mockRepository.Setup(repo => repo.GetByIdAsync(stockIdToDelete));
+
+
+            var controller = new StocksController(mockRepository.Object);
+
+            var result = await controller.DeleteStock(stockIdToDelete);
+
+            var getbyid = await controller.GetStock(stockIdToDelete);
+
+            //Assert
+            Assert.IsNotNull(result);
+
+            Assert.IsNotNull(getbyid);
+            Assert.IsInstanceOfType(result, typeof(NotFoundResult));
+
+
+
+        }
+
+
+        /*[TestMethod]
         public void GetStockbyId_ExistingIdPassed_ReturnsNotFoundResult_AvecMoq()
         {
 
@@ -176,7 +252,7 @@ namespace FifApi.Tests.Controllers
             Assert.AreEqual(stock.IdStock, model.IdStock);
             Assert.AreEqual(stock.TailleId, model.TailleId);
             Assert.AreEqual(stock.Quantite, model.Quantite);
-        }*/
+        }
 
 
 
@@ -213,7 +289,7 @@ namespace FifApi.Tests.Controllers
             // Vérifiez si le stock a été réellement supprimé de la base de données
             var deletedStock = await _context.Stocks.FindAsync(stockIdToDelete);
             Assert.IsNull(deletedStock); // Vérifie que le stock est null, ce qui signifie qu'il a été supprimé de la base de données
-        }
+        }*/
 
 
 

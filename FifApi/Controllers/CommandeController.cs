@@ -1,10 +1,11 @@
 ﻿using FifApi.Models;
 using FifApi.Models.EntityFramework;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using System.Text.Json.Serialization;
-using System.Text.Json;
+using NuGet.Protocol.Core.Types;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace FifApi.Controllers
 {
@@ -12,140 +13,76 @@ namespace FifApi.Controllers
     [ApiController]
     public class CommandeController : ControllerBase
     {
-        private readonly FifaDBContext _context;
+        private readonly IDataRepository<Commande> _commandeRepository;
+        private IDataRepository<LigneCommande> _lignecommanderepo;
 
-        public CommandeController(FifaDBContext context)
+       
+
+        public CommandeController(IDataRepository<Commande> commandeRepository, IDataRepository<LigneCommande> lignecommanderepo)
         {
-            _context = context;
+            _commandeRepository = commandeRepository;
+            _lignecommanderepo = lignecommanderepo;
         }
 
-
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<object>>> GetCommandes()
+        public async Task<ActionResult<IEnumerable<Commande>>> GetCommandes()
         {
-            if (_context.Commandes == null)
+            var commandes = await _commandeRepository.GetAllAsync(); // Assurez-vous d'ajouter 'await' ici
+            if (commandes == null)
             {
                 return NotFound();
             }
-
-
-
-            return await (from co in _context.Commandes
-                          join ut in _context.Utilisateurs on co.IdUtilisateur equals ut.IdUtilisateur
-                          select new
-                          {
-                              IdCommande = co.IdCommande,
-                              IdUtilisateur = ut.IdUtilisateur,
-                              Date = co.DateCommande,
-                              LigneCommandes = (
-                                 from lc in _context.LigneCommandes
-                                 join st in _context.Stocks on lc.IdStock equals st.IdStock
-                                 where lc.IdCommande == co.IdCommande
-                                 select new
-                                 {
-                                     LigneCommande = lc.CommandeLigne,
-                                     Stock = st.IdStock,
-                                     Quantite = lc.QuantiteAchat
-                                 }
-                             ).ToList()
-
-
-                          }
-
-                ).ToListAsync();
-
-
+            return Ok(commandes);
         }
 
-       [HttpGet("{id}")]
+
+        [HttpGet("{id}")]
         public async Task<ActionResult<Commande>> GetCommandeById(int id)
         {
-            var commande = await (from co in _context.Commandes
-                                  join ut in _context.Utilisateurs on co.IdUtilisateur equals ut.IdUtilisateur
-                                  where co.IdUtilisateur == id
-                                  select new Commande
-                                  {
-                                      IdCommande = co.IdCommande,
-                                      IdUtilisateur = ut.IdUtilisateur,
-                                      LigneDeLaCommande = (
-                                         from lc in _context.LigneCommandes
-                                         join st in _context.Stocks on lc.IdStock equals st.IdStock
-                                         join cp in _context.CouleurProduits on st.CouleurProduitId equals cp.IdCouleurProduit
-                                         join tl in _context.Tailles on st.TailleId equals tl.IdTaille
-                                         join pr in _context.Produits on cp.IdProduit equals pr.Id
-                                         join cl in _context.Couleurs on cp.IdCouleur equals cl.Id
-                                         where lc.IdCommande == co.IdCommande
-                                         select new LigneCommande
-                                         {
-                                             StockLigneCommande = new Stock
-                                             {
-                                                 IdStock = st.IdStock,
-                                                 ProduitEncouleur = new CouleurProduit
-                                                 {
-                                                     Couleur_CouleurProduit = new Couleur { Id = cl.Id, Nom = cl.Nom },
-                                                     Produit_CouleurProduit = new Produit { Id = pr.Id, Name = pr.Name }
-                                                 },
-                                                 TailleId = tl.NomTaille
-                                             },
-                                             QuantiteAchat = st.Quantite
-                                         }
-                                     ).ToList()
-                                  }
-                        ).FirstOrDefaultAsync();
-
+            var commande = await _commandeRepository.GetByIdAsync(id);
             if (commande == null)
             {
                 return NotFound();
             }
 
-            return commande;
+            return Ok(commande);
         }
-
-
 
         [HttpPost]
         public async Task<ActionResult<Commande>> PostCommande(int IdUtilisateur, List<CommandLine> commandLines)
         {
-            // Créer une nouvelle commande
+            // Création d'une nouvelle commande
             Commande commande = new Commande
             {
                 IdUtilisateur = IdUtilisateur,
                 DateCommande = DateTime.Now
             };
 
-            // Ajouter la nouvelle commande au contexte EF
-            _context.Commandes.Add(commande);
+            // Ajouter la commande en utilisant le référentiel
+            var newCommande = await _commandeRepository.AddAsync(commande);
 
-            // Enregistrer les modifications dans la base de données
-            await _context.SaveChangesAsync();
-
-            // Récupérer l'identifiant de la commande créée
-            int commandeId = commande.IdCommande;
-
-            // Parcourir chaque ligne de commande
+            // Traiter les lignes de commande
             foreach (CommandLine commandLine in commandLines)
             {
                 // Créer une nouvelle ligne de commande
                 LigneCommande ligneCommande = new LigneCommande()
                 {
                     IdStock = commandLine.IdStock,
-                    IdCommande = commandeId,
+                    IdCommande = newCommande.IdCommande, // Utiliser l'ID de la nouvelle commande
                     QuantiteAchat = commandLine.quantite
                 };
 
-                // Ajouter la nouvelle ligne de commande au contexte EF
-                _context.LigneCommandes.Add(ligneCommande);
-
-                // Mettre à jour le stock
-                var stock = await _context.Stocks.FindAsync(ligneCommande.IdStock);
-                stock.Quantite -= commandLine.quantite;
-
-                // Enregistrer les modifications dans la base de données
-                await _context.SaveChangesAsync();
+                // Ajouter la ligne de commande en utilisant le référentiel
+                await _lignecommanderepo.AddAsync(ligneCommande);
             }
 
-            return CreatedAtAction("GetStock", commande);
+            return CreatedAtAction("GetStock", newCommande);
         }
 
+        private bool CommandeExists(int id)
+        {
+            // Vérifier si une commande existe en utilisant le référentiel
+            return _commandeRepository.GetByIdAsync(id) != null;
+        }
     }
 }

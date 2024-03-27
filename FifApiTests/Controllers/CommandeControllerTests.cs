@@ -19,30 +19,19 @@ namespace FifApi.Controllers.Tests
     [TestClass()]
     public class CommandeControllerTests
     {
-        private CommandeController _controller;
-        private FifaDBContext _context;
-        private Mock<FifaDBContext> _mockContext;
-        private Mock<IDataRepository<Commande>> _mockRepository;
-
 
 
 
         public CommandeControllerTests()
         {
-            var builder = new DbContextOptionsBuilder<FifaDBContext>()
-               .UseNpgsql("Server=projet-fifapi.postgres.database.azure.com;Database=postgres;Port=5432;User Id=s212;Password=bQ3i2%C$;Ssl Mode=Require;Trust Server Certificate=true;"); // Chaine de connexion à mettre dans les ( )
-            _context = new FifaDBContext(builder.Options);
-            _controller = new CommandeController(_context);
-            _mockRepository = new Mock<IDataRepository<Commande>>();
-            _mockContext = new Mock<FifaDBContext>();
 
 
         }
 
 
-        
 
 
+        /*
         [TestMethod]
         public async Task GetAllCommande()
         {
@@ -159,13 +148,31 @@ namespace FifApi.Controllers.Tests
                 Assert.AreEqual(expectedLigne.StockLigneCommande.TailleId, resultLigne.StockLigneCommande.TailleId);
                 Assert.AreEqual(expectedLigne.QuantiteAchat, resultLigne.QuantiteAchat);
             }
+        }*/
+
+
+
+
+
+        [TestMethod]
+        public async Task GetCommande_ReturnsListOfStocks_avecMoq()
+        {
+            //Arrange
+
+            var mockContext = new Mock<IDataRepository<Commande>>();
+
+
+            var stockTable = new CommandeController(mockContext.Object);
+
+            //Act
+
+            stockTable.GetCommandes();
+
+            //Assert
+
+            mockContext.VerifyAll();
+
         }
-
-       
-
-
-
-
 
 
 

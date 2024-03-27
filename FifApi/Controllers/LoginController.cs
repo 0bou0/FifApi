@@ -4,7 +4,10 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.Extensions.Configuration;
+using System;
 using System.IdentityModel.Tokens.Jwt;
+using System.Linq;
 using System.Security.Claims;
 using System.Text;
 
@@ -14,16 +17,15 @@ namespace FifApi.Controllers
     [ApiController]
     public class LoginController : ControllerBase
     {
-        private readonly FifaDBContext _context;
+        private readonly IDataRepository<Utilisateur> _userRepository;
         private readonly IConfiguration _config;
 
-        public LoginController(FifaDBContext context, IConfiguration config)
+        public LoginController(IDataRepository<Utilisateur> userRepository, IConfiguration config)
         {
-            _context = context;
+            _userRepository = userRepository;
             _config = config;
         }
 
-        
         [HttpPost]
         [AllowAnonymous]
         public IActionResult Login([FromBody] User login)
@@ -41,28 +43,32 @@ namespace FifApi.Controllers
             }
             return response;
         }
-        private Utilisateur? AuthenticateUser(User utlilsateur)
+
+        private Utilisateur? AuthenticateUser(User utilisateur)
         {
-            return _context.Utilisateurs.SingleOrDefault(x => x.PseudoUtilisateur.ToLower() == utlilsateur.UserName.ToLower() && x.MotDePasse == utlilsateur.Password);
+            var usersTask = _userRepository.GetAllAsync();
+            var users = usersTask.Result;
+            return users.SingleOrDefault(x => x.PseudoUtilisateur.ToLower() == utilisateur.UserName.ToLower() && x.MotDePasse == utilisateur.Password);
         }
 
-        private string GenerateJwtToken(Utilisateur utlilsateur)
+
+
+        private string GenerateJwtToken(Utilisateur utilisateur)
         {
-            var securityKey = new
-            SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:SecretKey"]));
+            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:SecretKey"]));
             var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
             var claims = new[]
             {
-                new Claim(JwtRegisteredClaimNames.NameId, utlilsateur.IdUtilisateur.ToString()),
-                new Claim("role", utlilsateur.Role.ToString()),
+                new Claim(JwtRegisteredClaimNames.NameId, utilisateur.IdUtilisateur.ToString()),
+                new Claim("role", utilisateur.Role.ToString()),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
             };
             var token = new JwtSecurityToken(
-            issuer: _config["Jwt:Issuer"],
-            audience: _config["Jwt:Audience"],
-            claims: claims,
-            expires: DateTime.Now.AddMinutes(5),
-            signingCredentials: credentials);
+                issuer: _config["Jwt:Issuer"],
+                audience: _config["Jwt:Audience"],
+                claims: claims,
+                expires: DateTime.Now.AddMinutes(30),
+                signingCredentials: credentials);
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
     }

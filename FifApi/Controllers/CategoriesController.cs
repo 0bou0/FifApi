@@ -1,7 +1,9 @@
 ﻿using FifApi.Models.EntityFramework;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+using System.Threading.Tasks;
+using System.Linq;
+using FifApi.Models;
 
 namespace FifApi.Controllers
 {
@@ -9,80 +11,86 @@ namespace FifApi.Controllers
     [ApiController]
     public class CategoriesController : ControllerBase
     {
-        private readonly FifaDBContext _context;
+        private readonly IDataRepository<Pays> _paysRepository;
+        private readonly IDataRepository<TypeProduit> _typeProduitRepository;
+        private readonly IDataRepository<Couleur> _couleurRepository;
+        private readonly IDataRepository<Taille> _tailleRepository;
 
-        public CategoriesController(FifaDBContext context)
+        public CategoriesController(IDataRepository<Pays> paysRepository, IDataRepository<TypeProduit> typeProduitRepository, IDataRepository<Couleur> couleurRepository, IDataRepository<Taille> tailleRepository)
         {
-            _context = context;
+            _paysRepository = paysRepository;
+            _typeProduitRepository = typeProduitRepository;
+            _couleurRepository = couleurRepository;
+            _tailleRepository = tailleRepository;
         }
 
-        // GET: api/Coategories/Nations
+        // GET: api/Categories/Nations
         [HttpGet("Nations")]
         public async Task<ActionResult<IEnumerable<object>>> GetNations()
         {
-            if (_context.Produits == null)
+            var nations = await _paysRepository.GetAllAsync();
+            if (nations == null)
             {
                 return NotFound();
             }
 
-            return await (from p in _context.Pays
-                          select new
-                          {
-                              id = p.IdPays,
-                              nom = p.NomPays
-                          }).ToListAsync();
+            return nations.Select(p => new
+            {
+                id = p.IdPays,
+                nom = p.NomPays
+            }).ToList();
         }
 
-        // GET: api/Coategories/Categories
+        // GET: api/Categories/Categories
         [HttpGet("Categories")]
         public async Task<ActionResult<IEnumerable<object>>> GetCategories()
         {
-            if (_context.TypeProduits == null)
+            var categories = await _typeProduitRepository.GetAllAsync();
+            if (categories == null)
             {
                 return NotFound();
             }
 
-            return await (from tp in _context.TypeProduits
-                          select new
-                          {
-                              id = tp.Id,
-                              nom = tp.Nom
-                          }).ToListAsync();
+            return categories.Select(tp => new
+            {
+                id = tp.Id,
+                nom = tp.Nom
+            }).ToList();
         }
 
-        // GET: api/Coategories/Couleurs
+        // GET: api/Categories/Couleurs
         [HttpGet("Couleurs")]
         public async Task<ActionResult<IEnumerable<object>>> GetCouleurs()
         {
-            if (_context.Couleurs == null)
+            var couleurs = await _couleurRepository.GetAllAsync();
+            if (couleurs == null)
             {
                 return NotFound();
             }
 
-            return await (from c in _context.Couleurs
-                          select new
-                          {
-                              id = c.Id,
-                              nom = c.Nom,
-                              hexa = c.Hexa
-                          }).ToListAsync();
+            return couleurs.Select(c => new
+            {
+                id = c.Id,
+                nom = c.Nom,
+                hexa = c.Hexa
+            }).ToList();
         }
 
-        // GET: api/Coategories/Couleurs
+        // GET: api/Categories/Tailles
         [HttpGet("Tailles")]
         public async Task<ActionResult<IEnumerable<object>>> GetTailles()
         {
-            if (_context.Tailles == null)
+            var tailles = await _tailleRepository.GetAllAsync();
+            if (tailles == null)
             {
                 return NotFound();
             }
 
-            return await (from c in _context.Tailles
-                          select new
-                          {
-                              id = c.IdTaille,
-                              nom = c.NomTaille
-                          }).ToListAsync();
+            return tailles.Select(t => new
+            {
+                id = t.IdTaille,
+                nom = t.NomTaille
+            }).ToList();
         }
     }
 }
