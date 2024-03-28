@@ -49,7 +49,7 @@ namespace FifApi.Controllers
             _tailleRepository = tailleRepository;
         }
 
-        /*
+        
         // GET: api/Produits
         [HttpGet]
         public async Task<ActionResult<IEnumerable<object>>> GetProduits()
@@ -61,88 +61,13 @@ namespace FifApi.Controllers
                 return NotFound();
             }
 
-            return produits.Select(async p =>
+            return Ok(_produitRepository.GetAll().Select(produit => new
             {
-                var albums = await _albumRepository.SingleOrDefaultAsync(a => a.IdAlbum == p.AlbumId);
-                var albumId = albums?.IdAlbum;
-
-                var albumPhotos = await _albumPhotoRepository.SingleOrDefaultAsync(aph => aph.IdAlbum == albumId);
-                var albumPhotoId = albumPhotos?.IdPhoto;
-
-                var photo = await _photoRepository.SingleOrDefaultAsync(ph => ph.IdPhoto == albumPhotoId);
-
-                var couleurProduits = await _couleurProduitRepository.GetAllAsync();
-                var stock = await _stockRepository.GetAllAsync();
-
-                var couleurs = couleurProduits.Select(async cp =>
-                {
-                    var couleur = await _couleurRepository.SingleOrDefaultAsync(c => c.Id == cp.IdCouleur);
-                    var stocks = await _stockRepository.GetAllAsync();
-                    var quantite = stocks.Sum(s => s.Quantite);
-                    var tailles = stocks.Select(async s =>
-                    {
-                        var tailles = await _tailleRepository.GetAllAsync();
-                        var tailleFind = tailles.FirstOrDefault(t => t.IdTaille == s.TailleId); return new
-                        {
-                            tailleFind.IdTaille,
-                            tailleFind.NomTaille,
-                            tailleFind.DescriptionTaille,
-                            s.Quantite
-                        };
-                    });
-                    return new
-                    {
-                        cp.Prix,
-                        cp.CodeBarre,
-                        couleur = couleur?.Nom,
-                        couleur?.Hexa,
-                        Tailles = await Task.WhenAll(tailles),
-                        quantite
-                    };
-                });
-
-                var result = new
-                {
-                    idProduct = p.Id,
-                    title = p.Name,
-                    description = p.Description,
-                    caracteristiques = p.Caracteristiques,
-                    image = photo?.URL,
-                    couleurs = await Task.WhenAll(couleurs),
-                    quantite = stock.Sum(cp => cp.Quantite)
-                };
-
-                return result;
-            }).ToList();
-        }*/
-
-        //private readonly FifaDBContext _context;
-
-        //public ProduitsController( FifaDBContext context)
-        //{
-        //    _context = context;
-        //}
-
-        // GET: api/Produits/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<object>> GetProduitById(int id)
-        {
-            try
-            {
-                var produit = await _produitRepository.GetByIdAsync(x => x.Id == id);
-
-                if (produit == null)
-                {
-                    return NotFound();
-                }
-
-                return Ok(_produitRepository.GetAll().Select(x => new
-                {
-                    id = x.Id,
-                    titre = x.Name,
-                    description = x.Description,
-                    caracteristiques = x.Caracteristiques,
-                    image = _albumRepository.GetAll().Join
+                id = produit.Id,
+                titre = produit.Name,
+                description = produit.Description,
+                caracteristiques = produit.Caracteristiques,
+                image = _albumRepository.GetAll().Join
                         (
                             _albumPhotoRepository.GetAllAsEnumerable(),
                             x => x.IdAlbum,
@@ -152,8 +77,8 @@ namespace FifApi.Controllers
                                 albumid = album.IdAlbum,
                                 url = albumPhoto.PhotoDesAlbums.URL
                             }
-                        ).Where(album => album.albumid == x.AlbumId).FirstOrDefault(),
-                    couleur = _couleurProduitRepository.GetAll().Join
+                        ).Where(album => album.albumid == produit.AlbumId).FirstOrDefault(),
+                couleur = _couleurProduitRepository.GetAll().Join
                         (
                             _couleurRepository.GetAllAsEnumerable(),
                             x => x.IdCouleur,
@@ -175,11 +100,67 @@ namespace FifApi.Controllers
                                             stock.CouleurProduitId,
                                             stock.Quantite,
                                             taille.NomTaille
-                                        }
-                                    ).Where(stock => stock.CouleurProduitId == couleurproduit.IdCouleurProduit).ToList()
-                            }
-                        ).Where(couleur => couleur.idproduit == id).ToList()
-                }).Where(x => x.id == id));
+                                        }).Where(stock => stock.CouleurProduitId == couleurproduit.IdCouleurProduit).ToList()
+                            }).Where(couleur => couleur.idproduit == produit.Id).ToList()
+            }).ToList());
+        }
+
+        //private readonly FifaDBContext _context;
+
+        //public ProduitsController( FifaDBContext context)
+        //{
+        //    _context = context;
+        //}
+
+        // GET: api/Produits/5
+        [HttpGet("{id}")]
+        public async Task<ActionResult<object>> GetProduitById(int id)
+        {
+            try
+            {
+                var product = await _produitRepository.GetByIdAsync(x => x.Id == id);
+
+                if (product == null)
+                {
+                    return NotFound();
+                }
+
+                return Ok(_produitRepository.Where(x => x.Id == id).Select(produit => new
+                {
+                    id = produit.Id,
+                    titre = produit.Name,
+                    description = produit.Description,
+                    caracteristiques = produit.Caracteristiques,
+                    image = _albumRepository.GetAllAsEnumerable().Where(album => album.IdAlbum == produit.AlbumId).Join
+                        (
+                            _albumPhotoRepository.GetAllAsEnumerable(),
+                            x => x.IdAlbum,
+                            x => x.IdAlbum,
+                            (album, albumPhoto) => albumPhoto.PhotoDesAlbums.URL
+                        ).FirstOrDefault(),
+                    couleur = _couleurProduitRepository.GetAllAsEnumerable().Where(couleur => couleur.IdProduit == produit.Id).Join
+                        (
+                            _couleurRepository.GetAllAsEnumerable(),
+                            x => x.IdCouleur,
+                            x => x.Id,
+                            (couleurproduit, couleur) => new
+                            {
+                                prix = couleurproduit.Prix,
+                                couleur = couleur.Nom,
+                                hexa = couleur.Hexa,
+                                taille = _stockRepository.GetAllAsEnumerable().Where(stock => stock.CouleurProduitId == couleurproduit.IdCouleurProduit).Join
+                                    (
+                                        _tailleRepository.GetAllAsEnumerable(),
+                                        x => x.TailleId,
+                                        x => x.IdTaille,
+                                        (stock, taille) => new
+                                        {
+
+                                            stock.Quantite,
+                                            taille.NomTaille
+                                        }).ToList()
+                            }).ToList()
+                }).FirstOrDefault());
 
             }
             catch (Exception ex)
