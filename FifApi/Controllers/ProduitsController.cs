@@ -11,6 +11,7 @@ using NuGet.Protocol;
 using Microsoft.AspNetCore.Routing.Constraints;
 using FifApi.Models;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using Humanizer;
 
 namespace FifApi.Controllers
 {
@@ -155,12 +156,31 @@ namespace FifApi.Controllers
                                         x => x.IdTaille,
                                         (stock, taille) => new
                                         {
-
                                             stock.Quantite,
                                             taille.NomTaille
-                                        }).ToList()
-                            }).ToList()
-                }).FirstOrDefault());
+                                        }).ToList(),
+                                quantite = _stockRepository.GetAllAsEnumerable().Where(stock => stock.CouleurProduitId == couleurproduit.IdCouleurProduit).Join
+                                    (
+                                        _tailleRepository.GetAllAsEnumerable(),
+                                        x => x.TailleId,
+                                        x => x.IdTaille,
+                                        (stock, taille) => stock.Quantite
+                                    ).Sum()
+                            }).ToList(),
+                    quantite = _couleurProduitRepository.GetAllAsEnumerable().Where(couleur => couleur.IdProduit == produit.Id).Join
+                        (
+                            _couleurRepository.GetAllAsEnumerable(),
+                            x => x.IdCouleur,
+                            x => x.Id,
+                            (couleurproduit, couleur) => _stockRepository.GetAllAsEnumerable().Where(stock => stock.CouleurProduitId == couleurproduit.IdCouleurProduit).Join
+                                (
+                                    _tailleRepository.GetAllAsEnumerable(),
+                                    x => x.TailleId,
+                                    x => x.IdTaille,
+                                    (stock, taille) => stock.Quantite
+                                ).Sum()
+                        ).Sum()
+                            }).FirstOrDefault());
 
             }
             catch (Exception ex)
