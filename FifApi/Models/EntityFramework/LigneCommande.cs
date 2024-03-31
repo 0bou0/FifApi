@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace FifApi.Models.EntityFramework
 {
@@ -18,12 +19,12 @@ namespace FifApi.Models.EntityFramework
         [Column("lcm_quantite")]
         public int QuantiteAchat { get; set; } = 1;
 
-
+        [JsonIgnore]
         [ForeignKey(nameof(IdStock))]
         [InverseProperty(nameof(Stock.LigneDuStock))]
         public virtual Stock StockLigneCommande { get; set; } = null!;
 
-
+        [JsonIgnore]
         [ForeignKey(nameof(IdCommande))]
         [InverseProperty(nameof(Commande.LigneDeLaCommande))]
         public virtual Commande CommandeLigne { get; set; } = null!;

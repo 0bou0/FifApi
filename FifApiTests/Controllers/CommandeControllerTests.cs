@@ -1,180 +1,157 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using FifApi.Controllers;
+using FifApi.Models;
+using FifApi.Models.EntityFramework;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Moq;
-using FifApi.Migrations;
-using FifApi.Models.EntityFramework;
-using Microsoft.EntityFrameworkCore;
-using System.Collections;
-using System.Drawing;
-using FifApi.Models;
 
-namespace FifApi.Controllers.Tests
+namespace FifApi.Tests.Controllers
 {
-    [TestClass()]
+    [TestClass]
     public class CommandeControllerTests
     {
-
-
-
-        public CommandeControllerTests()
-        {
-
-
-        }
-
-
-
-
-        /*
         [TestMethod]
-        public async Task GetAllCommande()
-        {
-            // Act : Appelez la méthode à tester
-            var actionResult = await _controller.GetCommandes();
-            var result = actionResult.Value.ToList();
-
-            // Assert : Vérifiez que le résultat correspond à ce qui est attendu
-            Assert.IsNotNull(result);
-        }
-
-        [TestMethod]
-        public void GetCommandebyId_ExistingIdPassed_ReturnsNotFoundResult_AvecMoq()
-        {
-
-            // Arrange
-            var commande = new Commande
-            {
-                IdCommande = 0,
-                IdUtilisateur = 0,
-                DateCommande = DateTime.Now
-            };
-
-
-
-
-            // Act
-            var actionResult = _controller.GetCommandeById(0).Result;
-            // Assert
-            Assert.IsInstanceOfType(actionResult.Result, typeof(NotFoundResult));
-        }
-
-
-      
-
-        [TestMethod]
-        public async Task GetCommandeById_CorrectPassed_ReturnsRightItem()
+        public async Task GetAllCommandes_ReturnsAllCommandes()
         {
             // Arrange
-            var userId = 1;
-            var mockContext = new Mock<FifaDBContext>();
-            var controller = new CommandeController(mockContext.Object);
-
-            // Simuler les données de commande attendues
-            var expectedCommande = new Commande
+            using (var dbContext = CreateDbContext())
             {
-                IdCommande = 1,
+                dbContext.Commandes.AddRange(new[]
+                {
+                    new Commande { IdCommande = 1, IdUtilisateur = 1, DateCommande = DateTime.Now },
+                    new Commande { IdCommande = 2, IdUtilisateur = 2, DateCommande = DateTime.Now }
+                });
+                dbContext.SaveChanges();
+
+                var controller = new CommandeController(dbContext);
+
+                // Act
+                var actionResult = await controller.GetCommandes();
+                var result = actionResult.Value.ToList();
+
+                // Assert
+                Assert.IsNotNull(result);
+                Assert.AreEqual(2, result.Count);
+                Assert.IsNotNull(actionResult);
+                Assert.IsNotNull(actionResult.Value);
+                Assert.IsNotInstanceOfType(actionResult.Result, typeof(NotFoundResult));
+                Assert.AreEqual(StatusCodes.Status200OK, actionResult.Result is StatusCodeResult ? ((StatusCodeResult)actionResult.Result).StatusCode : 200);
+            }
+        }
+
+        [TestMethod]
+        public async Task GetCommandeById_ReturnsCorrectItem()
+        {
+            // Arrange
+            var idToFind = 100;
+            using (var dbContext = CreateDbContext())
+            {
+                dbContext.Commandes.Add(new Commande { IdCommande = idToFind, IdUtilisateur = 1, DateCommande = DateTime.Now });
+                dbContext.SaveChanges();
+
+                var controller = new CommandeController(dbContext);
+
+                // Act
+                var actionResult = await controller.GetCommandeById(idToFind);
+                var result = actionResult.Value;
+
+                // Assert
+                Assert.IsNotNull(result);
+                Assert.AreEqual(idToFind, result.IdCommande);
+            }
+        }
+
+        [TestMethod]
+        public async Task PostCommande_UpdatesStockAndAddsCommandeWithLignes()
+        {
+            // Arrange
+            var newCommande = new Commande
+            {
                 IdUtilisateur = 1,
-                LigneDeLaCommande = new List<LigneCommande>
-        {
-            new LigneCommande
-            {
-                StockLigneCommande = new Stock
-                {
-                    IdStock = 1,
-                    ProduitEncouleur = new CouleurProduit
-                    {
-                        Couleur_CouleurProduit = new Couleur { Id = 1, Nom = "Rouge" },
-                        Produit_CouleurProduit = new Produit { Id = 1, Name = "Produit 1", Description = "Description du Produit 1" },
-                    },
-                    TailleId = "Small"
-                },
-                QuantiteAchat = 20
-            },
-            new LigneCommande
-            {
-                StockLigneCommande = new Stock
-                {
-                    IdStock = 2,
-                    ProduitEncouleur = new CouleurProduit
-                    {
-                        Couleur_CouleurProduit = new Couleur { Id = 2, Nom = "Bleu" },
-                        Produit_CouleurProduit = new Produit { Id = 1, Name = "Produit 1", Description = "Description du Produit 1" },
-                    },
-                    TailleId = "Medium"
-                },
-                QuantiteAchat = 30
-            },
-            new LigneCommande
-            {
-                StockLigneCommande = new Stock
-                {
-                    IdStock = 3,
-                    ProduitEncouleur = new CouleurProduit
-                    {
-                        Couleur_CouleurProduit = new Couleur { Id = 3, Nom = "Vert" },
-                        Produit_CouleurProduit = new Produit { Id = 1, Name = "Produit 1", Description = "Description du Produit 1" },
-                    },
-                    TailleId = "Large"
-                },
-                QuantiteAchat = 20
-            }
-        }
+
             };
-
-            var actionResult = await _controller.GetCommandeById(userId);
-            var result = actionResult.Value;
-
-            // Assert
-            Assert.IsNotNull(actionResult);
-            Assert.IsNotNull(result);
-
-            // Vérifier que l'objet retourné correspond à celui attendu
-            Assert.AreEqual(expectedCommande.IdCommande, result.IdCommande);
-            Assert.AreEqual(expectedCommande.IdUtilisateur, result.IdUtilisateur);
-            Assert.AreEqual(expectedCommande.LigneDeLaCommande.Count, result.LigneDeLaCommande.Count);
-
-            for (int i = 0; i < expectedCommande.LigneDeLaCommande.Count; i++)
-            {
-                var expectedLigne = expectedCommande.LigneDeLaCommande.ToList()[i];
-                var resultLigne = result.LigneDeLaCommande.ToList()[i];
-
-                Assert.AreEqual(expectedLigne.StockLigneCommande.IdStock, resultLigne.StockLigneCommande.IdStock);
-                Assert.AreEqual(expectedLigne.StockLigneCommande.TailleId, resultLigne.StockLigneCommande.TailleId);
-                Assert.AreEqual(expectedLigne.QuantiteAchat, resultLigne.QuantiteAchat);
-            }
-        }*/
-
-
-
-
-
-        [TestMethod]
-        public async Task GetCommande_ReturnsListOfStocks_avecMoq()
+            var commandeLine = new List<CommandLine>
         {
-            //Arrange
+            new CommandLine { IdStock = 1, quantite = 5 ,IdCouleurProduit = 1},
+            new CommandLine { IdStock = 2, quantite = 3 , IdCouleurProduit = 2}
+        };
 
-            var mockContext = new Mock<IDataRepository<Commande>>();
+            // Créer un contexte de base de données en mémoire pour les tests
+            using (var dbContext = CreateDbContext())
+            {
+                // Ajouter un utilisateur de test avec des valeurs requises
+                dbContext.Utilisateurs.Add(new Utilisateur
+                {
+                    IdUtilisateur = 1,
+                    PseudoUtilisateur = "TestUser",
+                    MotDePasse = "TestPassword",
+                    MailUtilisateur = "test@example.com",
+                    Role = "User"
+                });
 
+                // Ajouter des stocks de test avec des valeurs requises
+                dbContext.Stocks.AddRange(new List<Stock>
+                {
+                    new Stock { IdStock = 1, TailleId = "Taille1", Quantite = 10 }, // IdStock = 1
+                    new Stock { IdStock = 2, TailleId = "Taille2", Quantite = 10 }  // IdStock = 2
+                });
 
-            var stockTable = new CommandeController(mockContext.Object);
+                        // Ajouter des couleursproduit de test
+                        dbContext.CouleurProduits.AddRange(new List<CouleurProduit>
+                {
+                    new CouleurProduit { IdCouleurProduit = 1 }, // IdCouleurProduit = 1
+                    new CouleurProduit { IdCouleurProduit = 2 }  // IdCouleurProduit = 2
+                });
 
-            //Act
+                await dbContext.SaveChangesAsync();
 
-            stockTable.GetCommandes();
+                var controller = new CommandeController(dbContext);
 
-            //Assert
+                // Act
+                var actionResult = await controller.PostCommande(newCommande.IdUtilisateur, commandeLine);
+                var createdAtActionResult = actionResult.Result as CreatedAtActionResult;
 
-            mockContext.VerifyAll();
+                // Assert
+                Assert.IsNotNull(createdAtActionResult);
+                Assert.AreEqual(StatusCodes.Status201Created, createdAtActionResult.StatusCode);
 
+                // Vérifier si createdAtActionResult.Value est null avant de l'utiliser
+                if (createdAtActionResult.Value != null)
+                {
+                    var result = createdAtActionResult.Value as Commande;
+                    Assert.IsNotNull(result);
+                    Assert.AreEqual(newCommande.IdUtilisateur, result.IdUtilisateur);
+
+                    // Vérifier si la quantité du stock a été mise à jour correctement
+                    var stocks = await dbContext.Stocks.ToListAsync();
+                    Assert.AreEqual(5, stocks.First(s => s.IdStock == 1).Quantite); // Vérifier le stock avec IdStock = 1
+                    Assert.AreEqual(7, stocks.First(s => s.IdStock == 2).Quantite); // Vérifier le stock avec IdStock = 2
+                }
+                else
+                {
+                    // Gérer le cas où createdAtActionResult.Value est null
+                    Assert.Fail("CreatedAtActionResult.Value is null");
+                }
+            }
         }
 
+        private FifaDBContext CreateDbContext()
+        {
+            var services = new ServiceCollection();
 
+            services.AddDbContext<FifaDBContext>(options =>
+                options.UseInMemoryDatabase(databaseName: "TestCommandeDatabase"));
+
+            var serviceProvider = services.BuildServiceProvider();
+
+            return serviceProvider.GetRequiredService<FifaDBContext>();
+        }
 
     }
 }
