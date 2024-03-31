@@ -10,6 +10,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
 using System.Text;
+using Microsoft.EntityFrameworkCore;
 
 namespace FifApi.Controllers
 {
@@ -17,12 +18,12 @@ namespace FifApi.Controllers
     [ApiController]
     public class LoginController : ControllerBase
     {
-        private readonly IDataRepository<Utilisateur> _userRepository;
+        private readonly FifaDBContext _dbContext;
         private readonly IConfiguration _config;
 
-        public LoginController(IDataRepository<Utilisateur> userRepository, IConfiguration config)
+        public LoginController(FifaDBContext context, IConfiguration config)
         {
-            _userRepository = userRepository;
+            _dbContext = context;
             _config = config;
         }
 
@@ -46,7 +47,7 @@ namespace FifApi.Controllers
 
         private Utilisateur? AuthenticateUser(User utilisateur)
         {
-            var usersTask = _userRepository.GetAllAsync();
+            var usersTask = _dbContext.Utilisateurs.ToListAsync();
             var users = usersTask.Result;
             return users.SingleOrDefault(x => x.PseudoUtilisateur.ToLower() == utilisateur.UserName.ToLower() && x.MotDePasse == utilisateur.Password);
         }
