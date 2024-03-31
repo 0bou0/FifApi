@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 using System.Linq;
 using FifApi.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace FifApi.Controllers
 {
@@ -11,25 +12,19 @@ namespace FifApi.Controllers
     [ApiController]
     public class CategoriesController : ControllerBase
     {
-        private readonly IDataRepository<Pays> _paysRepository;
-        private readonly IDataRepository<TypeProduit> _typeProduitRepository;
-        private readonly IDataRepository<Couleur> _couleurRepository;
-        private readonly IDataRepository<Taille> _tailleRepository;
+        private readonly FifaDBContext _dbContext;
 
-        public CategoriesController(IDataRepository<Pays> paysRepository, IDataRepository<TypeProduit> typeProduitRepository, IDataRepository<Couleur> couleurRepository, IDataRepository<Taille> tailleRepository)
+        public CategoriesController(FifaDBContext dbContext)
         {
-            _paysRepository = paysRepository;
-            _typeProduitRepository = typeProduitRepository;
-            _couleurRepository = couleurRepository;
-            _tailleRepository = tailleRepository;
+            _dbContext = dbContext;
         }
 
         // GET: api/Categories/Nations
         [HttpGet("Nations")]
         public async Task<ActionResult<IEnumerable<object>>> GetNations()
         {
-            var nations = await _paysRepository.GetAllAsync();
-            if (nations == null)
+            var nations = await _dbContext.Pays.ToListAsync();
+            if (nations == null || !nations.Any())
             {
                 return NotFound();
             }
@@ -45,8 +40,8 @@ namespace FifApi.Controllers
         [HttpGet("Categories")]
         public async Task<ActionResult<IEnumerable<object>>> GetCategories()
         {
-            var categories = await _typeProduitRepository.GetAllAsync();
-            if (categories == null)
+            var categories = await _dbContext.TypeProduits.ToListAsync();
+            if (categories == null || !categories.Any())
             {
                 return NotFound();
             }
@@ -62,8 +57,8 @@ namespace FifApi.Controllers
         [HttpGet("Couleurs")]
         public async Task<ActionResult<IEnumerable<object>>> GetCouleurs()
         {
-            var couleurs = await _couleurRepository.GetAllAsync();
-            if (couleurs == null)
+            var couleurs = await _dbContext.Couleurs.ToListAsync();
+            if (couleurs == null || !couleurs.Any())
             {
                 return NotFound();
             }
@@ -80,8 +75,8 @@ namespace FifApi.Controllers
         [HttpGet("Tailles")]
         public async Task<ActionResult<IEnumerable<object>>> GetTailles()
         {
-            var tailles = await _tailleRepository.GetAllAsync();
-            if (tailles == null)
+            var tailles = await _dbContext.Tailles.ToListAsync();
+            if (tailles == null || !tailles.Any())
             {
                 return NotFound();
             }
