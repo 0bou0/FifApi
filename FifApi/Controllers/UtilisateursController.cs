@@ -78,7 +78,7 @@ namespace FifApi.Controllers
 
                 ClaimsPrincipal claims = CheckToken(user, out token);
 
-                var utilisateur = await _context.Utilisateurs.Where(x => x.IdUtilisateur.ToString() == claims.Claims.ToList()[0].Value).FirstAsync();
+                var utilisateur = await _context.Utilisateurs.Where(x => x.IdUtilisateur.ToString() == claims.Claims.ToList()[0].Value).FirstOrDefaultAsync();
 
                 if (utilisateur == null)
                 {
@@ -87,15 +87,15 @@ namespace FifApi.Controllers
 
                 return new
                 {
-                    PseudoUtilisateur = utilisateur.PseudoUtilisateur,
-                    EmailUtilisateur = utilisateur.MailUtilisateur,
-                    PrenomUtilisateur = utilisateur.PrenomUtilisateur,
-                    NomUtilisateur = utilisateur.NomUtilisateur
+                    UserName = utilisateur.PseudoUtilisateur,
+                    Email = utilisateur.MailUtilisateur,
+                    FirstName = utilisateur.PrenomUtilisateur,
+                    LastName = utilisateur.NomUtilisateur
                 };
             }
-            catch
+            catch(Exception e)
             {
-                return Unauthorized();
+                return Unauthorized(e);
             }
 
 
@@ -417,7 +417,7 @@ namespace FifApi.Controllers
 
         private ClaimsPrincipal CheckToken(User user, out SecurityToken token)
         {
-            return new JwtSecurityTokenHandler().ValidateToken(user.Token, new TokenValidationParameters
+            return new JwtSecurityTokenHandler().ValidateToken(user.token, new TokenValidationParameters
             {
                 ValidateIssuer = true,
                 ValidateAudience = true,
