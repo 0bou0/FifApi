@@ -10,13 +10,17 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Runtime.Intrinsics.X86;
 using Newtonsoft.Json.Linq;
+using Microsoft.AspNetCore.Mvc;
+using System.Text.Json;
+
+
 
 namespace FifApi.Tests.Controllers
 {
     [TestClass]
     public class UtilisateursControllerTests
     {
-        
+
 
         [TestMethod]
         public async Task GetUtilisateurs_ReturnsAllUtilisateurs()
@@ -37,6 +41,24 @@ namespace FifApi.Tests.Controllers
 
                 Assert.IsNotNull(result);
                 Assert.AreEqual(2, result.Count);
+            }
+        }
+
+        [TestMethod]
+        public async Task GetUtilisateurs_ReturnsAllUtilisateurs_Failed()
+        {
+            using (var dbContext = CreateDbContext())
+            {
+                dbContext.SaveChanges();
+
+                var controller = new UtilisateursController(dbContext, null);
+
+                var actionResult = await controller.GetUtilisateurs();
+                var result = actionResult.Value.ToList();
+
+                // Assert
+                Assert.IsNotNull(result); // Vérifie que la liste retournée est null
+                Assert.AreEqual(0, result.Count);
             }
         }
 
@@ -75,12 +97,49 @@ namespace FifApi.Tests.Controllers
         }
 
 
+        [TestMethod]
+        public async Task ChekEmail_Returns_Wrong_Result()
+        {
+            using (var dbContext = CreateDbContext())
+            {
+                dbContext.Utilisateurs.AddRange(new[]
+                {
+            new Utilisateur { IdUtilisateur = 1, PseudoUtilisateur = "user1", MailUtilisateur = "user1@example.com", MotDePasse = "password1", Role = "user" },
+            new Utilisateur { IdUtilisateur = 2, PseudoUtilisateur = "user2", MailUtilisateur = "user2@example.com", MotDePasse = "password2", Role = "user" }
+        });
+                dbContext.SaveChanges();
+
+                var controller = new UtilisateursController(dbContext, null);
+
+                var actionResult = await controller.ChekEmail("userfff@example.com");
+                var result = actionResult.Value;
+
+                // Assert
+                Assert.IsNotNull(result, "Le résultat ne devrait pas être null.");
+
+                // Vérifiez si le résultat est une chaîne (string)
+                Assert.IsInstanceOfType(result, typeof(string), "Le résultat devrait être une chaîne de caractères.");
+
+                // Vérifiez si la chaîne représente un objet JSON avec la propriété "email"
+                var jsonString = (string)result;
+                dynamic jsonObject = JObject.Parse(jsonString);
+                Assert.IsTrue(jsonObject.email != null, "Le résultat devrait contenir la propriété 'email'.");
+
+                // Vérifiez si la valeur de la propriété "email" est correcte
+                var emailAvailable = (bool)jsonObject.email;
+                Assert.IsTrue(emailAvailable, "L'email devrait être disponible.");
+
+               
+            }
+        }
 
 
 
 
 
-     
+
+
+
 
 
 

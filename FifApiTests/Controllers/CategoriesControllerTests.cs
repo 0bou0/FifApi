@@ -45,6 +45,27 @@ namespace FifApi.Tests.Controllers
         }
 
         [TestMethod]
+        public async Task GetNations_ReturnsListOfNations_Equal_To_Zero()
+        {
+            // Arrange
+            using (var dbContext = CreateDbContext())
+            {
+                // Il n'y a pas besoin d'ajouter des données dans la base de données, car nous voulons tester le cas où la liste est vide.
+
+                var controller = new CategoriesController(dbContext);
+
+                // Act
+                var actionResult = await controller.GetNations();
+                var result = actionResult.Value; // Pas besoin de convertir en liste
+
+                // Assert
+                Assert.IsNull(result); // Vérifie que la liste retournée est null
+                Assert.IsInstanceOfType(actionResult.Result, typeof(NotFoundResult)); // Vérifie qu'une NotFoundResult est retournée
+            }
+        }
+
+
+        [TestMethod]
         public async Task GetCategories_ReturnsListOfCategories()
         {
             // Arrange
@@ -72,6 +93,28 @@ namespace FifApi.Tests.Controllers
                 Assert.IsNotInstanceOfType(actionResult.Result, typeof(NotFoundResult));
                 Assert.IsNotInstanceOfType(actionResult.Result, typeof(BadRequestResult));
                 Assert.AreEqual(StatusCodes.Status200OK, actionResult.Result is StatusCodeResult ? ((StatusCodeResult)actionResult.Result).StatusCode : 200);
+            }
+        }
+
+
+        [TestMethod]
+        public async Task GetCategories_ReturnsListOfCategories_Equal_To_Zero()
+        {
+            // Arrange
+            using (var dbContext = CreateDbContext())
+            {
+               
+                dbContext.SaveChanges();
+
+                var controller = new CategoriesController(dbContext);
+
+                // Act
+                var actionResult = await controller.GetCategories();
+                var result = actionResult.Value;
+
+                // Assert
+                Assert.IsNull(result);
+                Assert.IsInstanceOfType(actionResult.Result, typeof(NotFoundResult));
             }
         }
 
@@ -107,6 +150,46 @@ namespace FifApi.Tests.Controllers
         }
 
         [TestMethod]
+        public async Task GetCouleurs_ReturnsListOfCouleurs_Equals_To_Zero()
+        {
+            // Arrange
+            using (var dbContext = CreateDbContext())
+            {
+                dbContext.SaveChanges();
+
+                var controller = new CategoriesController(dbContext);
+
+                // Act
+                var actionResult = await controller.GetCouleurs();
+                var result = actionResult.Value;
+
+                // Assert
+                Assert.IsNull(result);
+                Assert.IsInstanceOfType(actionResult.Result, typeof(NotFoundResult));
+            }
+        }
+
+        [TestMethod]
+        public async Task GetTailles_ReturnsListOfTailles_Equal_To_Zero()
+        {
+            // Arrange
+            using (var dbContext = CreateDbContext())
+            {
+                dbContext.SaveChanges();
+
+                var controller = new CategoriesController(dbContext);
+
+                // Act
+                var actionResult = await controller.GetTailles();
+                var result = actionResult.Value;
+
+                // Assert
+                Assert.IsNull(result);
+                Assert.IsInstanceOfType(actionResult.Result, typeof(NotFoundResult));
+            }
+        }
+
+        [TestMethod]
         public async Task GetTailles_ReturnsListOfTailles()
         {
             // Arrange
@@ -137,16 +220,20 @@ namespace FifApi.Tests.Controllers
             }
         }
 
+
+
+
         private FifaDBContext CreateDbContext()
         {
             var services = new ServiceCollection();
 
             services.AddDbContext<FifaDBContext>(options =>
-                options.UseInMemoryDatabase(databaseName: "TestCategoryDatabase"));
+                options.UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())); // Utiliser un nom de base de données unique à chaque fois
 
             var serviceProvider = services.BuildServiceProvider();
 
             return serviceProvider.GetRequiredService<FifaDBContext>();
         }
+
     }
 }

@@ -59,6 +59,11 @@ namespace FifApi.Controllers
                 return BadRequest();
             }
 
+            if (stock.Quantite <= 0)
+            {
+                return NoContent();
+            }
+
             _context.Entry(stock).State = EntityState.Modified;
 
             try
@@ -80,20 +85,23 @@ namespace FifApi.Controllers
             return NoContent();
         }
 
+
         // POST: api/Stocks
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
         public async Task<ActionResult<Stock>> PostStock(Stock stock)
         {
-          if (_context.Stocks == null)
-          {
-              return Problem("Entity set 'FifaDBContext.Stocks'  is null.");
-          }
+            if (_context.Stocks == null || stock.Quantite <= 0)
+            {
+                return NoContent();
+            }
+
             _context.Stocks.Add(stock);
             await _context.SaveChangesAsync();
 
             return CreatedAtAction("GetStock", new { id = stock.IdStock }, stock);
         }
+
 
         // DELETE: api/Stocks/5
         [HttpDelete("{id}")]

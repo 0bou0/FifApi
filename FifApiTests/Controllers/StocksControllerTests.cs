@@ -46,6 +46,34 @@ namespace FifApi.Tests.Controllers
         }
 
         [TestMethod]
+        public async Task GetAllStocks_Returns_Null()
+        {
+            // Arrange
+            using (var dbContext = CreateDbContext())
+            {
+                dbContext.SaveChanges();
+
+                var controller = new StocksController(dbContext);
+
+                // Act
+                var actionResult = await controller.GetStocks();
+                var result = actionResult.Value.ToList();
+
+                // Assert
+                Assert.IsNotNull(result);
+                Assert.AreEqual(0, result.Count);
+                Assert.IsNotNull(actionResult);
+                Assert.IsNotNull(actionResult.Value);
+                Assert.IsNotInstanceOfType(actionResult.Result, typeof(ObjectResult));
+                Assert.IsNotInstanceOfType(actionResult.Result, typeof(NotFoundResult));
+                Assert.IsNotInstanceOfType(actionResult.Result, typeof(BadRequestResult));
+                Assert.AreEqual(StatusCodes.Status200OK, actionResult.Result is StatusCodeResult ? ((StatusCodeResult)actionResult.Result).StatusCode : 200);
+
+            }
+        }
+
+
+        [TestMethod]
         public async Task GetStockById_ReturnsCorrectItem()
         {
             // Arrange
@@ -68,6 +96,28 @@ namespace FifApi.Tests.Controllers
         }
 
         [TestMethod]
+        public async Task GetStockById_ReturnsWrongItem()
+        {
+            // Arrange
+            var idToFind = 100;
+            using (var dbContext = CreateDbContext())
+            {
+                dbContext.Stocks.Add(new Stock { IdStock = idToFind + 1, TailleId = "l", Quantite = 10 });
+                dbContext.SaveChanges();
+
+                var controller = new StocksController(dbContext);
+
+                // Act
+                var actionResult = await controller.GetStock(idToFind);
+                var result = actionResult.Value;
+                // Assert
+                Assert.IsNull(result);
+                Assert.IsInstanceOfType(actionResult.Result, typeof(NotFoundResult));
+            }
+        }
+
+
+        [TestMethod]
         public async Task PostStock_ReturnsCreatedResponse()
         {
             // Arrange
@@ -88,6 +138,27 @@ namespace FifApi.Tests.Controllers
                 Assert.AreEqual(newStock.IdStock, result.IdStock);
             }
         }
+        [TestMethod]
+        public async Task PostStock_Returns_NoContent_When_Quantity_Is_NonPositive()
+        {
+            // Arrange
+            var newStock = new Stock { IdStock = 3, TailleId = "M", Quantite = -30 };
+            using (var dbContext = CreateDbContext())
+            {
+                var controller = new StocksController(dbContext);
+
+                // Act
+                var actionResult = await controller.PostStock(newStock);
+
+                // Assert
+                Assert.IsInstanceOfType(actionResult.Result, typeof(NoContentResult));
+            }
+        }
+
+
+
+
+
 
         [TestMethod]
         public async Task PutStock_ReturnsNoContentResponse()
@@ -110,6 +181,31 @@ namespace FifApi.Tests.Controllers
             }
         }
 
+
+        [TestMethod]
+        public async Task PutStock_Returns_NoContent_When_Quantity_Is_NonPositive()
+        {
+            // Arrange
+            var idToUpdate = 5;
+            var stockToUpdate = new Stock { IdStock = idToUpdate, TailleId = "M", Quantite = 0 };
+
+            using (var dbContext = CreateDbContext())
+            {
+                dbContext.Stocks.Add(stockToUpdate);
+                await dbContext.SaveChangesAsync();
+
+                var controller = new StocksController(dbContext);
+
+                // Act
+                var actionResult = await controller.PutStock(idToUpdate, stockToUpdate);
+
+                // Assert
+                Assert.IsNotNull(actionResult);
+                Assert.IsInstanceOfType(actionResult, typeof(NoContentResult));
+            }
+        }
+
+
         [TestMethod]
         public async Task DeleteStock_ReturnsNoContentResponse()
         {
@@ -130,16 +226,37 @@ namespace FifApi.Tests.Controllers
             }
         }
 
+
+        [TestMethod]
+        public async Task DeleteStock_ReturnsNoFoundResponse()
+        {
+            // Arrange
+            var idToDelete = 100; // ID qui ne correspond à aucun stock existant
+
+            using (var dbContext = CreateDbContext())
+            {
+                var controller = new StocksController(dbContext);
+
+                // Act
+                var actionResult = await controller.DeleteStock(idToDelete);
+
+                // Assert
+                Assert.IsNotNull(actionResult);
+                Assert.IsInstanceOfType(actionResult, typeof(NotFoundResult));
+            }
+        }
+
         private FifaDBContext CreateDbContext()
         {
             var services = new ServiceCollection();
 
             services.AddDbContext<FifaDBContext>(options =>
-                options.UseInMemoryDatabase(databaseName: "TestStockDatabase"));
+                options.UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())); // Utiliser un nom de base de données unique à chaque fois
 
             var serviceProvider = services.BuildServiceProvider();
 
             return serviceProvider.GetRequiredService<FifaDBContext>();
         }
+
     }
 }

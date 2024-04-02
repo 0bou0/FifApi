@@ -44,9 +44,34 @@ namespace FifApi.Tests.Controllers
                 Assert.AreEqual(StatusCodes.Status200OK, actionResult.Result is StatusCodeResult ? ((StatusCodeResult)actionResult.Result).StatusCode : 200);
             }
         }
+        [TestMethod]
+        public async Task GetAllCommandes_ReturnsAllCommandes_Equals_To_Zero()
+        {
+            // Arrange
+            using (var dbContext = CreateDbContext())
+            {
+                // Pas besoin d'ajouter de commandes dans la base de données, car nous voulons tester le cas où la liste est vide.
+
+                var controller = new CommandeController(dbContext);
+
+                // Act
+                var actionResult = await controller.GetCommandes();
+                var result = actionResult.Value.ToList();
+
+                // Assert
+                Assert.IsNotNull(result);
+
+                Assert.AreEqual(0, result.Count);
+                Assert.IsNotNull(actionResult);
+                Assert.IsNotNull(actionResult.Value);
+                Assert.IsNotInstanceOfType(actionResult.Result, typeof(NotFoundResult));
+                Assert.AreEqual(StatusCodes.Status200OK, actionResult.Result is StatusCodeResult ? ((StatusCodeResult)actionResult.Result).StatusCode : 200);
+            }
+        }
+
 
         [TestMethod]
-        public async Task GetCommandeById_ReturnsCorrectItem()
+        public async Task GetCommandeById_Returns_Correct_Item()
         {
             // Arrange
             var idToFind = 100;
@@ -66,6 +91,30 @@ namespace FifApi.Tests.Controllers
                 Assert.AreEqual(idToFind, result.IdCommande);
             }
         }
+
+        [TestMethod]
+        public async Task GetCommandeById_Returns_Wrong_Item()
+        {
+            // Arrange
+            var idToFind = 100;
+            using (var dbContext = CreateDbContext())
+            {
+                // Ajouter une commande avec un identifiant différent de celui recherché
+                dbContext.Commandes.Add(new Commande { IdCommande = idToFind + 1, IdUtilisateur = 1, DateCommande = DateTime.Now });
+                dbContext.SaveChanges();
+
+                var controller = new CommandeController(dbContext);
+
+                // Act
+                var actionResult = await controller.GetCommandeById(idToFind);
+                var result = actionResult.Value;
+
+                // Assert
+                Assert.IsNull(result);
+                Assert.IsInstanceOfType(actionResult.Result, typeof(NotFoundResult));
+            }
+        }
+
 
         [TestMethod]
         public async Task PostCommande_UpdatesStockAndAddsCommandeWithLignes()
@@ -102,8 +151,8 @@ namespace FifApi.Tests.Controllers
                     new Stock { IdStock = 2, TailleId = "Taille2", Quantite = 10 }  // IdStock = 2
                 });
 
-                        // Ajouter des couleursproduit de test
-                        dbContext.CouleurProduits.AddRange(new List<CouleurProduit>
+                // Ajouter des couleursproduit de test
+                dbContext.CouleurProduits.AddRange(new List<CouleurProduit>
                 {
                     new CouleurProduit { IdCouleurProduit = 1 }, // IdCouleurProduit = 1
                     new CouleurProduit { IdCouleurProduit = 2 }  // IdCouleurProduit = 2
@@ -141,17 +190,195 @@ namespace FifApi.Tests.Controllers
             }
         }
 
+
+
+        [TestMethod]
+        public async Task PostCommande_UpdatesStockAndAddsCommandeWithLignes_where_stock_null_or_min()
+        {
+            // Arrange
+            var newCommande = new Commande
+            {
+                IdUtilisateur = 1,
+
+            };
+            var commandeLine = new List<CommandLine>
+        {
+            new CommandLine { IdStock = 1, quantite = 5 ,IdCouleurProduit = 1},
+            new CommandLine { IdStock = 2, quantite = 3 , IdCouleurProduit = 2}
+        };
+
+            // Créer un contexte de base de données en mémoire pour les tests
+            using (var dbContext = CreateDbContext())
+            {
+                // Ajouter un utilisateur de test avec des valeurs requises
+                dbContext.Utilisateurs.Add(new Utilisateur
+                {
+                    IdUtilisateur = 1,
+                    PseudoUtilisateur = "TestUser",
+                    MotDePasse = "TestPassword",
+                    MailUtilisateur = "test@example.com",
+                    Role = "User"
+                });
+
+                // Ajouter des stocks de test avec des valeurs requises
+                dbContext.Stocks.AddRange(new List<Stock>
+                {
+                    new Stock { IdStock = 1, TailleId = "Taille1", Quantite = 1 }, // IdStock = 1
+                    new Stock { IdStock = 5, TailleId = "Taille2", Quantite = 1 }  // IdStock = 2
+                });
+
+                // Ajouter des couleursproduit de test
+                dbContext.CouleurProduits.AddRange(new List<CouleurProduit>
+                {
+                    new CouleurProduit { IdCouleurProduit = 1 }, // IdCouleurProduit = 1
+                    new CouleurProduit { IdCouleurProduit = 2 }  // IdCouleurProduit = 2
+                });
+
+                await dbContext.SaveChangesAsync();
+
+                var controller = new CommandeController(dbContext);
+
+                // Act
+                var actionResult = await controller.PostCommande(newCommande.IdUtilisateur, commandeLine);
+                var createdAtActionResult = actionResult.Result as CreatedAtActionResult;
+
+                // Assert
+                Assert.IsNull(createdAtActionResult);
+                Assert.IsInstanceOfType(actionResult.Result, typeof(UnauthorizedObjectResult));
+
+
+            }
+        }
+
+        [TestMethod]
+        public async Task PostCommande_UpdatesStockAndAddsCommandeWithLignes_where_utilisateur_null()
+        {
+            // Arrange
+            var newCommande = new Commande
+            {
+                IdUtilisateur = 5,
+
+            };
+            var commandeLine = new List<CommandLine>
+        {
+            new CommandLine { IdStock = 1, quantite = 5 ,IdCouleurProduit = 1},
+            new CommandLine { IdStock = 2, quantite = 3 , IdCouleurProduit = 2}
+        };
+
+            // Créer un contexte de base de données en mémoire pour les tests
+            using (var dbContext = CreateDbContext())
+            {
+                // Ajouter un utilisateur de test avec des valeurs requises
+                dbContext.Utilisateurs.Add(new Utilisateur
+                {
+                    IdUtilisateur = 1,
+                    PseudoUtilisateur = "TestUser",
+                    MotDePasse = "TestPassword",
+                    MailUtilisateur = "test@example.com",
+                    Role = "User"
+                });
+
+                // Ajouter des stocks de test avec des valeurs requises
+                dbContext.Stocks.AddRange(new List<Stock>
+                {
+                    new Stock { IdStock = 1, TailleId = "Taille1", Quantite = 1 }, // IdStock = 1
+                    new Stock { IdStock = 2, TailleId = "Taille2", Quantite = 1 }  // IdStock = 2
+                });
+
+                // Ajouter des couleursproduit de test
+                dbContext.CouleurProduits.AddRange(new List<CouleurProduit>
+                {
+                    new CouleurProduit { IdCouleurProduit = 1 }, // IdCouleurProduit = 1
+                    new CouleurProduit { IdCouleurProduit = 2 }  // IdCouleurProduit = 2
+                });
+
+                await dbContext.SaveChangesAsync();
+
+                var controller = new CommandeController(dbContext);
+
+                // Act
+                var actionResult = await controller.PostCommande(newCommande.IdUtilisateur, commandeLine);
+                var createdAtActionResult = actionResult.Result as CreatedAtActionResult;
+
+                // Assert
+                Assert.IsNull(createdAtActionResult);
+                Assert.IsInstanceOfType(actionResult.Result, typeof(UnauthorizedObjectResult));
+
+
+            }
+        }
+
+        [TestMethod]
+        public async Task PostCommande_UpdatesStockAndAddsCommandeWithLignes_where_other_null()
+        {
+            // Arrange
+            var newCommande = new Commande
+            {
+                IdUtilisateur = 5,
+
+            };
+            var commandeLine = new List<CommandLine>
+        {
+            new CommandLine { IdStock = 1, quantite = 5 ,IdCouleurProduit = 1},
+            new CommandLine { IdStock = 2, quantite = 3 , IdCouleurProduit = 2}
+        };
+
+            // Créer un contexte de base de données en mémoire pour les tests
+            using (var dbContext = CreateDbContext())
+            {
+                // Ajouter un utilisateur de test avec des valeurs requises
+                dbContext.Utilisateurs.Add(new Utilisateur
+                {
+                    IdUtilisateur = 1,
+                    PseudoUtilisateur = "TestUser",
+                    MotDePasse = "TestPassword",
+                    MailUtilisateur = "test@example.com",
+                    Role = "User"
+                });
+
+                // Ajouter des stocks de test avec des valeurs requises
+                dbContext.Stocks.AddRange(new List<Stock>
+                {
+                    new Stock { IdStock = 1, TailleId = "Taille1", Quantite = 1 },
+
+                    new Stock { IdStock = 2, TailleId = "Taille2", Quantite = 1 }  
+
+                });
+
+                // Ajouter des couleursproduit de test
+                dbContext.CouleurProduits.AddRange(new List<CouleurProduit>
+                {
+                    new CouleurProduit { IdCouleurProduit = 5 }, 
+                    new CouleurProduit { IdCouleurProduit = 2 }  
+                });
+
+                await dbContext.SaveChangesAsync();
+
+                var controller = new CommandeController(dbContext);
+
+                // Act
+                var actionResult = await controller.PostCommande(newCommande.IdUtilisateur, commandeLine);
+                var createdAtActionResult = actionResult.Result as CreatedAtActionResult;
+
+                // Assert
+                Assert.IsNull(createdAtActionResult);
+                Assert.IsInstanceOfType(actionResult.Result, typeof(UnauthorizedObjectResult));
+
+
+            }
+        }
+
+
         private FifaDBContext CreateDbContext()
         {
             var services = new ServiceCollection();
 
             services.AddDbContext<FifaDBContext>(options =>
-                options.UseInMemoryDatabase(databaseName: "TestCommandeDatabase"));
+                options.UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())); // Utiliser un nom de base de données unique à chaque fois
 
             var serviceProvider = services.BuildServiceProvider();
 
             return serviceProvider.GetRequiredService<FifaDBContext>();
         }
-
     }
 }
