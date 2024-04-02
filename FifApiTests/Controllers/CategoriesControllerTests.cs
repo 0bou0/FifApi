@@ -14,7 +14,7 @@ namespace FifApi.Tests.Controllers
     public class CategoriesControllerTests
     {
         [TestMethod]
-        public async Task GetNations_ReturnsListOfNations()
+        public async Task Get_Nations_Returns_List_Of_Nations()
         {
             // Arrange
             using (var dbContext = CreateDbContext())
@@ -45,28 +45,27 @@ namespace FifApi.Tests.Controllers
         }
 
         [TestMethod]
-        public async Task GetNations_ReturnsListOfNations_Equal_To_Zero()
+        public async Task Get_Nations_Returns_List_Of_Nations_Equal_To_Zero()
         {
             // Arrange
             using (var dbContext = CreateDbContext())
             {
-                // Il n'y a pas besoin d'ajouter des données dans la base de données, car nous voulons tester le cas où la liste est vide.
 
                 var controller = new CategoriesController(dbContext);
 
                 // Act
                 var actionResult = await controller.GetNations();
-                var result = actionResult.Value; // Pas besoin de convertir en liste
+                var result = actionResult.Value; 
 
                 // Assert
-                Assert.IsNull(result); // Vérifie que la liste retournée est null
-                Assert.IsInstanceOfType(actionResult.Result, typeof(NotFoundResult)); // Vérifie qu'une NotFoundResult est retournée
+                Assert.IsNull(result); 
+                Assert.IsInstanceOfType(actionResult.Result, typeof(NotFoundResult)); 
             }
         }
 
 
         [TestMethod]
-        public async Task GetCategories_ReturnsListOfCategories()
+        public async Task Get_Categories_Returns_List_Of_Categories()
         {
             // Arrange
             using (var dbContext = CreateDbContext())
@@ -98,7 +97,7 @@ namespace FifApi.Tests.Controllers
 
 
         [TestMethod]
-        public async Task GetCategories_ReturnsListOfCategories_Equal_To_Zero()
+        public async Task Get_Categories_Returns_List_Of_Categories_Equal_To_Zero()
         {
             // Arrange
             using (var dbContext = CreateDbContext())
@@ -119,7 +118,7 @@ namespace FifApi.Tests.Controllers
         }
 
         [TestMethod]
-        public async Task GetCouleurs_ReturnsListOfCouleurs()
+        public async Task Get_Couleurs_Returns_List_Of_Couleurs()
         {
             // Arrange
             using (var dbContext = CreateDbContext())
@@ -150,7 +149,7 @@ namespace FifApi.Tests.Controllers
         }
 
         [TestMethod]
-        public async Task GetCouleurs_ReturnsListOfCouleurs_Equals_To_Zero()
+        public async Task Get_Couleurs_Returns_List_Of_Couleurs_Equals_To_Zero()
         {
             // Arrange
             using (var dbContext = CreateDbContext())
@@ -170,7 +169,7 @@ namespace FifApi.Tests.Controllers
         }
 
         [TestMethod]
-        public async Task GetTailles_ReturnsListOfTailles_Equal_To_Zero()
+        public async Task Get_Tailles_Returns_List_Of_Tailles_Equal_To_Zero()
         {
             // Arrange
             using (var dbContext = CreateDbContext())
@@ -190,7 +189,7 @@ namespace FifApi.Tests.Controllers
         }
 
         [TestMethod]
-        public async Task GetTailles_ReturnsListOfTailles()
+        public async Task Get_Tailles_Returns_List_Of_Tailles()
         {
             // Arrange
             using (var dbContext = CreateDbContext())

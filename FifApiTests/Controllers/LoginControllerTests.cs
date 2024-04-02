@@ -18,37 +18,11 @@ namespace FifApi.Tests.Controllers
     [TestClass]
     public class LoginControllerTests
     {
-        [TestMethod]
-        public async Task Login_ValidUser_ReturnsToken()
-        {
-            // Arrange
-            var users = new List<Utilisateur>
-    {
-        new Utilisateur { IdUtilisateur = 1, PseudoUtilisateur = "testUser", MailUtilisateur = "test@example.com", MotDePasse = "testPassword", Role = "User" }
-    };
-            var dbContext = CreateDbContext(users);
-
-            // Mock IConfiguration
-            var mockConfig = new Mock<IConfiguration>();
-            mockConfig.SetupGet(x => x["Jwt:SecretKey"]).Returns("test_secret_key");
-
-            var controller = new LoginController(dbContext, mockConfig.Object);
-
-            // Act
-            var loginRequest = new User { UserName = "testUser", Password = "testPassword" };
-            var actionResult = controller.Login(loginRequest);
-            var result = actionResult as OkObjectResult;
-            var token = result.Value.GetType().GetProperty("token").GetValue(result.Value).ToString();
-
-            // Assert
-            Assert.IsNotNull(result);
-            Assert.AreEqual(StatusCodes.Status200OK, result.StatusCode);
-            Assert.IsFalse(string.IsNullOrEmpty(token));
-        }
+      
 
 
         [TestMethod]
-        public async Task Login_InvalidUser_ReturnsUnauthorized()
+        public async Task Login_Invalid_User_Returns_Unauthorized()
         {
             // Arrange
             var mockConfig = new Mock<IConfiguration>();

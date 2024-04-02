@@ -19,7 +19,7 @@ namespace FifApi.Tests.Controllers
     public class ProduitsControllerTests
     {
         [TestMethod]
-        public async Task GetProduitsByFilter_Returns_Filtered_Produits_by_All()
+        public async Task Get_Produits_By_Filter_Returns_Filtered_Produits_by_All()
         {
             // Arrange
             var pays = new Pays { IdPays = "fr", NomPays = "France" };
@@ -33,12 +33,10 @@ namespace FifApi.Tests.Controllers
         new Produit { Id = 3, Name = "Produit 3", Description = "Description du produit 3", Caracteristiques = "Caractéristiques du produit 3", AlbumId = 3, PaysId = pays.IdPays }
     });
 
-                // Ajouter des types de produit
                 dbContext.TypeProduits.AddRange(new[]
                 {
             new TypeProduit { Id = 1, Nom = "SomeCategory", Description = "Description du type 1" },
             new TypeProduit { Id = 2, Nom = "SomeCategoryForTest", Description = "Description du type 2" },
-            // Ajoutez autant de types de produit que nécessaire
         });
                 dbContext.Albums.AddRange(new[]
                 {
@@ -115,7 +113,7 @@ namespace FifApi.Tests.Controllers
 
                 // Assert
                 Assert.IsNotNull(result);
-                // Assert
+               
                 Assert.IsNotNull(actionResult);
                 Assert.IsInstanceOfType(actionResult, typeof(ActionResult<object>));
 
@@ -125,7 +123,6 @@ namespace FifApi.Tests.Controllers
                 {
                     var properties = produit.GetType().GetProperties();
 
-                    // Vérifiez si chaque propriété attendue existe dans le produit retourné
                     Assert.IsTrue(properties.Any(p => p.Name == "idProduct"));
                     Assert.IsTrue(properties.Any(p => p.Name == "title"));
                     Assert.IsTrue(properties.Any(p => p.Name == "description"));
@@ -134,7 +131,6 @@ namespace FifApi.Tests.Controllers
                     Assert.IsTrue(properties.Any(p => p.Name == "couleurs"));
                     Assert.IsTrue(properties.Any(p => p.Name == "quantite"));
 
-                    // Vous pouvez également vérifier le contenu des propriétés si nécessaire
                 }
 
             }
@@ -142,7 +138,7 @@ namespace FifApi.Tests.Controllers
 
 
         [TestMethod]
-        public async Task GetProduitsByFilter_Returns_Filtered_Produits_by_Couleur()
+        public async Task Get_Produits_By_Filter_Returns_Filtered_Produits_by_Couleur()
         {
             // Arrange
             var pays = new Pays { IdPays = "fr", NomPays = "France" };
@@ -231,7 +227,7 @@ namespace FifApi.Tests.Controllers
 
                 // Assert
                 Assert.IsNotNull(result);
-                // Assert
+            
                 Assert.IsNotNull(actionResult);
                 Assert.IsInstanceOfType(actionResult, typeof(ActionResult<object>));
 
@@ -241,7 +237,6 @@ namespace FifApi.Tests.Controllers
                 {
                     var properties = produit.GetType().GetProperties();
 
-                    // Vérifiez si chaque propriété attendue existe dans le produit retourné
                     Assert.IsTrue(properties.Any(p => p.Name == "idProduct"));
                     Assert.IsTrue(properties.Any(p => p.Name == "title"));
                     Assert.IsTrue(properties.Any(p => p.Name == "description"));
@@ -250,7 +245,6 @@ namespace FifApi.Tests.Controllers
                     Assert.IsTrue(properties.Any(p => p.Name == "couleurs"));
                     Assert.IsTrue(properties.Any(p => p.Name == "quantite"));
 
-                    // Vous pouvez également vérifier le contenu des propriétés si nécessaire
                 }
 
             }
@@ -258,7 +252,7 @@ namespace FifApi.Tests.Controllers
 
 
         [TestMethod]
-        public async Task GetProduitsByFilter_Returns_Filtered_Produits_by_Nation()
+        public async Task Get_Produits_By_Filter_Returns_Filtered_Produits_by_Nation()
         {
             // Arrange
             var pays = new Pays { IdPays = "fr", NomPays = "France" };
@@ -347,7 +341,7 @@ namespace FifApi.Tests.Controllers
 
                 // Assert
                 Assert.IsNotNull(result);
-                // Assert
+               
                 Assert.IsNotNull(actionResult);
                 Assert.IsInstanceOfType(actionResult, typeof(ActionResult<object>));
 
@@ -357,7 +351,6 @@ namespace FifApi.Tests.Controllers
                 {
                     var properties = produit.GetType().GetProperties();
 
-                    // Vérifiez si chaque propriété attendue existe dans le produit retourné
                     Assert.IsTrue(properties.Any(p => p.Name == "idProduct"));
                     Assert.IsTrue(properties.Any(p => p.Name == "title"));
                     Assert.IsTrue(properties.Any(p => p.Name == "description"));
@@ -366,14 +359,13 @@ namespace FifApi.Tests.Controllers
                     Assert.IsTrue(properties.Any(p => p.Name == "couleurs"));
                     Assert.IsTrue(properties.Any(p => p.Name == "quantite"));
 
-                    // Vous pouvez également vérifier le contenu des propriétés si nécessaire
                 }
 
             }
         }
 
         [TestMethod]
-        public async Task GetProduitsByFilter_Returns_Filtered_Produits_by_Categorie()
+        public async Task Get_Produits_By_Filter_Returns_Filtered_Produits_by_Categorie()
         {
             // Arrange
             var pays = new Pays { IdPays = "fr", NomPays = "France" };
@@ -394,12 +386,10 @@ namespace FifApi.Tests.Controllers
             new Album { IdAlbum = 3 }
         });
 
-                // Ajouter des types de produit
                 dbContext.TypeProduits.AddRange(new[]
                 {
             new TypeProduit { Id = 1, Nom = "SomeCategory", Description = "Description du type 1" },
             new TypeProduit { Id = 2, Nom = "SomeCategoryForTest", Description = "Description du type 2" },
-            // Ajoutez autant de types de produit que nécessaire
         });
 
                 dbContext.AlbumPhotos.AddRange(new[]
@@ -470,7 +460,6 @@ namespace FifApi.Tests.Controllers
 
                 // Assert
                 Assert.IsNotNull(result);
-                // Assert
                 Assert.IsNotNull(actionResult);
                 Assert.IsInstanceOfType(actionResult, typeof(ActionResult<object>));
 
@@ -480,7 +469,6 @@ namespace FifApi.Tests.Controllers
                 {
                     var properties = produit.GetType().GetProperties();
 
-                    // Vérifiez si chaque propriété attendue existe dans le produit retourné
                     Assert.IsTrue(properties.Any(p => p.Name == "idProduct"));
                     Assert.IsTrue(properties.Any(p => p.Name == "title"));
                     Assert.IsTrue(properties.Any(p => p.Name == "description"));
@@ -489,7 +477,6 @@ namespace FifApi.Tests.Controllers
                     Assert.IsTrue(properties.Any(p => p.Name == "couleurs"));
                     Assert.IsTrue(properties.Any(p => p.Name == "quantite"));
 
-                    // Vous pouvez également vérifier le contenu des propriétés si nécessaire
                 }
 
             }
@@ -497,7 +484,7 @@ namespace FifApi.Tests.Controllers
 
 
         [TestMethod]
-        public async Task GetProduitsByFilter_Returns_Filtered_Produits_by_Taille()
+        public async Task Get_Produits_By_Filter_Returns_Filtered_Produits_by_Taille()
         { 
             // Arrange
             var pays = new Pays { IdPays = "fr", NomPays = "France" };
@@ -518,12 +505,10 @@ namespace FifApi.Tests.Controllers
             new Album { IdAlbum = 3 }
         });
 
-                // Ajouter des types de produit
                 dbContext.TypeProduits.AddRange(new[]
                 {
             new TypeProduit { Id = 1, Nom = "SomeCategory", Description = "Description du type 1" },
             new TypeProduit { Id = 2, Nom = "SomeCategoryForTest", Description = "Description du type 2" },
-            // Ajoutez autant de types de produit que nécessaire
         });
 
                 dbContext.AlbumPhotos.AddRange(new[]
@@ -604,7 +589,6 @@ namespace FifApi.Tests.Controllers
                 {
                     var properties = produit.GetType().GetProperties();
 
-                    // Vérifiez si chaque propriété attendue existe dans le produit retourné
                     Assert.IsTrue(properties.Any(p => p.Name == "idProduct"));
                     Assert.IsTrue(properties.Any(p => p.Name == "title"));
                     Assert.IsTrue(properties.Any(p => p.Name == "description"));
@@ -613,14 +597,13 @@ namespace FifApi.Tests.Controllers
                     Assert.IsTrue(properties.Any(p => p.Name == "couleurs"));
                     Assert.IsTrue(properties.Any(p => p.Name == "quantite"));
 
-                    // Vous pouvez également vérifier le contenu des propriétés si nécessaire
                 }
 
             }
         }
 
         [TestMethod]
-        public async Task GetProduitsByFilter_Returns_Couleur_null()
+        public async Task Get_Produits_By_Filter_Returns_Couleur_null()
         {
             // Arrange
             var pays = new Pays { IdPays = "fr", NomPays = "France" };
@@ -700,8 +683,6 @@ namespace FifApi.Tests.Controllers
             new Stock { IdStock = 10, CouleurProduitId = 4, TailleId = "S", Quantite = 50 }
         });
 
-
-                // Enregistrement des autres données nécessaires
 
                 dbContext.SaveChanges();
 
@@ -717,20 +698,17 @@ namespace FifApi.Tests.Controllers
                 Assert.IsNotNull(actionResult);
                 Assert.IsInstanceOfType(actionResult, typeof(ActionResult<object>));
 
-                // Convertir le corps JSON de la réponse en chaîne
                 var jsonBody = JsonSerializer.Serialize(result);
 
-                // Corps JSON attendu
                 var expectedJson = "[]";
 
-                // Comparer le corps JSON de la réponse avec le JSON attendu
                 Assert.AreEqual(expectedJson, jsonBody);
             }
         }
 
 
         [TestMethod]
-        public async Task GetProduitsByFilter_Returns_Nation_null()
+        public async Task Get_Produits_By_Filter_Returns_Nation_null()
         {
             // Arrange
             var pays = new Pays { IdPays = "fr", NomPays = "France" };
@@ -810,14 +788,13 @@ namespace FifApi.Tests.Controllers
             new Stock { IdStock = 10, CouleurProduitId = 4, TailleId = "S", Quantite = 50 }
         });
 
-
-                // Enregistrement des autres données nécessaires
+                // Act
 
                 dbContext.SaveChanges();
 
                 var controller = new ProduitsController(dbContext);
 
-                // Act
+                
                 var actionResult = await controller.GetProduitsByFilter(null, "Ukraine", null, null);
                 var result = actionResult.Value;
 
@@ -827,19 +804,16 @@ namespace FifApi.Tests.Controllers
                 Assert.IsNotNull(actionResult);
                 Assert.IsInstanceOfType(actionResult, typeof(ActionResult<object>));
 
-                // Convertir le corps JSON de la réponse en chaîne
                 var jsonBody = JsonSerializer.Serialize(result);
 
-                // Corps JSON attendu
                 var expectedJson = "[]";
 
-                // Comparer le corps JSON de la réponse avec le JSON attendu
                 Assert.AreEqual(expectedJson, jsonBody);
             }
         }
 
         [TestMethod]
-        public async Task GetProduitsByFilter_Returns_Categorie_null()
+        public async Task Get_Produits_By_Filter_Returns_Categorie_null()
         {
             // Arrange
             var pays = new Pays { IdPays = "fr", NomPays = "France" };
@@ -919,14 +893,13 @@ namespace FifApi.Tests.Controllers
             new Stock { IdStock = 10, CouleurProduitId = 4, TailleId = "S", Quantite = 50 }
         });
 
-
-                // Enregistrement des autres données nécessaires
+                // Act
 
                 dbContext.SaveChanges();
 
                 var controller = new ProduitsController(dbContext);
 
-                // Act
+                
                 var actionResult = await controller.GetProduitsByFilter(null, null, "unCategoriealazob", null);
                 var result = actionResult.Value;
 
@@ -936,19 +909,16 @@ namespace FifApi.Tests.Controllers
                 Assert.IsNotNull(actionResult);
                 Assert.IsInstanceOfType(actionResult, typeof(ActionResult<object>));
 
-                // Convertir le corps JSON de la réponse en chaîne
                 var jsonBody = JsonSerializer.Serialize(result);
 
-                // Corps JSON attendu
                 var expectedJson = "[]";
 
-                // Comparer le corps JSON de la réponse avec le JSON attendu
                 Assert.AreEqual(expectedJson, jsonBody);
             }
         }
 
         [TestMethod]
-        public async Task GetProduitsByFilter_Returns_Taille_null()
+        public async Task Get_Produits_By_Filter_Returns_Taille_null()
         {
             // Arrange
             var pays = new Pays { IdPays = "fr", NomPays = "France" };
@@ -1029,13 +999,12 @@ namespace FifApi.Tests.Controllers
         });
 
 
-                // Enregistrement des autres données nécessaires
+                // Act
 
                 dbContext.SaveChanges();
 
                 var controller = new ProduitsController(dbContext);
 
-                // Act
                 var actionResult = await controller.GetProduitsByFilter(null, null, null, "XXXXXXXXL");
                 var result = actionResult.Value;
 
@@ -1045,34 +1014,30 @@ namespace FifApi.Tests.Controllers
                 Assert.IsNotNull(actionResult);
                 Assert.IsInstanceOfType(actionResult, typeof(ActionResult<object>));
 
-                // Convertir le corps JSON de la réponse en chaîne
                 var jsonBody = JsonSerializer.Serialize(result);
 
-                // Corps JSON attendu
                 var expectedJson = "[]";
 
-                // Comparer le corps JSON de la réponse avec le JSON attendu
                 Assert.AreEqual(expectedJson, jsonBody);
             }
         }
 
 
         [TestMethod]
-        public async Task PutProduit_ReturnsNoContentResult()
+        public async Task Put_Produit_Returns_NoContentResult()
         {
             // Arrange
             var id = 1;
-            var existingProduit = new Produit { Id = id, Name = "Produit existant", Description = "Description du produit existant", PaysId = "fr" }; // Assurez-vous de définir PaysId
+            var existingProduit = new Produit { Id = id, Name = "Produit existant", Description = "Description du produit existant", PaysId = "fr" };
 
             using (var dbContext = CreateDbContext())
             {
                 dbContext.Produits.Add(existingProduit);
                 await dbContext.SaveChangesAsync();
 
-                // Assurez-vous que l'objet est détaché du contexte de la base de données
                 dbContext.Entry(existingProduit).State = EntityState.Detached;
 
-                var updatedProduit = new Produit { Id = id, Name = "Produit 1 mis à jour", Description = "Nouvelle description", PaysId = "fr" }; // Assurez-vous de définir PaysId
+                var updatedProduit = new Produit { Id = id, Name = "Produit 1 mis à jour", Description = "Nouvelle description", PaysId = "fr" };
 
                 var controller = new ProduitsController(dbContext);
 
@@ -1086,10 +1051,10 @@ namespace FifApi.Tests.Controllers
 
 
         [TestMethod]
-        public async Task PostProduit_ReturnsCreatedAtAction()
+        public async Task Post_Produit_Returns_CreatedAtAction()
         {
             // Arrange
-            var produitToAdd = new Produit { Id = 1, Name = "Nouveau produit", Description = "Description du nouveau produit", PaysId = "fr" }; // Assurez-vous de définir PaysId
+            var produitToAdd = new Produit { Id = 1, Name = "Nouveau produit", Description = "Description du nouveau produit", PaysId = "fr" }; 
 
             using (var dbContext = CreateDbContext())
             {
@@ -1107,17 +1072,15 @@ namespace FifApi.Tests.Controllers
                 var produitReturned = createdAtActionResult.Value as Produit;
                 Assert.IsNotNull(produitReturned);
                 Assert.AreEqual(produitToAdd.Id, produitReturned.Id);
-                // Assurez-vous de vérifier d'autres propriétés si nécessaire
             }
         }
 
 
         [TestMethod]
-        public async Task DeleteProduit_ReturnsNoContentResult()
+        public async Task Delete_Produit_Returns_NoContentResult()
         {
             // Arrange
-            var produitToDelete = new Produit { Id = 1, Name = "Produit à supprimer", Description = "Description du produit à supprimer", PaysId = "fr" }; // Assurez-vous de définir PaysId
-
+            var produitToDelete = new Produit { Id = 1, Name = "Produit à supprimer", Description = "Description du produit à supprimer", PaysId = "fr" }; 
             using (var dbContext = CreateDbContext())
             {
                 dbContext.Produits.Add(produitToDelete);
@@ -1133,14 +1096,13 @@ namespace FifApi.Tests.Controllers
                 Assert.IsNotNull(noContentResult);
                 Assert.AreEqual(204, noContentResult.StatusCode);
 
-                // Vérifie si le produit a été correctement supprimé de la base de données
                 var deletedProduit = await dbContext.Produits.FindAsync(produitToDelete.Id);
                 Assert.IsNull(deletedProduit);
             }
         }
 
         [TestMethod]
-        public async Task DeleteProduit_WithInvalidId_ReturnsNotFoundResult()
+        public async Task Delete_Produit_With_Invalid_Id_Returns_NotFoundResult()
         {
             // Arrange
             var invalidId = -1;

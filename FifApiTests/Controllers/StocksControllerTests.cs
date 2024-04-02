@@ -15,7 +15,7 @@ namespace FifApi.Tests.Controllers
     public class StocksControllerTests
     {
         [TestMethod]
-        public async Task GetAllStocks()
+        public async Task Get_All_Stocks()
         {
             // Arrange
             using (var dbContext = CreateDbContext())
@@ -46,7 +46,7 @@ namespace FifApi.Tests.Controllers
         }
 
         [TestMethod]
-        public async Task GetAllStocks_Returns_Null()
+        public async Task Get_All_Stocks_Returns_Null()
         {
             // Arrange
             using (var dbContext = CreateDbContext())
@@ -74,7 +74,7 @@ namespace FifApi.Tests.Controllers
 
 
         [TestMethod]
-        public async Task GetStockById_ReturnsCorrectItem()
+        public async Task Get_Stock_By_Id_Returns_Correct_Item()
         {
             // Arrange
             var idToFind = 100;
@@ -96,7 +96,7 @@ namespace FifApi.Tests.Controllers
         }
 
         [TestMethod]
-        public async Task GetStockById_ReturnsWrongItem()
+        public async Task Get_Stock_By_Id_Returns_Wrong_Item()
         {
             // Arrange
             var idToFind = 100;
@@ -118,7 +118,7 @@ namespace FifApi.Tests.Controllers
 
 
         [TestMethod]
-        public async Task PostStock_ReturnsCreatedResponse()
+        public async Task Post_Stock_Returns_Created_Response()
         {
             // Arrange
             var newStock = new Stock { IdStock = 3, TailleId = "m", Quantite = 30 };
@@ -139,7 +139,7 @@ namespace FifApi.Tests.Controllers
             }
         }
         [TestMethod]
-        public async Task PostStock_Returns_NoContent_When_Quantity_Is_NonPositive()
+        public async Task Post_Stock_Returns_NoContent_When_Quantity_Is_NonPositive()
         {
             // Arrange
             var newStock = new Stock { IdStock = 3, TailleId = "M", Quantite = -30 };
@@ -161,7 +161,7 @@ namespace FifApi.Tests.Controllers
 
 
         [TestMethod]
-        public async Task PutStock_ReturnsNoContentResponse()
+        public async Task Put_Stock_Returns_NoContent_Response()
         {
             // Arrange
             var idToUpdate = 50;
@@ -183,7 +183,7 @@ namespace FifApi.Tests.Controllers
 
 
         [TestMethod]
-        public async Task PutStock_Returns_NoContent_When_Quantity_Is_NonPositive()
+        public async Task Put_Stock_Returns_NoContent_When_Quantity_Is_NonPositive()
         {
             // Arrange
             var idToUpdate = 5;
@@ -207,7 +207,7 @@ namespace FifApi.Tests.Controllers
 
 
         [TestMethod]
-        public async Task DeleteStock_ReturnsNoContentResponse()
+        public async Task Delete_Stock_Returns_NoContent_Response()
         {
             // Arrange
             var idToDelete = 2;
@@ -228,10 +228,10 @@ namespace FifApi.Tests.Controllers
 
 
         [TestMethod]
-        public async Task DeleteStock_ReturnsNoFoundResponse()
+        public async Task Delete_Stock_Returns_NoFound_Response()
         {
             // Arrange
-            var idToDelete = 100; // ID qui ne correspond à aucun stock existant
+            var idToDelete = 100; 
 
             using (var dbContext = CreateDbContext())
             {
@@ -251,7 +251,7 @@ namespace FifApi.Tests.Controllers
             var services = new ServiceCollection();
 
             services.AddDbContext<FifaDBContext>(options =>
-                options.UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())); // Utiliser un nom de base de données unique à chaque fois
+                options.UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())); 
 
             var serviceProvider = services.BuildServiceProvider();
 

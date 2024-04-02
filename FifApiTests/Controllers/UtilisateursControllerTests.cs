@@ -23,7 +23,7 @@ namespace FifApi.Tests.Controllers
 
 
         [TestMethod]
-        public async Task GetUtilisateurs_ReturnsAllUtilisateurs()
+        public async Task Get_Utilisateurs_Returns_All_Utilisateurs()
         {
             using (var dbContext = CreateDbContext())
             {
@@ -45,7 +45,7 @@ namespace FifApi.Tests.Controllers
         }
 
         [TestMethod]
-        public async Task GetUtilisateurs_ReturnsAllUtilisateurs_Failed()
+        public async Task Get_Utilisateurs_Returns_All_Utilisateurs_Failed()
         {
             using (var dbContext = CreateDbContext())
             {
@@ -57,13 +57,13 @@ namespace FifApi.Tests.Controllers
                 var result = actionResult.Value.ToList();
 
                 // Assert
-                Assert.IsNotNull(result); // Vérifie que la liste retournée est null
+                Assert.IsNotNull(result); 
                 Assert.AreEqual(0, result.Count);
             }
         }
 
         [TestMethod]
-        public async Task ChekEmail_ReturnsCorrectResult()
+        public async Task Chek_Email_Returns_Correct_Result()
         {
             using (var dbContext = CreateDbContext())
             {
@@ -98,7 +98,7 @@ namespace FifApi.Tests.Controllers
 
 
         [TestMethod]
-        public async Task ChekEmail_Returns_Wrong_Result()
+        public async Task Chek_Email_Returns_Wrong_Result()
         {
             using (var dbContext = CreateDbContext())
             {
@@ -117,15 +117,12 @@ namespace FifApi.Tests.Controllers
                 // Assert
                 Assert.IsNotNull(result, "Le résultat ne devrait pas être null.");
 
-                // Vérifiez si le résultat est une chaîne (string)
                 Assert.IsInstanceOfType(result, typeof(string), "Le résultat devrait être une chaîne de caractères.");
 
-                // Vérifiez si la chaîne représente un objet JSON avec la propriété "email"
                 var jsonString = (string)result;
                 dynamic jsonObject = JObject.Parse(jsonString);
                 Assert.IsTrue(jsonObject.email != null, "Le résultat devrait contenir la propriété 'email'.");
 
-                // Vérifiez si la valeur de la propriété "email" est correcte
                 var emailAvailable = (bool)jsonObject.email;
                 Assert.IsTrue(emailAvailable, "L'email devrait être disponible.");
 

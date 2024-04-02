@@ -17,7 +17,7 @@ namespace FifApi.Tests.Controllers
     public class CommandeControllerTests
     {
         [TestMethod]
-        public async Task GetAllCommandes_ReturnsAllCommandes()
+        public async Task Get_All_Commandes_Returns_All_Commandes()
         {
             // Arrange
             using (var dbContext = CreateDbContext())
@@ -45,12 +45,11 @@ namespace FifApi.Tests.Controllers
             }
         }
         [TestMethod]
-        public async Task GetAllCommandes_ReturnsAllCommandes_Equals_To_Zero()
+        public async Task Get_All_Commandes_Returns_All_Commandes_Equals_To_Zero()
         {
             // Arrange
             using (var dbContext = CreateDbContext())
             {
-                // Pas besoin d'ajouter de commandes dans la base de données, car nous voulons tester le cas où la liste est vide.
 
                 var controller = new CommandeController(dbContext);
 
@@ -71,7 +70,7 @@ namespace FifApi.Tests.Controllers
 
 
         [TestMethod]
-        public async Task GetCommandeById_Returns_Correct_Item()
+        public async Task Get_Commande_By_Id_Returns_Correct_Item()
         {
             // Arrange
             var idToFind = 100;
@@ -93,13 +92,12 @@ namespace FifApi.Tests.Controllers
         }
 
         [TestMethod]
-        public async Task GetCommandeById_Returns_Wrong_Item()
+        public async Task Get_Commande_ById_Returns_Wrong_Item()
         {
             // Arrange
             var idToFind = 100;
             using (var dbContext = CreateDbContext())
             {
-                // Ajouter une commande avec un identifiant différent de celui recherché
                 dbContext.Commandes.Add(new Commande { IdCommande = idToFind + 1, IdUtilisateur = 1, DateCommande = DateTime.Now });
                 dbContext.SaveChanges();
 
@@ -117,7 +115,7 @@ namespace FifApi.Tests.Controllers
 
 
         [TestMethod]
-        public async Task PostCommande_UpdatesStockAndAddsCommandeWithLignes()
+        public async Task Post_Commande_Updates_Stock_And_Adds_Commande_With_Lignes()
         {
             // Arrange
             var newCommande = new Commande
@@ -131,10 +129,9 @@ namespace FifApi.Tests.Controllers
             new CommandLine { IdStock = 2, quantite = 3 , IdCouleurProduit = 2}
         };
 
-            // Créer un contexte de base de données en mémoire pour les tests
             using (var dbContext = CreateDbContext())
             {
-                // Ajouter un utilisateur de test avec des valeurs requises
+
                 dbContext.Utilisateurs.Add(new Utilisateur
                 {
                     IdUtilisateur = 1,
@@ -144,25 +141,23 @@ namespace FifApi.Tests.Controllers
                     Role = "User"
                 });
 
-                // Ajouter des stocks de test avec des valeurs requises
                 dbContext.Stocks.AddRange(new List<Stock>
                 {
-                    new Stock { IdStock = 1, TailleId = "Taille1", Quantite = 10 }, // IdStock = 1
-                    new Stock { IdStock = 2, TailleId = "Taille2", Quantite = 10 }  // IdStock = 2
+                    new Stock { IdStock = 1, TailleId = "Taille1", Quantite = 10 }, 
+                    new Stock { IdStock = 2, TailleId = "Taille2", Quantite = 10 }  
                 });
 
-                // Ajouter des couleursproduit de test
                 dbContext.CouleurProduits.AddRange(new List<CouleurProduit>
                 {
-                    new CouleurProduit { IdCouleurProduit = 1 }, // IdCouleurProduit = 1
-                    new CouleurProduit { IdCouleurProduit = 2 }  // IdCouleurProduit = 2
+                    new CouleurProduit { IdCouleurProduit = 1 }, 
+                    new CouleurProduit { IdCouleurProduit = 2 } 
                 });
-
+                // Act
                 await dbContext.SaveChangesAsync();
 
                 var controller = new CommandeController(dbContext);
 
-                // Act
+                
                 var actionResult = await controller.PostCommande(newCommande.IdUtilisateur, commandeLine);
                 var createdAtActionResult = actionResult.Result as CreatedAtActionResult;
 
@@ -170,21 +165,19 @@ namespace FifApi.Tests.Controllers
                 Assert.IsNotNull(createdAtActionResult);
                 Assert.AreEqual(StatusCodes.Status201Created, createdAtActionResult.StatusCode);
 
-                // Vérifier si createdAtActionResult.Value est null avant de l'utiliser
                 if (createdAtActionResult.Value != null)
                 {
                     var result = createdAtActionResult.Value as Commande;
                     Assert.IsNotNull(result);
                     Assert.AreEqual(newCommande.IdUtilisateur, result.IdUtilisateur);
 
-                    // Vérifier si la quantité du stock a été mise à jour correctement
                     var stocks = await dbContext.Stocks.ToListAsync();
-                    Assert.AreEqual(5, stocks.First(s => s.IdStock == 1).Quantite); // Vérifier le stock avec IdStock = 1
-                    Assert.AreEqual(7, stocks.First(s => s.IdStock == 2).Quantite); // Vérifier le stock avec IdStock = 2
+                    Assert.AreEqual(5, stocks.First(s => s.IdStock == 1).Quantite); 
+                    Assert.AreEqual(7, stocks.First(s => s.IdStock == 2).Quantite);
                 }
                 else
                 {
-                    // Gérer le cas où createdAtActionResult.Value est null
+
                     Assert.Fail("CreatedAtActionResult.Value is null");
                 }
             }
@@ -193,7 +186,7 @@ namespace FifApi.Tests.Controllers
 
 
         [TestMethod]
-        public async Task PostCommande_UpdatesStockAndAddsCommandeWithLignes_where_stock_null_or_min()
+        public async Task Post_Commande_Updates_Stock_And_Adds_Commande_With_Lignes_where_stock_null_or_min()
         {
             // Arrange
             var newCommande = new Commande
@@ -207,10 +200,8 @@ namespace FifApi.Tests.Controllers
             new CommandLine { IdStock = 2, quantite = 3 , IdCouleurProduit = 2}
         };
 
-            // Créer un contexte de base de données en mémoire pour les tests
             using (var dbContext = CreateDbContext())
             {
-                // Ajouter un utilisateur de test avec des valeurs requises
                 dbContext.Utilisateurs.Add(new Utilisateur
                 {
                     IdUtilisateur = 1,
@@ -220,18 +211,16 @@ namespace FifApi.Tests.Controllers
                     Role = "User"
                 });
 
-                // Ajouter des stocks de test avec des valeurs requises
                 dbContext.Stocks.AddRange(new List<Stock>
                 {
-                    new Stock { IdStock = 1, TailleId = "Taille1", Quantite = 1 }, // IdStock = 1
-                    new Stock { IdStock = 5, TailleId = "Taille2", Quantite = 1 }  // IdStock = 2
+                    new Stock { IdStock = 1, TailleId = "Taille1", Quantite = 1 }, 
+                    new Stock { IdStock = 5, TailleId = "Taille2", Quantite = 1 }  
                 });
 
-                // Ajouter des couleursproduit de test
                 dbContext.CouleurProduits.AddRange(new List<CouleurProduit>
                 {
-                    new CouleurProduit { IdCouleurProduit = 1 }, // IdCouleurProduit = 1
-                    new CouleurProduit { IdCouleurProduit = 2 }  // IdCouleurProduit = 2
+                    new CouleurProduit { IdCouleurProduit = 1 }, 
+                    new CouleurProduit { IdCouleurProduit = 2 } 
                 });
 
                 await dbContext.SaveChangesAsync();
@@ -251,7 +240,7 @@ namespace FifApi.Tests.Controllers
         }
 
         [TestMethod]
-        public async Task PostCommande_UpdatesStockAndAddsCommandeWithLignes_where_utilisateur_null()
+        public async Task Post_Commande_Updates_Stock_And_Adds_Commande_With_Lignes_where_utilisateur_null()
         {
             // Arrange
             var newCommande = new Commande
@@ -265,10 +254,8 @@ namespace FifApi.Tests.Controllers
             new CommandLine { IdStock = 2, quantite = 3 , IdCouleurProduit = 2}
         };
 
-            // Créer un contexte de base de données en mémoire pour les tests
             using (var dbContext = CreateDbContext())
             {
-                // Ajouter un utilisateur de test avec des valeurs requises
                 dbContext.Utilisateurs.Add(new Utilisateur
                 {
                     IdUtilisateur = 1,
@@ -278,18 +265,16 @@ namespace FifApi.Tests.Controllers
                     Role = "User"
                 });
 
-                // Ajouter des stocks de test avec des valeurs requises
                 dbContext.Stocks.AddRange(new List<Stock>
                 {
-                    new Stock { IdStock = 1, TailleId = "Taille1", Quantite = 1 }, // IdStock = 1
-                    new Stock { IdStock = 2, TailleId = "Taille2", Quantite = 1 }  // IdStock = 2
+                    new Stock { IdStock = 1, TailleId = "Taille1", Quantite = 1 }, 
+                    new Stock { IdStock = 2, TailleId = "Taille2", Quantite = 1 }  
                 });
 
-                // Ajouter des couleursproduit de test
                 dbContext.CouleurProduits.AddRange(new List<CouleurProduit>
                 {
-                    new CouleurProduit { IdCouleurProduit = 1 }, // IdCouleurProduit = 1
-                    new CouleurProduit { IdCouleurProduit = 2 }  // IdCouleurProduit = 2
+                    new CouleurProduit { IdCouleurProduit = 1 },
+                    new CouleurProduit { IdCouleurProduit = 2 } 
                 });
 
                 await dbContext.SaveChangesAsync();
@@ -309,7 +294,7 @@ namespace FifApi.Tests.Controllers
         }
 
         [TestMethod]
-        public async Task PostCommande_UpdatesStockAndAddsCommandeWithLignes_where_other_null()
+        public async Task Post_Commande_Updates_Stock_And_Adds_Commande_With_Lignes_where_other_null()
         {
             // Arrange
             var newCommande = new Commande
@@ -323,10 +308,8 @@ namespace FifApi.Tests.Controllers
             new CommandLine { IdStock = 2, quantite = 3 , IdCouleurProduit = 2}
         };
 
-            // Créer un contexte de base de données en mémoire pour les tests
             using (var dbContext = CreateDbContext())
             {
-                // Ajouter un utilisateur de test avec des valeurs requises
                 dbContext.Utilisateurs.Add(new Utilisateur
                 {
                     IdUtilisateur = 1,
@@ -336,7 +319,6 @@ namespace FifApi.Tests.Controllers
                     Role = "User"
                 });
 
-                // Ajouter des stocks de test avec des valeurs requises
                 dbContext.Stocks.AddRange(new List<Stock>
                 {
                     new Stock { IdStock = 1, TailleId = "Taille1", Quantite = 1 },
@@ -344,8 +326,6 @@ namespace FifApi.Tests.Controllers
                     new Stock { IdStock = 2, TailleId = "Taille2", Quantite = 1 }  
 
                 });
-
-                // Ajouter des couleursproduit de test
                 dbContext.CouleurProduits.AddRange(new List<CouleurProduit>
                 {
                     new CouleurProduit { IdCouleurProduit = 5 }, 
