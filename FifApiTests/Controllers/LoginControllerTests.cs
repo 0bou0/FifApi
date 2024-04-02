@@ -89,18 +89,23 @@ namespace FifApi.Tests.Controllers
         }
 
 
-        private FifaDBContext CreateDbContext(List<Utilisateur> users)
+        private FifaDBContext CreateDbContext(List<Utilisateur> users = null)
         {
             var options = new DbContextOptionsBuilder<FifaDBContext>()
-                .UseInMemoryDatabase(databaseName: "TestLoginDatabase")
+                .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
                 .Options;
 
             var dbContext = new FifaDBContext(options);
 
-            dbContext.Utilisateurs.AddRange(users);
-            dbContext.SaveChanges();
+            // Ajouter des utilisateurs si une liste est fournie
+            if (users != null && users.Any())
+            {
+                dbContext.Utilisateurs.AddRange(users);
+                dbContext.SaveChanges();
+            }
 
             return dbContext;
         }
+
     }
 }

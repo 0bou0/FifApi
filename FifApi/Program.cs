@@ -48,7 +48,6 @@ namespace FifApi
                 config.AddPolicy(Policies.User, Policies.UserPolicy());
             });
 
-            builder.Services.AddScoped(typeof(IDataRepository<>), typeof(EfDataRepository<>));
 
             builder.Services.AddControllers()
             .AddJsonOptions(options =>
