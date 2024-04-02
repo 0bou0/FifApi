@@ -12,8 +12,11 @@ using System.Runtime.Intrinsics.X86;
 using Newtonsoft.Json.Linq;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
-
-
+using System.IdentityModel.Tokens.Jwt;
+using System.Text;
+using Microsoft.IdentityModel.Tokens;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Http;
 
 namespace FifApi.Tests.Controllers
 {
@@ -57,7 +60,7 @@ namespace FifApi.Tests.Controllers
                 var result = actionResult.Value.ToList();
 
                 // Assert
-                Assert.IsNotNull(result); 
+                Assert.IsNotNull(result);
                 Assert.AreEqual(0, result.Count);
             }
         }
@@ -126,19 +129,529 @@ namespace FifApi.Tests.Controllers
                 var emailAvailable = (bool)jsonObject.email;
                 Assert.IsTrue(emailAvailable, "L'email devrait être disponible.");
 
-               
+
             }
         }
 
 
 
 
+        [TestMethod]
+        public async Task Chek_Username_Returns_Correct_Result()
+        {
+            using (var dbContext = CreateDbContext())
+            {
+                dbContext.Utilisateurs.AddRange(new[]
+                {
+            new Utilisateur { IdUtilisateur = 1, PseudoUtilisateur = "user1", MailUtilisateur = "user1@example.com", MotDePasse = "password1", Role = "user" },
+            new Utilisateur { IdUtilisateur = 2, PseudoUtilisateur = "user2", MailUtilisateur = "user2@example.com", MotDePasse = "password2", Role = "user" }
+        });
+                dbContext.SaveChanges();
+
+                var controller = new UtilisateursController(dbContext, null);
+
+                var actionResult = await controller.ChekEmail("user1");
+                var result = actionResult.Value;
+
+                // Assert
+                Assert.IsNotNull(result, "Le résultat ne devrait pas être null.");
+
+                // Vérifiez si le résultat est une chaîne (string)
+                Assert.IsInstanceOfType(result, typeof(string), "Le résultat devrait être une chaîne de caractères.");
+
+                // Vérifiez si la chaîne représente un objet JSON avec la propriété "email"
+                var jsonString = (string)result;
+                dynamic jsonObject = JObject.Parse(jsonString);
+                Assert.IsTrue(jsonObject.email != null, "Le résultat devrait contenir la propriété 'user'.");
+
+                // Vérifiez si la valeur de la propriété "email" est correcte
+                var emailAvailable = (bool)jsonObject.email;
+                Assert.IsTrue(emailAvailable, "L'Username devrait être disponible.");
+            }
+        }
+
+
+        [TestMethod]
+        public async Task Chek_Username_Returns_Wrong_Result()
+        {
+            using (var dbContext = CreateDbContext())
+            {
+                dbContext.Utilisateurs.AddRange(new[]
+                {
+            new Utilisateur { IdUtilisateur = 1, PseudoUtilisateur = "user1", MailUtilisateur = "user1@example.com", MotDePasse = "password1", Role = "user" },
+            new Utilisateur { IdUtilisateur = 2, PseudoUtilisateur = "user2", MailUtilisateur = "user2@example.com", MotDePasse = "password2", Role = "user" }
+        });
+                dbContext.SaveChanges();
+
+                var controller = new UtilisateursController(dbContext, null);
+
+                var actionResult = await controller.ChekEmail("pureeeelecodedefou");
+                var result = actionResult.Value;
+
+                // Assert
+                Assert.IsNotNull(result, "Le résultat ne devrait pas être null.");
+
+                // Vérifiez si le résultat est une chaîne (string)
+                Assert.IsInstanceOfType(result, typeof(string), "Le résultat devrait être une chaîne de caractères.");
+
+                // Vérifiez si la chaîne représente un objet JSON avec la propriété "email"
+                var jsonString = (string)result;
+                dynamic jsonObject = JObject.Parse(jsonString);
+                Assert.IsTrue(jsonObject.email != null, "Le résultat devrait contenir la propriété 'user'.");
+
+                // Vérifiez si la valeur de la propriété "email" est correcte
+                var emailAvailable = (bool)jsonObject.email;
+                Assert.IsTrue(emailAvailable, "L'Username devrait être disponible.");
+            }
+        }
+
+
+        [TestMethod]
+        public async Task ViewUtilisateur_Returns_User_Details_When_Valid_Token_Provided()
+        {
+            // Arrange
+            var users = new List<Utilisateur>
+    {
+        new Utilisateur { IdUtilisateur = 1, PseudoUtilisateur = "testuser", MailUtilisateur = "test@example.com", PrenomUtilisateur = "John", NomUtilisateur = "Doe" }
+    };
+
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var key = Encoding.ASCII.GetBytes("test_secret_key"); // Assurez-vous que cette clé a une longueur suffisante
+            var tokenDescriptor = new SecurityTokenDescriptor
+            {
+                Subject = new ClaimsIdentity(new Claim[]
+                {
+            new Claim(ClaimTypes.NameIdentifier, "1"),
+            new Claim(ClaimTypes.Name, "testuser")
+                }),
+                Expires = DateTime.UtcNow.AddDays(1),
+                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+            };
+            var generatedToken = tokenHandler.CreateToken(tokenDescriptor);
+            var token = tokenHandler.WriteToken(generatedToken);
+
+            using (var dbContext = CreateDbContext(users))
+            {
+                var controller = new UtilisateursController(dbContext, null);
+                var user = new User { Token = token };
+
+                // Act
+                var actionResult = await controller.ViewUtilisateur(user);
+                var result = actionResult.Value;
+
+                // Assert
+                Assert.IsNotNull(result);
+                Assert.IsInstanceOfType(result, typeof(object));
+
+                var jsonObject = JObject.FromObject(result);
+                Assert.AreEqual("testuser", jsonObject["PseudoUtilisateur"]);
+                Assert.AreEqual("test@example.com", jsonObject["EmailUtilisateur"]);
+                Assert.AreEqual("John", jsonObject["PrenomUtilisateur"]);
+                Assert.AreEqual("Doe", jsonObject["NomUtilisateur"]);
+            }
+        }
 
 
 
+        [TestMethod]
+        public async Task ViewUtilisateur_Returns_Unauthorized_When_Invalid_Token_Provided()
+        {
+            // Arrange
+            var users = new List<Utilisateur>
+    {
+        new Utilisateur { IdUtilisateur = 1, PseudoUtilisateur = "testuser", MailUtilisateur = "test@example.com", PrenomUtilisateur = "John", NomUtilisateur = "Doe" }
+    };
+
+            using (var dbContext = CreateDbContext(users))
+            {
+                var controller = new UtilisateursController(dbContext, null);
+                var user = new User { Token = "invalid_token" };
+
+                // Act
+                var actionResult = await controller.ViewUtilisateur(user);
+
+                // Assert
+                Assert.IsNotNull(actionResult);
+                Assert.IsInstanceOfType(actionResult.Result, typeof(UnauthorizedResult));
+            }
+        }
+
+        [TestMethod]
+        public async Task ViewUtilisateur_Returns_NotFound_When_User_Not_Found()
+        {
+            // Arrange
+            var users = new List<Utilisateur>();
+
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var key = Encoding.ASCII.GetBytes("test_secret_key");
+            var tokenDescriptor = new SecurityTokenDescriptor
+            {
+                Subject = new ClaimsIdentity(new Claim[]
+                {
+            new Claim(ClaimTypes.NameIdentifier, "1"),
+            new Claim(ClaimTypes.Name, "testuser")
+                }),
+                Expires = DateTime.UtcNow.AddDays(1),
+                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+            };
+            var generatedToken = tokenHandler.CreateToken(tokenDescriptor);
+            var token = tokenHandler.WriteToken(generatedToken);
+
+            using (var dbContext = CreateDbContext(users))
+            {
+                var controller = new UtilisateursController(dbContext, null);
+                var user = new User { Token = token };
+
+                // Act
+                var actionResult = await controller.ViewUtilisateur(user);
+
+                // Assert
+                Assert.IsNotNull(actionResult);
+                Assert.IsInstanceOfType(actionResult.Result, typeof(NotFoundResult));
+            }
+        }
+
+        [TestMethod]
+        public async Task ChangeUserName_Valid_User_Returns_Success()
+        {
+            // Arrange
+            var users = new List<Utilisateur>
+    {
+        new Utilisateur { IdUtilisateur = 1, PseudoUtilisateur = "testuser", MotDePasse = "password", Role = "user", MailUtilisateur = "test@example.com" }
+    };
+
+            using (var dbContext = CreateDbContext(users))
+            {
+                var controller = new UtilisateursController(dbContext, null);
+                var user = new User { UserName = "newusername", Password = "password" };
+
+                // Act
+                var result = await controller.ChangeUserName(user);
+
+                // Assert
+                Assert.IsNotNull(result);
+                Assert.IsInstanceOfType(result.Result, typeof(ActionResult<object>));
+
+                var actionResult = result.Result;
+                Assert.IsNotNull(actionResult);
+
+                dynamic responseObject = actionResult;
+                Assert.IsTrue(responseObject.changed);
+
+                // Optionally, you can assert other properties of the response if needed
+            }
+        }
+
+        [TestMethod]
+        public async Task ChangeUserName_Invalid_User_Returns_NotFound()
+        {
+            // Arrange
+            using (var dbContext = CreateDbContext())
+            {
+                var controller = new UtilisateursController(dbContext, null);
+                var user = new User { UserName = "nonexistentuser", Password = "password" };
+
+                // Act
+                var result = await controller.ChangeUserName(user);
+
+                // Assert
+                Assert.IsNotNull(result);
+                Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
+            }
+        }
 
 
+        [TestMethod]
+        public async Task ChangePassword_Invalid_User_Returns_NotFound()
+        {
+            // Arrange
+            var users = new List<Utilisateur>
+    {
+        new Utilisateur { IdUtilisateur = 1, PseudoUtilisateur = "testuser", MotDePasse = "password", Role = "user", MailUtilisateur = "test@example.com" }
+    };
 
+            using (var dbContext = CreateDbContext(users))
+            {
+                var controller = new UtilisateursController(dbContext, null);
+                var user = new User { UserName = "invaliduser", Password = "password", NewPassword = "newpassword" };
+
+                // Act
+                var result = await controller.ChangePassword(user);
+
+                // Assert
+                Assert.IsNotNull(result);
+            }
+        }
+
+        [TestMethod]
+        public async Task ChangePassword_Incorrect_Password_Returns_BadRequest()
+        {
+            // Arrange
+            var users = new List<Utilisateur>
+    {
+        new Utilisateur { IdUtilisateur = 1, PseudoUtilisateur = "testuser", MotDePasse = "password", Role = "user", MailUtilisateur = "test@example.com" }
+    };
+
+            using (var dbContext = CreateDbContext(users))
+            {
+                var controller = new UtilisateursController(dbContext, null);
+                var user = new User { UserName = "testuser", Password = "incorrectpassword", NewPassword = "newpassword" };
+
+                // Act
+                var result = await controller.ChangePassword(user);
+
+                // Assert
+                Assert.IsNotNull(result);
+            }
+        }
+
+        [TestMethod]
+        public async Task ChangePassword_Valid_User_Returns_Success()
+        {
+            // Arrange
+            var users = new List<Utilisateur>
+    {
+        new Utilisateur { IdUtilisateur = 1, PseudoUtilisateur = "testuser", MotDePasse = "password", Role = "user", MailUtilisateur = "test@example.com" }
+    };
+
+            using (var dbContext = CreateDbContext(users))
+            {
+                var controller = new UtilisateursController(dbContext, null);
+                var user = new User { UserName = "testuser", Password = "password", NewPassword = "newpassword" };
+
+                // Act
+                var result = await controller.ChangePassword(user);
+
+                // Assert
+                Assert.IsNotNull(result);
+
+            }
+        }
+        [TestMethod]
+        public async Task ChangeLastName_Updates_LastName_Successfully()
+        {
+            // Arrange
+            var users = new List<Utilisateur>
+    {
+        new Utilisateur { IdUtilisateur = 1, PseudoUtilisateur = "user1", NomUtilisateur = "Doe", MotDePasse = "password1", Role = "user", MailUtilisateur = "user1@example.com" }
+    };
+
+            using (var dbContext = CreateDbContext(users))
+            {
+                var user = new User { LastName = "Johnson" };
+
+                var controller = new UtilisateursController(dbContext, null);
+
+                // Act
+                var actionResult = await controller.ChangeLastName(user);
+
+                // Assert
+                Assert.IsNotNull(actionResult);
+                Assert.IsTrue(actionResult.Value is { });
+
+                // Check if the last name has been updated successfully
+                var updatedUser = await dbContext.Utilisateurs.FirstOrDefaultAsync(u => u.PseudoUtilisateur == "user1");
+                Assert.IsNotNull(updatedUser);
+                Assert.AreEqual("Johnson", updatedUser.PrenomUtilisateur);
+            }
+        }
+
+
+        [TestMethod]
+        public async Task ChangeLastName_Returns_NotFound_When_No_Users()
+        {
+            // Arrange
+            using (var dbContext = CreateDbContext())
+            {
+                var user = new User { LastName = "Johnson" };
+
+                var controller = new UtilisateursController(dbContext, null);
+
+                // Act
+                var actionResult = await controller.ChangeLastName(user);
+
+                // Assert
+                Assert.IsNotNull(actionResult);
+
+                var jsonBody = JsonSerializer.Serialize(actionResult.Value);
+                var expectedJson = "{\"changed\":false}";
+                Assert.AreEqual(expectedJson, jsonBody);
+            }
+        }
+
+        [TestMethod]
+        public async Task ChangeLastName_Returns_NotFound_When_User_Not_Found()
+        {
+            // Arrange
+            var users = new List<Utilisateur>
+    {
+        new Utilisateur { IdUtilisateur = 1, PseudoUtilisateur = "user1", NomUtilisateur = "Doe", MotDePasse = "password1", Role = "user", MailUtilisateur = "user1@example.com" }
+    };
+
+            using (var dbContext = CreateDbContext(users))
+            {
+                var user = new User { LastName = "Johnson" }; // Changing the last name of a non-existing user
+
+                var controller = new UtilisateursController(dbContext, null);
+
+                // Act
+                var actionResult = await controller.ChangeLastName(user);
+
+                // Assert
+                Assert.IsNotNull(actionResult);
+                var jsonBody = JsonSerializer.Serialize(actionResult.Value);
+                var expectedJson = "{\"changed\":false}";
+                Assert.AreEqual(expectedJson, jsonBody);
+            }
+        }
+
+        [TestMethod]
+        public async Task ChangeFirstName_With_Valid_User_Returns_Success()
+        {
+            // Arrange
+            var user = new User
+            {
+                UserName = "testuser",
+                Password = "password",
+                FirstName = "John"
+            };
+
+            var users = new List<Utilisateur>
+    {
+        new Utilisateur { IdUtilisateur = 1, PseudoUtilisateur = "testuser", MotDePasse = "password", PrenomUtilisateur = "Jane" }
+    };
+
+            using (var dbContext = CreateDbContext(users))
+            {
+                var controller = new UtilisateursController(dbContext, null);
+
+                // Act
+                var result = await controller.ChangeFirstName(user);
+
+                // Assert
+                Assert.IsNotNull(result);
+                Assert.IsInstanceOfType(result.Result, typeof(OkObjectResult));
+
+                var jsonBody = JsonSerializer.Serialize(result.Value);
+                var expectedJson = "{\"changed\":true}";
+                Assert.AreEqual(expectedJson, jsonBody);
+
+                var okResult = result.Result as OkObjectResult;
+                dynamic data = okResult.Value;
+                Assert.IsTrue(data.changed);
+            }
+        }
+
+        [TestMethod]
+        public async Task ChangeFirstName_With_Invalid_User_Returns_NotFound()
+        {
+            // Arrange
+            var user = new User
+            {
+                UserName = "invaliduser",
+                Password = "invalidpassword",
+                FirstName = "John"
+            };
+
+            using (var dbContext = CreateDbContext())
+            {
+                var controller = new UtilisateursController(dbContext, null);
+
+                // Act
+                var result = await controller.ChangeFirstName(user);
+
+                // Assert
+                Assert.IsNotNull(result);
+                Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
+            }
+        }
+
+        [TestMethod]
+        public async Task ChangeFirstName_With_Null_Context_Returns_NotFound()
+        {
+            // Arrange
+            var user = new User
+            {
+                UserName = "testuser",
+                Password = "password",
+                FirstName = "John"
+            };
+
+            using (var dbContext = CreateDbContext(null))
+            {
+                var controller = new UtilisateursController(dbContext, null);
+
+                // Act
+                var result = await controller.ChangeFirstName(user);
+
+                // Assert
+                Assert.IsNotNull(result);
+                Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
+            }
+        }
+
+
+        [TestMethod]
+        public async Task PutUtilisateur_ValidData_Returns_Ok()
+        {
+            // Arrange
+            var userToUpdate = new Utilisateur { IdUtilisateur = 1, PseudoUtilisateur = "testuser", MailUtilisateur = "test@example.com", MotDePasse = "password", Role = "user" };
+            var updatedUser = new User { UserName = "updateduser", Email = "updated@example.com", Password = "newpassword" };
+
+            using (var dbContext = CreateDbContext(new List<Utilisateur> { userToUpdate }))
+            {
+                var controller = new UtilisateursController(dbContext, null);
+
+                // Act
+                var result = await controller.PutUtilisateur(userToUpdate.IdUtilisateur, updatedUser);
+
+                // Assert
+                Assert.IsNotNull(result);
+                Assert.IsInstanceOfType(result, typeof(ActionResult<object>));
+                Assert.IsTrue(dbContext.Utilisateurs.Any(u => u.PseudoUtilisateur == updatedUser.UserName && u.MailUtilisateur == updatedUser.Email && u.MotDePasse == updatedUser.Password));
+            }
+        }
+
+        [TestMethod]
+        public async Task PostUtilisateur_ValidData_Returns_Created()
+        {
+            // Arrange
+            var newUser = new User { UserName = "newuser", Email = "new@example.com", Password = "password" };
+
+            using (var dbContext = CreateDbContext())
+            {
+                var controller = new UtilisateursController(dbContext, null);
+
+                // Act
+                var result = await controller.PostUtilisateur(newUser);
+
+                // Assert
+                Assert.IsNotNull(result);
+                Assert.IsInstanceOfType(result, typeof(ActionResult<object>));
+                Assert.IsTrue(dbContext.Utilisateurs.Any(u => u.PseudoUtilisateur == newUser.UserName && u.MailUtilisateur == newUser.Email && u.MotDePasse == newUser.Password));
+            }
+        }
+
+        [TestMethod]
+        public async Task DeleteUtilisateur_ExistingUser_Returns_NoContent()
+        {
+            // Arrange
+            var existingUser = new Utilisateur { IdUtilisateur = 1, PseudoUtilisateur = "testuser", MailUtilisateur = "test@example.com", MotDePasse = "password", Role = "user" };
+
+            using (var dbContext = CreateDbContext(new List<Utilisateur> { existingUser }))
+            {
+                var controller = new UtilisateursController(dbContext, null);
+
+                // Act
+                var result = await controller.DeleteUtilisateur(new User { UserName = "testuser", Email = "test@example.com", Password = "password" });
+
+                // Assert
+                Assert.IsNotNull(result);
+                Assert.IsInstanceOfType(result, typeof(ActionResult<object>));
+                Assert.AreEqual(StatusCodes.Status204NoContent, (result as StatusCodeResult)?.StatusCode);
+                Assert.IsFalse(dbContext.Utilisateurs.Any(u => u.IdUtilisateur == existingUser.IdUtilisateur));
+            }
+        }
 
         private FifaDBContext CreateDbContext()
         {
@@ -148,12 +661,31 @@ namespace FifApi.Tests.Controllers
 
             var dbContext = new FifaDBContext(options);
 
-           
+
 
             dbContext.SaveChanges();
 
             return dbContext;
         }
+
+        private FifaDBContext CreateDbContext(List<Utilisateur> utilisateurs = null)
+        {
+            var options = new DbContextOptionsBuilder<FifaDBContext>()
+                .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+                .Options;
+
+            var dbContext = new FifaDBContext(options);
+
+            // Ajouter des utilisateurs si une liste est fournie
+            if (utilisateurs != null && utilisateurs.Any())
+            {
+                dbContext.Utilisateurs.AddRange(utilisateurs);
+                dbContext.SaveChanges();
+            }
+
+            return dbContext;
+        }
+
 
 
 
