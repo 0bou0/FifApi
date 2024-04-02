@@ -90,7 +90,7 @@ namespace FifApi.Controllers
                                                  select s.Quantite
                                                  ).Sum()
                                              ).Sum()
-                                 }).Where(x => x.idProduct == id).ToListAsync();
+                                 }).Where(x => x.idProduct == id).FirstOrDefaultAsync();
 
             if (produit == null)
             {

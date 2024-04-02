@@ -207,34 +207,51 @@ namespace FifApi.Tests.Controllers
 
 
         [TestMethod]
-        public async Task ViewUtilisateur_Returns_User_Details_When_Valid_Token_Provided()
+        public async Task ViewUtilisateur_Returns_User_Details_When_Valid_Token_Provided() //----------------------------------------------------------------------------------
         {
             // Arrange
             var users = new List<Utilisateur>
-    {
-        new Utilisateur { IdUtilisateur = 1, PseudoUtilisateur = "testuser", MailUtilisateur = "test@example.com", PrenomUtilisateur = "John", NomUtilisateur = "Doe" }
-    };
-
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.ASCII.GetBytes("test_secret_key"); // Assurez-vous que cette clé a une longueur suffisante
-            var tokenDescriptor = new SecurityTokenDescriptor
             {
-                Subject = new ClaimsIdentity(new Claim[]
-                {
-            new Claim(ClaimTypes.NameIdentifier, "1"),
-            new Claim(ClaimTypes.Name, "testuser")
-                }),
-                Expires = DateTime.UtcNow.AddDays(1),
-                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+                new Utilisateur { IdUtilisateur = 1, PseudoUtilisateur = "testuser", MailUtilisateur = "test@example.com", PrenomUtilisateur = "John", NomUtilisateur = "Doe", MotDePasse = "3bc94029a31c49a3ae09e9ec75c6afaf06ba8ec1375b15f9eaaf7f528d82bac1", Role = "user" }
             };
-            var generatedToken = tokenHandler.CreateToken(tokenDescriptor);
-            var token = tokenHandler.WriteToken(generatedToken);
+
+            //var tokenHandler = new JwtSecurityTokenHandler();
+            //var key = Encoding.ASCII.GetBytes("test_secret_key"); // Assurez-vous que cette clé a une longueur suffisante
+            //var tokenDescriptor = new SecurityTokenDescriptor
+            //{
+            //    Subject = new ClaimsIdentity(new Claim[]
+            //    {
+            //new Claim(ClaimTypes.NameIdentifier, "1"),
+            //new Claim(ClaimTypes.Name, "testuser")
+            //    }),
+            //    Expires = DateTime.UtcNow.AddDays(1),
+            //    SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+            //};
+            //var generatedToken = tokenHandler.CreateToken(tokenDescriptor);
+            //var token = tokenHandler.WriteToken(generatedToken);
 
             using (var dbContext = CreateDbContext(users))
             {
                 var controller = new UtilisateursController(dbContext, null);
-                var user = new User { Token = token };
 
+                var secretKey = Encoding.UTF8.GetBytes("your_secret_key");
+                var securityKey = new SymmetricSecurityKey(secretKey);
+
+                var _config = new ConfigurationBuilder()
+                    .AddInMemoryCollection(new Dictionary<string, string>
+                    {
+                        { "Jwt:SecretKey", Convert.ToBase64String(secretKey) },
+                        { "Jwt:Issuer", "your_issuer" },
+                        { "Jwt:Audience", "your_audience" }
+                    })
+                    .Build();
+
+
+                var notLogedUser = new User { UserName = "testuser", Password = "3bc94029a31c49a3ae09e9ec75c6afaf06ba8ec1375b15f9eaaf7f528d82bac1" };
+
+                var token = ((new LoginController(dbContext, null).Login(notLogedUser) as OkObjectResult).Value as User).Token;
+                Assert.Fail(token);
+                var user = new User { Token = token };
                 // Act
                 var actionResult = await controller.ViewUtilisateur(user);
                 var result = actionResult.Value;
@@ -312,7 +329,7 @@ namespace FifApi.Tests.Controllers
         }
 
         [TestMethod]
-        public async Task ChangeUserName_Valid_User_Returns_Success()
+        public async Task ChangeUserName_Valid_User_Returns_Success() //-----------------------------------------------------------------------------------------------------
         {
             // Arrange
             var users = new List<Utilisateur>
@@ -406,7 +423,7 @@ namespace FifApi.Tests.Controllers
         }
 
         [TestMethod]
-        public async Task ChangePassword_Valid_User_Returns_Success()
+        public async Task ChangePassword_Valid_User_Returns_Success() //--------------------------------------------------------------------------------------------------------
         {
             // Arrange
             var users = new List<Utilisateur>
@@ -428,7 +445,7 @@ namespace FifApi.Tests.Controllers
             }
         }
         [TestMethod]
-        public async Task ChangeLastName_Updates_LastName_Successfully()
+        public async Task ChangeLastName_Updates_LastName_Successfully() // ------------------------------------------------------------------------------------------------------
         {
             // Arrange
             var users = new List<Utilisateur>
@@ -506,7 +523,7 @@ namespace FifApi.Tests.Controllers
         }
 
         [TestMethod]
-        public async Task ChangeFirstName_With_Valid_User_Returns_Success()
+        public async Task ChangeFirstName_With_Valid_User_Returns_Success() //-------------------------------------------------------------------------------------------------
         {
             // Arrange
             var user = new User
