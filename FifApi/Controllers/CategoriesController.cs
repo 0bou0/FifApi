@@ -36,6 +36,7 @@ namespace FifApi.Controllers
             }).ToList();
         }
 
+        // Post: api/Categories/Nations
         [HttpPost("Nations")]
         public async Task<ActionResult> PostNations([FromBody]Pays pays)
         {
@@ -68,6 +69,7 @@ namespace FifApi.Controllers
             }).ToList();
         }
 
+        // Post: api/Categories/Categories
         [HttpPost("Categories")]
         public async Task<ActionResult> PostCategories([FromBody]TypeProduit categorie)
         {
@@ -75,7 +77,7 @@ namespace FifApi.Controllers
                 return NotFound();
             if (_dbContext.TypeProduits.Where(x => x.Nom == categorie.Nom).Select(x => x.Nom).FirstOrDefault() == categorie.Nom ||
                 _dbContext.TypeProduits.Where(x => x.Description == categorie.Description).Select(x => x.Description).FirstOrDefault() == categorie.Description)
-                return BadRequest("nation already in base");
+                return BadRequest("category already in base");
 
             _dbContext.TypeProduits.Add(categorie);
 
@@ -101,6 +103,22 @@ namespace FifApi.Controllers
             }).ToList();
         }
 
+        // POST: api/Categories/Couleurs
+        [HttpPost("Couleurs")]
+        public async Task<ActionResult> PostCouleur([FromBody] Couleur couleur)
+        {
+            if (_dbContext.Couleurs == null)
+                return NotFound();
+            if (_dbContext.Couleurs.Where(x => x.Nom == couleur.Nom).Select(x => x.Nom).FirstOrDefault() == couleur.Nom)
+                return BadRequest("color already in base");
+
+            _dbContext.Couleurs.Add(couleur);
+
+            await _dbContext.SaveChangesAsync();
+            return Ok();
+        }
+
+
         // GET: api/Categories/Tailles
         [HttpGet("Tailles")]
         public async Task<ActionResult<IEnumerable<object>>> GetTailles()
@@ -116,6 +134,21 @@ namespace FifApi.Controllers
                 id = t.IdTaille,
                 nom = t.NomTaille
             }).ToList();
+        }
+
+        // POST: api/Categories/Tailles
+        [HttpPost("Tailles")]
+        public async Task<ActionResult> PostTailles([FromBody] Taille taille)
+        {
+            if (_dbContext.Tailles == null)
+                return NotFound();
+            if (_dbContext.Tailles.Where(x => x.IdTaille == taille.IdTaille).Select(x => x.IdTaille).FirstOrDefault() == taille.IdTaille)
+                return BadRequest("size already in base");
+
+            _dbContext.Tailles.Add(taille);
+
+            await _dbContext.SaveChangesAsync();
+            return Ok();
         }
     }
 }
