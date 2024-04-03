@@ -36,6 +36,21 @@ namespace FifApi.Controllers
             }).ToList();
         }
 
+        [HttpPost("Nations")]
+        public async Task<ActionResult> PostNations([FromBody]Pays pays)
+        {
+            if (_dbContext.Pays == null)
+                return NotFound();
+            if (_dbContext.Pays.Where(x => x.NomPays == pays.NomPays).Select(x => x.NomPays).FirstOrDefault() == pays.NomPays ||
+                _dbContext.Pays.Where(x => x.IdPays == pays.IdPays).Select(x => x.IdPays).FirstOrDefault() == pays.IdPays)
+                return BadRequest("nation already in base");
+            
+            _dbContext.Pays.Add(pays);
+
+            await _dbContext.SaveChangesAsync();
+            return Ok();
+        }
+
         // GET: api/Categories/Categories
         [HttpGet("Categories")]
         public async Task<ActionResult<IEnumerable<object>>> GetCategories()
@@ -51,6 +66,21 @@ namespace FifApi.Controllers
                 id = tp.Id,
                 nom = tp.Nom
             }).ToList();
+        }
+
+        [HttpPost("Categories")]
+        public async Task<ActionResult> PostCategories([FromBody]TypeProduit categorie)
+        {
+            if (_dbContext.TypeProduits == null)
+                return NotFound();
+            if (_dbContext.TypeProduits.Where(x => x.Nom == categorie.Nom).Select(x => x.Nom).FirstOrDefault() == categorie.Nom ||
+                _dbContext.TypeProduits.Where(x => x.Description == categorie.Description).Select(x => x.Description).FirstOrDefault() == categorie.Description)
+                return BadRequest("nation already in base");
+
+            _dbContext.TypeProduits.Add(categorie);
+
+            await _dbContext.SaveChangesAsync();
+            return Ok();
         }
 
         // GET: api/Categories/Couleurs
