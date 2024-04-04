@@ -52,6 +52,24 @@ namespace FifApi.Controllers
             return Ok();
         }
 
+        // PUT: api/Categories/Nations/4
+        [HttpPut("Nations")]
+        public async Task<ActionResult> PutNations([FromBody]Pays pays)
+        {
+            if (_dbContext.Pays == null)
+                return NotFound();
+
+
+            if (_dbContext.Pays.Where(x => x.IdPays == pays.IdPays).Select(x => x.IdPays).FirstOrDefault() != pays.IdPays)
+                return BadRequest();
+
+            _dbContext.Pays.Where(x => x.IdPays == pays.IdPays).FirstOrDefault()!.NomPays = pays.NomPays;
+
+            await _dbContext.SaveChangesAsync();
+
+            return Ok();
+        }
+
         // GET: api/Categories/Categories
         [HttpGet("Categories")]
         public async Task<ActionResult<IEnumerable<object>>> GetCategories()
