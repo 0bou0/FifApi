@@ -36,21 +36,21 @@ namespace FifApi.Controllers
             }).ToList();
         }
 
-        // Post: api/Categories/Nations
-        [HttpPost("Nations")]
-        public async Task<ActionResult> PostNations([FromBody]Pays pays)
-        {
-            if (_dbContext.Pays == null)
-                return NotFound();
-            if (_dbContext.Pays.Where(x => x.NomPays == pays.NomPays).Select(x => x.NomPays).FirstOrDefault() == pays.NomPays ||
-                _dbContext.Pays.Where(x => x.IdPays == pays.IdPays).Select(x => x.IdPays).FirstOrDefault() == pays.IdPays)
-                return BadRequest("nation already in base");
+            // Post: api/Categories/Nations
+            [HttpPost("Nations")]
+            public async Task<ActionResult> PostNations([FromBody]Pays pays)
+            {
+                if (_dbContext.Pays == null)
+                    return NotFound();
+                if (_dbContext.Pays.Where(x => x.NomPays == pays.NomPays).Select(x => x.NomPays).FirstOrDefault() == pays.NomPays ||
+                    _dbContext.Pays.Where(x => x.IdPays == pays.IdPays).Select(x => x.IdPays).FirstOrDefault() == pays.IdPays)
+                    return BadRequest("nation already in base");
             
-            _dbContext.Pays.Add(pays);
+                _dbContext.Pays.Add(pays);
 
-            await _dbContext.SaveChangesAsync();
-            return Ok();
-        }
+                await _dbContext.SaveChangesAsync();
+                return Ok();
+            }
 
         // PUT: api/Categories/Nations/4
         [HttpPut("Nations")]

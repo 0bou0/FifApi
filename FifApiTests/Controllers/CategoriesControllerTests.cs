@@ -5,11 +5,15 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NuGet.Protocol;
 using System.Linq;
 using System.Threading.Tasks;
 
+
+
 namespace FifApi.Tests.Controllers
 {
+
     [TestClass]
     public class CategoriesControllerTests
     {
@@ -44,6 +48,9 @@ namespace FifApi.Tests.Controllers
             }
         }
 
+
+
+
         [TestMethod]
         public async Task Get_Nations_Returns_List_Of_Nations_Equal_To_Zero()
         {
@@ -55,11 +62,58 @@ namespace FifApi.Tests.Controllers
 
                 // Act
                 var actionResult = await controller.GetNations();
-                var result = actionResult.Value; 
+                var result = actionResult.Value;
 
                 // Assert
-                Assert.IsNull(result); 
-                Assert.IsInstanceOfType(actionResult.Result, typeof(NotFoundResult)); 
+                Assert.IsNull(result);
+                Assert.IsInstanceOfType(actionResult.Result, typeof(NotFoundResult));
+            }
+        }
+
+        [TestMethod]
+        public async Task Post_Nations_Returns_Created_Response()
+        {
+            // Arrange
+            var newPays = new Pays { IdPays = "FR", NomPays = "France" };
+            using (var dbContext = CreateDbContext())
+            {
+                var controller = new CategoriesController(dbContext);
+
+                // Act
+                var actionResult = await controller.PostNations(newPays);
+                var createdAtActionResult = actionResult as OkResult;
+                // Assert
+                Assert.IsNotNull(createdAtActionResult);
+                Assert.AreEqual(StatusCodes.Status200OK, createdAtActionResult.StatusCode);
+
+                // Check if the country is actually added to the database
+                var paysInDatabase = dbContext.Pays.FirstOrDefault(p => p.NomPays == newPays.NomPays);
+                Assert.IsNotNull(paysInDatabase);
+                Assert.AreEqual(newPays.IdPays, paysInDatabase.IdPays);
+            }
+        }
+
+        [TestMethod]
+        public async Task Post_Nations_Returns_Bad_Request_If_Nation_Already_Exists()
+        {
+            // Arrange
+            var pays = new Pays { IdPays = "GER", NomPays = "Germany" };
+            var existingPays = new Pays { IdPays = "GER", NomPays = "Germany" };
+
+
+            using (var dbContext = CreateDbContext())
+            {
+                var controller = new CategoriesController(dbContext);
+                // Attempt to add the same nation again
+                await controller.PostNations(pays);
+                var actionResult = await controller.PostNations(existingPays);
+
+
+                // Assert
+                var badRequestResult = actionResult as BadRequestObjectResult;
+                Assert.IsNotNull(badRequestResult);
+                Assert.AreEqual(StatusCodes.Status400BadRequest, badRequestResult.StatusCode);
+                Assert.AreEqual("nation already in base", badRequestResult.Value);
             }
         }
 
@@ -96,6 +150,8 @@ namespace FifApi.Tests.Controllers
         }
 
 
+
+
         [TestMethod]
         public async Task Get_Categories_Returns_List_Of_Categories_Equal_To_Zero()
         {
@@ -114,6 +170,54 @@ namespace FifApi.Tests.Controllers
                 // Assert
                 Assert.IsNull(result);
                 Assert.IsInstanceOfType(actionResult.Result, typeof(NotFoundResult));
+            }
+        }
+
+        [TestMethod]
+        public async Task Post_Categorie_Returns_Created_Response()
+        {
+            // Arrange
+            var newType = new TypeProduit { Id = 1, Description = "ma desc" , Nom= "mon type"};
+            using (var dbContext = CreateDbContext())
+            {
+                var controller = new CategoriesController(dbContext);
+
+                // Act
+                var actionResult = await controller.PostCategories(newType);
+                var createdAtActionResult = actionResult as OkResult;
+                // Assert
+                Assert.IsNotNull(createdAtActionResult);
+                Assert.AreEqual(StatusCodes.Status200OK, createdAtActionResult.StatusCode);
+
+                // Check if the country is actually added to the database
+                var paysInDatabase = dbContext.TypeProduits.FirstOrDefault(p => p.Nom == newType.Nom);
+                Assert.IsNotNull(paysInDatabase);
+                Assert.AreEqual(newType.Id, paysInDatabase.Id);
+            }
+        }
+
+        [TestMethod]
+        public async Task Post_Categorie_Returns_Bad_Request_If_Nation_Already_Exists()
+        {
+            // Arrange
+            var type = new TypeProduit { Id = 1, Description = "ma desc", Nom = "mon type" };
+            var newType = new TypeProduit { Id = 1, Description = "ma desc", Nom = "mon type" };
+
+           
+
+            using (var dbContext = CreateDbContext())
+            {
+                var controller = new CategoriesController(dbContext);
+                // Attempt to add the same nation again
+                await controller.PostCategories(type);
+                var actionResult = await controller.PostCategories(newType);
+
+
+                // Assert
+                var badRequestResult = actionResult as BadRequestObjectResult;
+                Assert.IsNotNull(badRequestResult);
+                Assert.AreEqual(StatusCodes.Status400BadRequest, badRequestResult.StatusCode);
+                Assert.AreEqual("category already in base", badRequestResult.Value);
             }
         }
 
@@ -169,6 +273,55 @@ namespace FifApi.Tests.Controllers
         }
 
         [TestMethod]
+        public async Task Post_Couleur_Returns_Created_Response()
+        {
+            // Arrange
+            var newCouleur = new Couleur { Id = 1, Nom="rouge", Hexa = "FFFFFF" };
+            using (var dbContext = CreateDbContext())
+            {
+                var controller = new CategoriesController(dbContext);
+
+                // Act
+                var actionResult = await controller.PostCouleur(newCouleur);
+                var createdAtActionResult = actionResult as OkResult;
+                // Assert
+                Assert.IsNotNull(createdAtActionResult);
+                Assert.AreEqual(StatusCodes.Status200OK, createdAtActionResult.StatusCode);
+
+                // Check if the country is actually added to the database
+                var paysInDatabase = dbContext.Couleurs.FirstOrDefault(p => p.Nom == newCouleur.Nom);
+                Assert.IsNotNull(paysInDatabase);
+                Assert.AreEqual(newCouleur.Id, paysInDatabase.Id);
+            }
+        }
+
+        [TestMethod]
+        public async Task Post_Couleur_Returns_Bad_Request_If_Nation_Already_Exists()
+        {
+            // Arrange
+            var couleur = new Couleur { Id = 1, Nom = "rouge", Hexa = "FFFFFF" };
+            var newCouleur = new Couleur { Id = 1, Nom = "rouge", Hexa = "FFFFFF" };
+
+
+
+
+            using (var dbContext = CreateDbContext())
+            {
+                var controller = new CategoriesController(dbContext);
+                // Attempt to add the same nation again
+                await controller.PostCouleur(couleur);
+                var actionResult = await controller.PostCouleur(newCouleur);
+
+
+                // Assert
+                var badRequestResult = actionResult as BadRequestObjectResult;
+                Assert.IsNotNull(badRequestResult);
+                Assert.AreEqual(StatusCodes.Status400BadRequest, badRequestResult.StatusCode);
+                Assert.AreEqual("color already in base", badRequestResult.Value);
+            }
+        }
+
+        [TestMethod]
         public async Task Get_Tailles_Returns_List_Of_Tailles_Equal_To_Zero()
         {
             // Arrange
@@ -219,7 +372,55 @@ namespace FifApi.Tests.Controllers
             }
         }
 
+        [TestMethod]
+        public async Task Post_Taille_Returns_Created_Response()
+        {
+            // Arrange
+            var newTaille = new Taille { IdTaille = "XL", NomTaille = "Très large" };
+            using (var dbContext = CreateDbContext())
+            {
+                var controller = new CategoriesController(dbContext);
 
+                // Act
+                var actionResult = await controller.PostTailles(newTaille);
+                var createdAtActionResult = actionResult as OkResult;
+                // Assert
+                Assert.IsNotNull(createdAtActionResult);
+                Assert.AreEqual(StatusCodes.Status200OK, createdAtActionResult.StatusCode);
+
+                // Check if the country is actually added to the database
+                var paysInDatabase = dbContext.Tailles.FirstOrDefault(p => p.NomTaille == newTaille.NomTaille);
+                Assert.IsNotNull(paysInDatabase);
+                Assert.AreEqual(newTaille.IdTaille, paysInDatabase.IdTaille);
+            }
+        }
+
+        [TestMethod]
+        public async Task Post_Taille_Returns_Bad_Request_If_Nation_Already_Exists()
+        {
+            // Arrange
+            var taille = new Taille { IdTaille = "XL", NomTaille = "Très large" };
+            var newTaille = new Taille { IdTaille = "XL", NomTaille = "Très large" };
+
+
+
+
+
+            using (var dbContext = CreateDbContext())
+            {
+                var controller = new CategoriesController(dbContext);
+                // Attempt to add the same nation again
+                await controller.PostTailles(taille);
+                var actionResult = await controller.PostTailles(newTaille);
+
+
+                // Assert
+                var badRequestResult = actionResult as BadRequestObjectResult;
+                Assert.IsNotNull(badRequestResult);
+                Assert.AreEqual(StatusCodes.Status400BadRequest, badRequestResult.StatusCode);
+                Assert.AreEqual("size already in base", badRequestResult.Value);
+            }
+        }
 
 
         private FifaDBContext CreateDbContext()
