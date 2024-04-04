@@ -1,4 +1,4 @@
-﻿namespace FifApi.Models
+﻿    namespace FifApi.Models
 {
     public class User
     {

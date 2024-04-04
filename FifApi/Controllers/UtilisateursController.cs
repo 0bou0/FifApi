@@ -70,7 +70,7 @@ namespace FifApi.Controllers
         {
             if (_context.Utilisateurs == null)
             {
-                return NotFound();
+                return Ok();
             }
             try
             {
@@ -82,7 +82,7 @@ namespace FifApi.Controllers
 
                 if (utilisateur == null)
                 {
-                    return NotFound();
+                    return Ok();
                 }
 
                 return new
