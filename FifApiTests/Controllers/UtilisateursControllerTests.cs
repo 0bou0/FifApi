@@ -22,7 +22,7 @@ using NuGet.ContentModel;
 using Newtonsoft.Json;
 using System.Net.Http.Headers;
 using Microsoft.AspNetCore.Routing;
-
+using Newtonsoft.Json;
 namespace FifApi.Tests.Controllers
 {
     [TestClass]
@@ -210,7 +210,19 @@ namespace FifApi.Tests.Controllers
             }
         }
 
+        private IConfiguration CreateConfigWithSecretKey()
+        {
+            var config = new ConfigurationBuilder()
+                .AddInMemoryCollection(new Dictionary<string, string>
+                {
+            { "Jwt:SecretKey", "40714B95E63F3FDFEB5AAB13BA512A5ACABAC9B9D01F7E0B617A15312347EB46" }, // Remplacez "votre_clé_secrète" par votre clé secrète réelle
+            { "Jwt:Issuer", "https://localhost:5260/" },
+            { "Jwt:Audience", "https://localhost:5260/" }
+                })
+                .Build();
 
+            return config;
+        }
 
 
         [TestMethod]
@@ -218,67 +230,137 @@ namespace FifApi.Tests.Controllers
         {
             
             // Arrange
-            var utilisateurs = new List<Utilisateur>
+            var utilisateur = new User
             {
-                new Utilisateur
-                {
-                    PseudoUtilisateur = "user",
-                    MotDePasse = "e3e21eb2ea077ec4f6e95cdb04377ecab4a80bb787a0a6a3fd9e285e6b5c279d",
-                    IdUtilisateur = 1 // You need to set the IdUtilisateur to match your authentication process
-                }
+                UserName = "user",
+                Password = "e3e21eb2ea077ec4f6e95cdb04377ecab4a80bb787a0a6a3fd9e285e6b5c279d",
+               Email = "coucou@gmail.com"
+
             };
 
-            using (var dbContext = CreateDbContext(utilisateurs))
+            using (var dbContext = CreateDbContext())
             {
-                var _config = CreateConfigt();
+                var _config = CreateConfigWithSecretKey();
                 var loginController = new LoginController(dbContext, _config);
                 var utilisateurController = new UtilisateursController(dbContext, _config);
 
+                var createUser = utilisateurController.PostUtilisateur(utilisateur);
+                Assert.IsNotNull(createUser.ToJson());
+
+
+                var usersTask = dbContext.Utilisateurs.ToListAsync();
+                var users = usersTask.Result;
+                var newUser = users.FirstOrDefault();
+                Assert.IsNotNull(newUser.ToJson());
+
                 var user = new User
                 {
-                    UserName = "user",
-                    Password = "e3e21eb2ea077ec4f6e95cdb04377ecab4a80bb787a0a6a3fd9e285e6b5c279d"
-                };
+                    UserName = newUser.PseudoUtilisateur,
+                    Email = newUser.MailUtilisateur,
+                    Password = newUser.MotDePasse,
 
+                };
                 // Act
                 var tokenActionResult = loginController.Login(user);
-                var token = tokenActionResult.ToString();
-                Assert.Fail(token);
-                var result = await utilisateurController.ViewUtilisateur(new User { UserName = user.UserName, Password = user.Password, token = token });
+                int startIndex = tokenActionResult.ToJson().IndexOf("\"token\":\"") + "\"token\":\"".Length;
+                int endIndex = tokenActionResult.ToJson().IndexOf("\"", startIndex);
 
-                // Assert
-                Assert.IsNotNull(result);
-                Assert.AreEqual(200, result.Value);
+                // Extraire la partie "token" de la chaîne JSON en utilisant Substring
+                string tokenValue = tokenActionResult.ToJson().Substring(startIndex, endIndex - startIndex);
+                Assert.IsNotNull(tokenValue);
 
-                dynamic userDetails = result.Value;
-                Assert.AreEqual("user", userDetails.UserName);
-                // Add assertions for other user details
+
+                user = new User
+                {
+                    UserName = newUser.PseudoUtilisateur,
+                    Email = newUser.MailUtilisateur,
+                    Password = newUser.MotDePasse,
+                    token = tokenValue,
+
+                };
+
+
+                var resultViewUti = utilisateurController.ViewUtilisateur(user);
+                Assert.IsNotNull(resultViewUti);
+
+
+                // Vérifie si actionResult est de type ActionResult<object>
+                Assert.IsInstanceOfType(resultViewUti, typeof(Task<ActionResult<object>>));
+
+
+
+                // Récupère la valeur de actionResult.Value pour faciliter les assertions ultérieures
+                var createdResult = resultViewUti.Result;
+
+                var returnUser = createdResult.Value;
+                User reUser = JsonConvert.DeserializeObject<User>(createdResult.Value.ToJson());
+
+                Assert.AreEqual(user.UserName, reUser.UserName);
+                Assert.AreEqual(user.Email, reUser.Email);
+
             }
         }
 
-     
 
 
-    [TestMethod]
+
+        [TestMethod]
         public async Task ViewUtilisateur_Returns_Unauthorized_When_Invalid_Token_Provided()
         {
+
             // Arrange
-            var users = new List<Utilisateur>
-    {
-        new Utilisateur { IdUtilisateur = 1, PseudoUtilisateur = "testuser", MailUtilisateur = "test@example.com", PrenomUtilisateur = "John", NomUtilisateur = "Doe" }
-    };
-
-            using (var dbContext = CreateDbContext(users))
+            var utilisateur = new User
             {
-                var controller = new UtilisateursController(dbContext, null);
-                var user = new User { token = "invalid_token" };
+                UserName = "user",
+                Password = "e3e21eb2ea077ec4f6e95cdb04377ecab4a80bb787a0a6a3fd9e285e6b5c279d",
+                Email = "coucou@gmail.com"
 
+            };
+
+            using (var dbContext = CreateDbContext())
+            {
+                var _config = CreateConfigWithSecretKey();
+                var loginController = new LoginController(dbContext, _config);
+                var utilisateurController = new UtilisateursController(dbContext, _config);
+
+                var createUser = utilisateurController.PostUtilisateur(utilisateur);
+                Assert.IsNotNull(createUser.ToJson());
+
+
+                var usersTask = dbContext.Utilisateurs.ToListAsync();
+                var users = usersTask.Result;
+                var newUser = users.FirstOrDefault();
+                Assert.IsNotNull(newUser.ToJson());
+
+                var user = new User
+                {
+                    UserName = newUser.PseudoUtilisateur,
+                    Email = newUser.MailUtilisateur,
+                    Password = newUser.MotDePasse,
+                    token = "coucou"
+                };
                 // Act
-                var actionResult = await controller.ViewUtilisateur(user);
 
-                // Assert
-                Assert.IsNotNull(actionResult);
-                Assert.IsInstanceOfType(actionResult.Result, typeof(UnauthorizedResult));
+              
+
+
+
+
+                var resultViewUti = utilisateurController.ViewUtilisateur(user);
+                Assert.IsNotNull(resultViewUti);
+
+
+                Assert.IsInstanceOfType(resultViewUti, typeof(Task<ActionResult<object>>));
+                // Récupère la valeur de actionResult.Value pour faciliter les assertions ultérieures
+                var createdResult = resultViewUti.Result;
+
+                var returnUser = createdResult.Value;
+                User reUser = JsonConvert.DeserializeObject<User>(createdResult.Value.ToJson());
+
+
+                // Vérifier si reUser est de type UnauthorizedResult
+                Assert.IsInstanceOfType(reUser.Password, typeof(UnauthorizedResult));
+
             }
         }
 
@@ -630,7 +712,6 @@ namespace FifApi.Tests.Controllers
 
                 // Act
                 var result = await controller.PostUtilisateur(newUser);
-
                 // Assert
                 Assert.IsNotNull(result);
                 Assert.IsInstanceOfType(result, typeof(ActionResult<object>));
@@ -693,12 +774,6 @@ namespace FifApi.Tests.Controllers
         }
 
 
-        private IConfiguration CreateConfigt()
-        {
-            var _config = new ConfigurationBuilder().Build();
-
-            return _config;
-        }
 
 
     }

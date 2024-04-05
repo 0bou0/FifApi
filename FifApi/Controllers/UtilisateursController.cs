@@ -323,19 +323,27 @@ namespace FifApi.Controllers
             {
                 return BadRequest();
             }
-
-            Utilisateur utilisateur = new Utilisateur
+            try
             {
-                PseudoUtilisateur = user.UserName,
-                MailUtilisateur = user.Email,
-                MotDePasse = user.Password,
-                Role = "user"
-            };
+                Utilisateur utilisateur = new Utilisateur
+                {
+                    PseudoUtilisateur = user.UserName,
+                    MailUtilisateur = user.Email,
+                    MotDePasse = user.Password,
+                    Role = "user"
+                };
 
-            _context.Utilisateurs.Add(utilisateur);
-            await _context.SaveChangesAsync();
+                _context.Utilisateurs.Add(utilisateur);
+                await _context.SaveChangesAsync();
 
-            return new { created = CreatedAtAction("GetUtilisateur", new { id = utilisateur.IdUtilisateur }, utilisateur).StatusCode == StatusCode(201).StatusCode };
+                return new { created = CreatedAtAction("GetUtilisateur", new { id = utilisateur.IdUtilisateur }, utilisateur).StatusCode == StatusCode(201).StatusCode };
+            }
+            catch (Exception ex)
+            {
+                // Gérer les exceptions
+                // Vous pouvez journaliser l'erreur ou retourner une réponse appropriée
+                return StatusCode(500, $"Une erreur s'est produite lors de la création de l'utilisateur : {ex.Message}");
+            }
         }
 
         // DELETE: api/Utilisateurs/5
