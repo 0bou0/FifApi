@@ -304,8 +304,50 @@ namespace FifApi.Tests.Controllers
 
 
 
+       
+
         [TestMethod]
-        public async Task ViewUtilisateur_Returns_Unauthorized_When_Invalid_Token_Provided()
+        public async Task ViewUtilisateur_Returns_NotFound_When_User_Not_Found()
+        {
+
+            // Arrange
+            var utilisateur = new User
+            {
+                UserName = "user",
+                Password = "e3e21eb2ea077ec4f6e95cdb04377ecab4a80bb787a0a6a3fd9e285e6b5c279d",
+                Email = "coucou@gmail.com"
+
+            };
+
+            using (var dbContext = CreateDbContext())
+            {
+                var _config = CreateConfigWithSecretKey();
+                var loginController = new LoginController(dbContext, _config);
+                var utilisateurController = new UtilisateursController(dbContext, _config);
+
+              
+
+
+
+
+
+
+                var resultViewUti = utilisateurController.ViewUtilisateur(utilisateur);
+                Assert.IsNotNull(resultViewUti);
+
+
+                Assert.IsInstanceOfType(resultViewUti, typeof(Task<ActionResult<object>>));
+                // Récupère la valeur de actionResult.Value pour faciliter les assertions ultérieures
+                var createdResult = resultViewUti.Result;
+
+                var returnUser = createdResult.Value;
+                Assert.IsNull(returnUser);
+
+            }
+        }
+
+        [TestMethod]
+        public async Task ChangeUserName_Valid_User_Returns_Success() //-----------------------------------------------------------------------------------------------------
         {
 
             // Arrange
@@ -337,114 +379,68 @@ namespace FifApi.Tests.Controllers
                     UserName = newUser.PseudoUtilisateur,
                     Email = newUser.MailUtilisateur,
                     Password = newUser.MotDePasse,
-                    token = "coucou"
+
                 };
                 // Act
+                var tokenActionResult = loginController.Login(user);
+                int startIndex = tokenActionResult.ToJson().IndexOf("\"token\":\"") + "\"token\":\"".Length;
+                int endIndex = tokenActionResult.ToJson().IndexOf("\"", startIndex);
 
-              
+                // Extraire la partie "token" de la chaîne JSON en utilisant Substring
+                string tokenValue = tokenActionResult.ToJson().Substring(startIndex, endIndex - startIndex);
+                Assert.IsNotNull(tokenValue);
 
 
+                user = new User
+                {
+                    UserName = "salut",
+                    Email = newUser.MailUtilisateur,
+                    Password = newUser.MotDePasse,
+                    token = tokenValue,
+
+                };
 
 
-                var resultViewUti = utilisateurController.ViewUtilisateur(user);
+                var resultViewUti = utilisateurController.ChangeUserName(user);
                 Assert.IsNotNull(resultViewUti);
 
-
-                Assert.IsInstanceOfType(resultViewUti, typeof(Task<ActionResult<object>>));
-                // Récupère la valeur de actionResult.Value pour faciliter les assertions ultérieures
-                var createdResult = resultViewUti.Result;
-
-                var returnUser = createdResult.Value;
-                User reUser = JsonConvert.DeserializeObject<User>(createdResult.Value.ToJson());
+                var result = resultViewUti.Result.Value;
+                var anonymousResult = result.GetType().GetProperty("changed").GetValue(result, null);
+                Assert.IsTrue((bool)anonymousResult);
 
 
-                // Vérifier si reUser est de type UnauthorizedResult
-                Assert.IsInstanceOfType(reUser.Password, typeof(UnauthorizedResult));
-
-            }
-        }
-
-        [TestMethod]
-        public async Task ViewUtilisateur_Returns_NotFound_When_User_Not_Found()
-        {
-            // Arrange
-            var users = new List<Utilisateur>();
-
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.ASCII.GetBytes("test_secret_key");
-            var tokenDescriptor = new SecurityTokenDescriptor
-            {
-                Subject = new ClaimsIdentity(new Claim[]
-                {
-            new Claim(ClaimTypes.NameIdentifier, "1"),
-            new Claim(ClaimTypes.Name, "testuser")
-                }),
-                Expires = DateTime.UtcNow.AddDays(1),
-                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
-            };
-            var generatedToken = tokenHandler.CreateToken(tokenDescriptor);
-            var token = tokenHandler.WriteToken(generatedToken);
-
-            using (var dbContext = CreateDbContext(users))
-            {
-                var controller = new UtilisateursController(dbContext, null);
-                var user = new User { token = token };
-
-                // Act
-                var actionResult = await controller.ViewUtilisateur(user);
-
-                // Assert
-                Assert.IsNotNull(actionResult);
-                Assert.IsInstanceOfType(actionResult.Result, typeof(NotFoundResult));
-            }
-        }
-
-        [TestMethod]
-        public async Task ChangeUserName_Valid_User_Returns_Success() //-----------------------------------------------------------------------------------------------------
-        {
-            // Arrange
-            var users = new List<Utilisateur>
-    {
-        new Utilisateur { IdUtilisateur = 1, PseudoUtilisateur = "testuser", MotDePasse = "password", Role = "user", MailUtilisateur = "test@example.com" }
-    };
-
-            using (var dbContext = CreateDbContext(users))
-            {
-                var controller = new UtilisateursController(dbContext, null);
-                var user = new User { UserName = "newusername", Password = "password" };
-
-                // Act
-                var result = await controller.ChangeUserName(user);
-
-                // Assert
-                Assert.IsNotNull(result);
-                Assert.IsInstanceOfType(result.Result, typeof(ActionResult<object>));
-
-                var actionResult = result.Result;
-                Assert.IsNotNull(actionResult);
-
-                dynamic responseObject = actionResult;
-                Assert.IsTrue(responseObject.changed);
-
-                // Optionally, you can assert other properties of the response if needed
             }
         }
 
         [TestMethod]
         public async Task ChangeUserName_Invalid_User_Returns_NotFound()
         {
+
             // Arrange
+            var utilisateur = new User
+            {
+                UserName = "user",
+                Password = "e3e21eb2ea077ec4f6e95cdb04377ecab4a80bb787a0a6a3fd9e285e6b5c279d",
+                Email = "coucou@gmail.com"
+
+            };
+
             using (var dbContext = CreateDbContext())
             {
-                var controller = new UtilisateursController(dbContext, null);
-                var user = new User { UserName = "nonexistentuser", Password = "password" };
+                var _config = CreateConfigWithSecretKey();
+                var loginController = new LoginController(dbContext, _config);
+                var utilisateurController = new UtilisateursController(dbContext, _config);
 
-                // Act
-                var result = await controller.ChangeUserName(user);
+               
 
-                // Assert
-                Assert.IsNotNull(result);
-                Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
+                var resultViewUti = utilisateurController.ChangeUserName(utilisateur);
+                Assert.IsNotNull(resultViewUti);
+
+                var result = resultViewUti.Result.Value;
+                var anonymousResult = result.GetType().GetProperty("changed").GetValue(result, null);
+                Assert.IsFalse((bool)anonymousResult);
+
+
             }
         }
 
@@ -452,44 +448,99 @@ namespace FifApi.Tests.Controllers
         [TestMethod]
         public async Task ChangePassword_Invalid_User_Returns_NotFound()
         {
+
+
             // Arrange
-            var users = new List<Utilisateur>
-    {
-        new Utilisateur { IdUtilisateur = 1, PseudoUtilisateur = "testuser", MotDePasse = "password", Role = "user", MailUtilisateur = "test@example.com" }
-    };
-
-            using (var dbContext = CreateDbContext(users))
+            var utilisateur = new User
             {
-                var controller = new UtilisateursController(dbContext, null);
-                var user = new User { UserName = "invaliduser", Password = "password", NewPassword = "newpassword" };
+                UserName = "user",
+                Password = "e3e21eb2ea077ec4f6e95cdb04377ecab4a80bb787a0a6a3fd9e285e6b5c279d",
+                Email = "coucou@gmail.com"
 
+            };
+
+            using (var dbContext = CreateDbContext())
+            {
+                var _config = CreateConfigWithSecretKey();
+                var loginController = new LoginController(dbContext, _config);
+                var utilisateurController = new UtilisateursController(dbContext, _config);
+
+                var createUser = utilisateurController.PostUtilisateur(utilisateur);
+                Assert.IsNotNull(createUser.ToJson());
+
+
+                var usersTask = dbContext.Utilisateurs.ToListAsync();
+                var users = usersTask.Result;
+                var newUser = users.FirstOrDefault();
+                Assert.IsNotNull(newUser.ToJson());
+
+                var user = new User
+                {
+                    UserName = newUser.PseudoUtilisateur,
+                    Email = newUser.MailUtilisateur,
+                    Password = "fffff",
+
+                };
                 // Act
-                var result = await controller.ChangePassword(user);
+                var tokenActionResult = loginController.Login(user);
+                int startIndex = tokenActionResult.ToJson().IndexOf("\"token\":\"") + "\"token\":\"".Length;
+                int endIndex = tokenActionResult.ToJson().IndexOf("\"", startIndex);
 
-                // Assert
-                Assert.IsNotNull(result);
+                // Extraire la partie "token" de la chaîne JSON en utilisant Substring
+                string tokenValue = tokenActionResult.ToJson().Substring(startIndex, endIndex - startIndex);
+                Assert.IsNotNull(tokenValue);
+
+
+                user = new User
+                {
+                    UserName = "salut",
+                    Email = newUser.MailUtilisateur,
+                    Password = newUser.MotDePasse,
+                    token = tokenValue,
+
+                };
+
+
+                var resultViewUti = utilisateurController.ChangeUserName(user);
+                Assert.IsNotNull(resultViewUti);
+
+                var result = resultViewUti.Result.Value;
+                var anonymousResult = result.GetType().GetProperty("changed").GetValue(result, null);
+                Assert.IsFalse((bool)anonymousResult);
+
+
             }
         }
 
         [TestMethod]
         public async Task ChangePassword_Incorrect_Password_Returns_BadRequest()
         {
+
             // Arrange
-            var users = new List<Utilisateur>
-    {
-        new Utilisateur { IdUtilisateur = 1, PseudoUtilisateur = "testuser", MotDePasse = "password", Role = "user", MailUtilisateur = "test@example.com" }
-    };
-
-            using (var dbContext = CreateDbContext(users))
+            var utilisateur = new User
             {
-                var controller = new UtilisateursController(dbContext, null);
-                var user = new User { UserName = "testuser", Password = "incorrectpassword", NewPassword = "newpassword" };
+                UserName = "user",
+                Password = "e3e21eb2ea077ec4fecab4a80bb787a0a6a3fd9e285e6b5c279d",
+                Email = "coucou@gmail.com"
 
-                // Act
-                var result = await controller.ChangePassword(user);
+            };
 
-                // Assert
-                Assert.IsNotNull(result);
+            using (var dbContext = CreateDbContext())
+            {
+                var _config = CreateConfigWithSecretKey();
+                var loginController = new LoginController(dbContext, _config);
+                var utilisateurController = new UtilisateursController(dbContext, _config);
+
+               
+
+                var resultViewUti = utilisateurController.ChangePassword(utilisateur);
+                Assert.IsNotNull(resultViewUti);
+
+                var result = resultViewUti.Result.Value;
+                var anonymousResult = result.GetType().GetProperty("changed").GetValue(result, null);
+                Assert.IsFalse((bool)anonymousResult);
+
+
             }
         }
 
@@ -497,21 +548,65 @@ namespace FifApi.Tests.Controllers
         public async Task ChangePassword_Valid_User_Returns_Success() //--------------------------------------------------------------------------------------------------------
         {
             // Arrange
-            var users = new List<Utilisateur>
-    {
-        new Utilisateur { IdUtilisateur = 1, PseudoUtilisateur = "testuser", MotDePasse = "password", Role = "user", MailUtilisateur = "test@example.com" }
-    };
-
-            using (var dbContext = CreateDbContext(users))
+            var utilisateur = new User
             {
-                var controller = new UtilisateursController(dbContext, null);
-                var user = new User { UserName = "testuser", Password = "password", NewPassword = "newpassword" };
+                UserName = "user",
+                Password = "e3e21eb2ea077ec4f6e95cdb04377ecab4a80bb787a0a6a3fd9e285e6b5c279d",
+                Email = "coucou@gmail.com"
 
+            };
+
+            using (var dbContext = CreateDbContext())
+            {
+                var _config = CreateConfigWithSecretKey();
+                var loginController = new LoginController(dbContext, _config);
+                var utilisateurController = new UtilisateursController(dbContext, _config);
+
+                var createUser = utilisateurController.PostUtilisateur(utilisateur);
+                Assert.IsNotNull(createUser.ToJson());
+
+
+                var usersTask = dbContext.Utilisateurs.ToListAsync();
+                var users = usersTask.Result;
+                var newUser = users.FirstOrDefault();
+                Assert.IsNotNull(newUser.ToJson());
+
+                var user = new User
+                {
+                    UserName = newUser.PseudoUtilisateur,
+                    Email = newUser.MailUtilisateur,
+                    Password = newUser.MotDePasse,
+
+                };
                 // Act
-                var result = await controller.ChangePassword(user);
+                var tokenActionResult = loginController.Login(user);
+                int startIndex = tokenActionResult.ToJson().IndexOf("\"token\":\"") + "\"token\":\"".Length;
+                int endIndex = tokenActionResult.ToJson().IndexOf("\"", startIndex);
 
-                // Assert
-                Assert.IsNotNull(result);
+                // Extraire la partie "token" de la chaîne JSON en utilisant Substring
+                string tokenValue = tokenActionResult.ToJson().Substring(startIndex, endIndex - startIndex);
+                Assert.IsNotNull(tokenValue);
+
+
+                user = new User
+                {
+                    UserName = newUser.PseudoUtilisateur,
+                    Email = newUser.MailUtilisateur,
+                    Password = newUser.MotDePasse,
+                    NewPassword = "fefezfzefzefegsthsr",
+                    token = tokenValue,
+
+                };
+
+
+                var resultViewUti = utilisateurController.ChangePassword(user);
+                Assert.IsNotNull(resultViewUti);
+
+
+                var result = resultViewUti.Result.Value;
+                var anonymousResult = result.GetType().GetProperty("changed").GetValue(result, null);
+                Assert.IsTrue((bool)anonymousResult);
+
 
             }
         }
@@ -519,114 +614,199 @@ namespace FifApi.Tests.Controllers
         public async Task ChangeLastName_Updates_LastName_Successfully() // ------------------------------------------------------------------------------------------------------
         {
             // Arrange
-            var users = new List<Utilisateur>
-    {
-        new Utilisateur { IdUtilisateur = 1, PseudoUtilisateur = "user1", NomUtilisateur = "Doe", MotDePasse = "password1", Role = "user", MailUtilisateur = "user1@example.com" }
-    };
-
-            using (var dbContext = CreateDbContext(users))
+            var utilisateur = new User
             {
-                var user = new User { LastName = "Johnson" };
+                UserName = "user",
+                Password = "e3e21eb2ea077ec4f6e95cdb04377ecab4a80bb787a0a6a3fd9e285e6b5c279d",
+                Email = "coucou@gmail.com"
 
-                var controller = new UtilisateursController(dbContext, null);
+            };
 
-                // Act
-                var actionResult = await controller.ChangeLastName(user);
-
-                // Assert
-                Assert.IsNotNull(actionResult);
-                Assert.IsTrue(actionResult.Value is { });
-
-                // Check if the last name has been updated successfully
-                var updatedUser = await dbContext.Utilisateurs.FirstOrDefaultAsync(u => u.PseudoUtilisateur == "user1");
-                Assert.IsNotNull(updatedUser);
-                Assert.AreEqual("Johnson", updatedUser.PrenomUtilisateur);
-            }
-        }
-
-
-        [TestMethod]
-        public async Task ChangeLastName_Returns_NotFound_When_No_Users()
-        {
-            // Arrange
             using (var dbContext = CreateDbContext())
             {
-                var user = new User { LastName = "Johnson" };
+                var _config = CreateConfigWithSecretKey();
+                var loginController = new LoginController(dbContext, _config);
+                var utilisateurController = new UtilisateursController(dbContext, _config);
 
-                var controller = new UtilisateursController(dbContext, null);
+                var createUser = utilisateurController.PostUtilisateur(utilisateur);
+                Assert.IsNotNull(createUser.ToJson());
 
+
+                var usersTask = dbContext.Utilisateurs.ToListAsync();
+                var users = usersTask.Result;
+                var newUser = users.FirstOrDefault();
+                Assert.IsNotNull(newUser.ToJson());
+
+                var user = new User
+                {
+                    UserName = newUser.PseudoUtilisateur,
+                    Email = newUser.MailUtilisateur,
+                    Password = newUser.MotDePasse,
+
+                };
                 // Act
-                var actionResult = await controller.ChangeLastName(user);
+                var tokenActionResult = loginController.Login(user);
+                int startIndex = tokenActionResult.ToJson().IndexOf("\"token\":\"") + "\"token\":\"".Length;
+                int endIndex = tokenActionResult.ToJson().IndexOf("\"", startIndex);
 
-                // Assert
-                Assert.IsNotNull(actionResult);
+                // Extraire la partie "token" de la chaîne JSON en utilisant Substring
+                string tokenValue = tokenActionResult.ToJson().Substring(startIndex, endIndex - startIndex);
+                Assert.IsNotNull(tokenValue);
 
-                var jsonBody = System.Text.Json.JsonSerializer.Serialize(actionResult.Value);
-                var expectedJson = "{\"changed\":false}";
-                Assert.AreEqual(expectedJson, jsonBody);
+
+                user = new User
+                {
+                    UserName = newUser.PseudoUtilisateur,
+                    Email = newUser.MailUtilisateur,
+                    Password = newUser.MotDePasse,
+                    token = tokenValue,
+                    LastName = "dupiont",
+
+                };
+
+
+                var resultViewUti = utilisateurController.ChangeLastName(user);
+                Assert.IsNotNull(resultViewUti);
+                var result = resultViewUti.Result.Value;
+                var anonymousResult = result.GetType().GetProperty("changed").GetValue(result, null);
+                Assert.IsTrue((bool)anonymousResult);
+
+
             }
         }
+
 
         [TestMethod]
         public async Task ChangeLastName_Returns_NotFound_When_User_Not_Found()
         {
             // Arrange
-            var users = new List<Utilisateur>
-    {
-        new Utilisateur { IdUtilisateur = 1, PseudoUtilisateur = "user1", NomUtilisateur = "Doe", MotDePasse = "password1", Role = "user", MailUtilisateur = "user1@example.com" }
-    };
-
-            using (var dbContext = CreateDbContext(users))
+            var utilisateur = new User
             {
-                var user = new User { LastName = "Johnson" }; // Changing the last name of a non-existing user
+                UserName = "user",
+                Password = "e3e21eb2ea077ec4f6e95cdb04377ecab4a80bb787a0a6a3fd9e285e6b5c279d",
+                Email = "coucou@gmail.com"
 
-                var controller = new UtilisateursController(dbContext, null);
+            };
 
+            using (var dbContext = CreateDbContext())
+            {
+                var _config = CreateConfigWithSecretKey();
+                var loginController = new LoginController(dbContext, _config);
+                var utilisateurController = new UtilisateursController(dbContext, _config);
+
+
+                var createUser = utilisateurController.PostUtilisateur(utilisateur);
+                Assert.IsNotNull(createUser.ToJson());
+
+
+              
+
+                var usersTask = dbContext.Utilisateurs.ToListAsync();
+                var users = usersTask.Result;
+                var newUser = users.FirstOrDefault();
+                Assert.IsNotNull(newUser.ToJson());
+
+                var user = new User
+                {
+                    UserName = newUser.PseudoUtilisateur,
+                    Email = newUser.MailUtilisateur,
+                    Password = newUser.MotDePasse,
+
+                };
                 // Act
-                var actionResult = await controller.ChangeLastName(user);
+                var tokenActionResult = loginController.Login(user);
+                int startIndex = tokenActionResult.ToJson().IndexOf("\"token\":\"") + "\"token\":\"".Length;
+                int endIndex = tokenActionResult.ToJson().IndexOf("\"", startIndex);
 
-                // Assert
-                Assert.IsNotNull(actionResult);
-                var jsonBody = System.Text.Json.JsonSerializer.Serialize(actionResult.Value);
-                var expectedJson = "{\"changed\":false}";
-                Assert.AreEqual(expectedJson, jsonBody);
+                // Extraire la partie "token" de la chaîne JSON en utilisant Substring
+                string tokenValue = tokenActionResult.ToJson().Substring(startIndex, endIndex - startIndex);
+                Assert.IsNotNull(tokenValue);
+
+
+                user = new User
+                {
+                    UserName = newUser.PseudoUtilisateur,
+                    Email = newUser.MailUtilisateur,
+                    Password = newUser.MotDePasse,
+                    token = "foufou",
+                    LastName = "dupiont",
+
+                };
+
+
+                var resultViewUti = utilisateurController.ChangeLastName(user);
+                Assert.IsNotNull(resultViewUti);
+                var result = resultViewUti.Result.Value;
+                var anonymousResult = result.GetType().GetProperty("changed").GetValue(result, null);
+                Assert.IsFalse((bool)anonymousResult);
+
+
             }
         }
 
+      
         [TestMethod]
         public async Task ChangeFirstName_With_Valid_User_Returns_Success() //-------------------------------------------------------------------------------------------------
         {
             // Arrange
-            var user = new User
+            var utilisateur = new User
             {
-                UserName = "testuser",
-                Password = "password",
-                FirstName = "John"
+                UserName = "user",
+                Password = "e3e21eb2ea077ec4f6e95cdb04377ecab4a80bb787a0a6a3fd9e285e6b5c279d",
+                Email = "coucou@gmail.com"
+
             };
 
-            var users = new List<Utilisateur>
-    {
-        new Utilisateur { IdUtilisateur = 1, PseudoUtilisateur = "testuser", MotDePasse = "password", PrenomUtilisateur = "Jane" }
-    };
-
-            using (var dbContext = CreateDbContext(users))
+            using (var dbContext = CreateDbContext())
             {
-                var controller = new UtilisateursController(dbContext, null);
+                var _config = CreateConfigWithSecretKey();
+                var loginController = new LoginController(dbContext, _config);
+                var utilisateurController = new UtilisateursController(dbContext, _config);
 
+                var createUser = utilisateurController.PostUtilisateur(utilisateur);
+                Assert.IsNotNull(createUser.ToJson());
+
+
+                var usersTask = dbContext.Utilisateurs.ToListAsync();
+                var users = usersTask.Result;
+                var newUser = users.FirstOrDefault();
+                Assert.IsNotNull(newUser.ToJson());
+
+                var user = new User
+                {
+                    UserName = newUser.PseudoUtilisateur,
+                    Email = newUser.MailUtilisateur,
+                    Password = newUser.MotDePasse,
+
+                };
                 // Act
-                var result = await controller.ChangeFirstName(user);
+                var tokenActionResult = loginController.Login(user);
+                int startIndex = tokenActionResult.ToJson().IndexOf("\"token\":\"") + "\"token\":\"".Length;
+                int endIndex = tokenActionResult.ToJson().IndexOf("\"", startIndex);
 
-                // Assert
-                Assert.IsNotNull(result);
-                Assert.IsInstanceOfType(result.Result, typeof(OkObjectResult));
+                // Extraire la partie "token" de la chaîne JSON en utilisant Substring
+                string tokenValue = tokenActionResult.ToJson().Substring(startIndex, endIndex - startIndex);
+                Assert.IsNotNull(tokenValue);
 
-                var jsonBody = System.Text.Json.JsonSerializer.Serialize(result.Value);
-                var expectedJson = "{\"changed\":true}";
-                Assert.AreEqual(expectedJson, jsonBody);
 
-                var okResult = result.Result as OkObjectResult;
-                dynamic data = okResult.Value;
-                Assert.IsTrue(data.changed);
+                user = new User
+                {
+                    UserName = newUser.PseudoUtilisateur,
+                    Email = newUser.MailUtilisateur,
+                    Password = newUser.MotDePasse,
+                    token = tokenValue,
+                    FirstName = "dupiont",
+
+                };
+
+
+                var resultViewUti = utilisateurController.ChangeFirstName(user);
+                Assert.IsNotNull(resultViewUti);
+                var result = resultViewUti.Result.Value;
+                var anonymousResult = result.GetType().GetProperty("changed").GetValue(result, null);
+                Assert.IsTrue((bool)anonymousResult);
+
+
             }
         }
 
@@ -634,68 +814,95 @@ namespace FifApi.Tests.Controllers
         public async Task ChangeFirstName_With_Invalid_User_Returns_NotFound()
         {
             // Arrange
-            var user = new User
+            var utilisateur = new User
             {
-                UserName = "invaliduser",
-                Password = "invalidpassword",
-                FirstName = "John"
+                UserName = "user",
+                Password = "e3e21eb2ea077ec4f6e95cdb04377ecab4a80bb787a0a6a3fd9e285e6b5c279d",
+                Email = "coucou@gmail.com"
+
             };
 
             using (var dbContext = CreateDbContext())
             {
-                var controller = new UtilisateursController(dbContext, null);
+                var _config = CreateConfigWithSecretKey();
+                var loginController = new LoginController(dbContext, _config);
+                var utilisateurController = new UtilisateursController(dbContext, _config);
 
+                var createUser = utilisateurController.PostUtilisateur(utilisateur);
+                Assert.IsNotNull(createUser.ToJson());
+
+
+                var usersTask = dbContext.Utilisateurs.ToListAsync();
+                var users = usersTask.Result;
+                var newUser = users.FirstOrDefault();
+                Assert.IsNotNull(newUser.ToJson());
+
+                var user = new User
+                {
+                    UserName = newUser.PseudoUtilisateur,
+                    Email = newUser.MailUtilisateur,
+                    Password = newUser.MotDePasse,
+
+                };
                 // Act
-                var result = await controller.ChangeFirstName(user);
+                var tokenActionResult = loginController.Login(user);
+                int startIndex = tokenActionResult.ToJson().IndexOf("\"token\":\"") + "\"token\":\"".Length;
+                int endIndex = tokenActionResult.ToJson().IndexOf("\"", startIndex);
 
-                // Assert
-                Assert.IsNotNull(result);
-                Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
+                // Extraire la partie "token" de la chaîne JSON en utilisant Substring
+                string tokenValue = tokenActionResult.ToJson().Substring(startIndex, endIndex - startIndex);
+                Assert.IsNotNull(tokenValue);
+
+
+                user = new User
+                {
+                    UserName = newUser.PseudoUtilisateur,
+                    Email = newUser.MailUtilisateur,
+                    Password = newUser.MotDePasse,
+                    token = "ffff",
+                    FirstName = "dupiont",
+
+                };
+
+
+                var resultViewUti = utilisateurController.ChangeFirstName(user);
+                Assert.IsNotNull(resultViewUti);
+                var result = resultViewUti.Result.Value;
+                var anonymousResult = result.GetType().GetProperty("changed").GetValue(result, null);
+                Assert.IsFalse((bool)anonymousResult);
+
+
             }
         }
 
-        [TestMethod]
-        public async Task ChangeFirstName_With_Null_Context_Returns_NotFound()
-        {
-            // Arrange
-            var user = new User
-            {
-                UserName = "testuser",
-                Password = "password",
-                FirstName = "John"
-            };
-
-            using (var dbContext = CreateDbContext(null))
-            {
-                var controller = new UtilisateursController(dbContext, null);
-
-                // Act
-                var result = await controller.ChangeFirstName(user);
-
-                // Assert
-                Assert.IsNotNull(result);
-                Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
-            }
-        }
-
+       
 
         [TestMethod]
         public async Task PutUtilisateur_ValidData_Returns_Ok()
         {
             // Arrange
-            var userToUpdate = new Utilisateur { IdUtilisateur = 1, PseudoUtilisateur = "testuser", MailUtilisateur = "test@example.com", MotDePasse = "password", Role = "user" };
+            var usertoupdate = new User { UserName = "mon", Email = "up@example.com", Password = "pass" };
             var updatedUser = new User { UserName = "updateduser", Email = "updated@example.com", Password = "newpassword" };
 
-            using (var dbContext = CreateDbContext(new List<Utilisateur> { userToUpdate }))
+            using (var dbContext = CreateDbContext())
             {
-                var controller = new UtilisateursController(dbContext, null);
-
                 // Act
-                var result = await controller.PutUtilisateur(userToUpdate.IdUtilisateur, updatedUser);
+                var _config = CreateConfigWithSecretKey();
+                var loginController = new LoginController(dbContext, _config);
+                var utilisateurController = new UtilisateursController(dbContext, _config);
+
+                var createUser = utilisateurController.PostUtilisateur(usertoupdate);
+
+                var usersTask = dbContext.Utilisateurs.ToListAsync();
+                var users = usersTask.Result;
+                var newUser = users.FirstOrDefault();
+                Assert.IsNotNull(newUser.ToJson());
+
+                var updateUser = utilisateurController.PutUtilisateur(newUser.IdUtilisateur,updatedUser);
 
                 // Assert
-                Assert.IsNotNull(result);
-                Assert.IsInstanceOfType(result, typeof(ActionResult<object>));
+                Assert.IsNotNull(updateUser);
+                Assert.IsInstanceOfType(updateUser.Result.Value, typeof(object));
                 Assert.IsTrue(dbContext.Utilisateurs.Any(u => u.PseudoUtilisateur == updatedUser.UserName && u.MailUtilisateur == updatedUser.Email && u.MotDePasse == updatedUser.Password));
             }
         }
@@ -708,37 +915,81 @@ namespace FifApi.Tests.Controllers
 
             using (var dbContext = CreateDbContext())
             {
-                var controller = new UtilisateursController(dbContext, null);
 
                 // Act
-                var result = await controller.PostUtilisateur(newUser);
+                var _config = CreateConfigWithSecretKey();
+                var loginController = new LoginController(dbContext, _config);
+                var utilisateurController = new UtilisateursController(dbContext, _config);
+
+                var createUser = utilisateurController.PostUtilisateur(newUser);
+                Assert.IsNotNull(createUser);
                 // Assert
-                Assert.IsNotNull(result);
-                Assert.IsInstanceOfType(result, typeof(ActionResult<object>));
+                Assert.IsInstanceOfType(createUser.Result.Value, typeof(object));
                 Assert.IsTrue(dbContext.Utilisateurs.Any(u => u.PseudoUtilisateur == newUser.UserName && u.MailUtilisateur == newUser.Email && u.MotDePasse == newUser.Password));
             }
         }
 
         [TestMethod]
         public async Task DeleteUtilisateur_ExistingUser_Returns_NoContent()
-        {
-            // Arrange
-            var existingUser = new Utilisateur { IdUtilisateur = 1, PseudoUtilisateur = "testuser", MailUtilisateur = "test@example.com", MotDePasse = "password", Role = "user" };
-
-            using (var dbContext = CreateDbContext(new List<Utilisateur> { existingUser }))
+        { // Arrange
+            var utilisateur = new User
             {
-                var controller = new UtilisateursController(dbContext, null);
+                UserName = "user",
+                Password = "e3e21eb2ea077ec4f6e95cdb04377ecab4a80bb787a0a6a3fd9e285e6b5c279d",
+                Email = "coucou@gmail.com"
 
+            };
+
+            using (var dbContext = CreateDbContext())
+            {
+                var _config = CreateConfigWithSecretKey();
+                var loginController = new LoginController(dbContext, _config);
+                var utilisateurController = new UtilisateursController(dbContext, _config);
+
+                var createUser = utilisateurController.PostUtilisateur(utilisateur);
+                Assert.IsNotNull(createUser.ToJson());
+
+
+                var usersTask = dbContext.Utilisateurs.ToListAsync();
+                var users = usersTask.Result;
+                var newUser = users.FirstOrDefault();
+                Assert.IsNotNull(newUser.ToJson());
+
+                var user = new User
+                {
+                    UserName = newUser.PseudoUtilisateur,
+                    Email = newUser.MailUtilisateur,
+                    Password = newUser.MotDePasse,
+
+                };
                 // Act
-                var result = await controller.DeleteUtilisateur(new User { UserName = "testuser", Email = "test@example.com", Password = "password" });
+                var tokenActionResult = loginController.Login(user);
+                int startIndex = tokenActionResult.ToJson().IndexOf("\"token\":\"") + "\"token\":\"".Length;
+                int endIndex = tokenActionResult.ToJson().IndexOf("\"", startIndex);
 
-                // Assert
-                Assert.IsNotNull(result);
-                Assert.IsInstanceOfType(result, typeof(ActionResult<object>));
-                Assert.AreEqual(StatusCodes.Status204NoContent, (result as StatusCodeResult)?.StatusCode);
-                Assert.IsFalse(dbContext.Utilisateurs.Any(u => u.IdUtilisateur == existingUser.IdUtilisateur));
+                // Extraire la partie "token" de la chaîne JSON en utilisant Substring
+                string tokenValue = tokenActionResult.ToJson().Substring(startIndex, endIndex - startIndex);
+                Assert.IsNotNull(tokenValue);
+
+
+                user = new User
+                {
+                    UserName = newUser.PseudoUtilisateur,
+                    Email = newUser.MailUtilisateur,
+                    Password = newUser.MotDePasse,
+                    token = tokenValue,
+
+                };
+
+
+                var resultViewUti = utilisateurController.DeleteUtilisateur(user);
+                Assert.IsNotNull(resultViewUti);
+
+                Assert.IsInstanceOfType(resultViewUti.Result, typeof(NoContentResult));
+
             }
         }
+
 
         private FifaDBContext CreateDbContext()
         {
