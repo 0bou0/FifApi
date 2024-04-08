@@ -238,7 +238,7 @@ namespace FifApi.Controllers
                     Description = product.DescriptionProduit,
                     MarqueId = product.Marque,
                     PaysId = product.Nation,
-                    TypeId = product.CategorieId,
+                    TypeId = product.Categorie,
                     AlbumDuProduit = new Album
                     {
                         AlbumDesPhotos = new List<AlbumPhoto> {
@@ -263,7 +263,7 @@ namespace FifApi.Controllers
                         Description = product.DescriptionProduit,
                         MarqueId = product.Marque,
                         PaysId = product.Nation,
-                        TypeId = product.CategorieId,
+                        TypeId = product.Categorie,
                         AlbumId = _context.AlbumPhotos.Where(a => a.IdPhoto == _context.Photos.Where(p => p.URL == product.Image).Select(p => p.IdPhoto).First()).Select(a => a.IdAlbum).First()
                     });
                 }
@@ -275,7 +275,7 @@ namespace FifApi.Controllers
                         Description = product.DescriptionProduit,
                         MarqueId = product.Marque,
                         PaysId = product.Nation,
-                        TypeId = product.CategorieId,
+                        TypeId = product.Categorie,
                         AlbumDuProduit = new Album
                         {
                             AlbumDesPhotos = new List<AlbumPhoto>
@@ -298,8 +298,10 @@ namespace FifApi.Controllers
                 _context.CouleurProduits.Add(new CouleurProduit
                 {
                     IdCouleur = _context.Couleurs.Where(c => c.Nom == couleur.Nom).Select(c => c.Id).First(),
-                    IdProduit = idProduit
+                    IdProduit = idProduit,
+                    Prix = couleur.Prix,
                 });
+                _context.SaveChanges();
                 idCouleurProduit = _context.CouleurProduits.OrderBy(c => c.IdCouleurProduit).Last().IdCouleurProduit;
                 foreach (Size taille in couleur.Tailles)
                 {
