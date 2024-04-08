@@ -267,7 +267,7 @@ namespace FifApi.Controllers
                         AlbumId = _context.AlbumPhotos.Where(a => a.IdPhoto == _context.Photos.Where(p => p.URL == product.Image).Select(p => p.IdPhoto).First()).Select(a => a.IdAlbum).First()
                     });
                 }
-                else
+                else 
                 {
                     _context.Produits.Add(new Produit
                     {
