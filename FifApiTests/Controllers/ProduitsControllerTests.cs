@@ -1051,6 +1051,33 @@ namespace FifApi.Tests.Controllers
 
 
         [TestMethod]
+        public async Task Put_Produit_Returns_Fail() 
+        { 
+            // Arrange
+            var id = 1;
+            var existingProduit = new Produit { Id = id, Name = "Produit existant", Description = "Description du produit existant", PaysId = "fr" };
+
+            using (var dbContext = CreateDbContext())
+            {
+                dbContext.Produits.Add(existingProduit);
+                await dbContext.SaveChangesAsync();
+
+                dbContext.Entry(existingProduit).State = EntityState.Detached;
+
+                var updatedProduit = new Produit { Id = id+1, Name = "Produit 1 mis à jour", Description = "Nouvelle description", PaysId = "fr" };
+
+                var controller = new ProduitsController(dbContext);
+
+                // Act
+                var actionResult = await controller.PutProduit(id, updatedProduit);
+
+                // Assert
+                Assert.IsInstanceOfType(actionResult, typeof(BadRequestResult));
+            }
+        }
+
+
+        [TestMethod]
         public async Task Post_Produit_Returns_CreatedAtAction()
         {
             // Arrange
@@ -1072,6 +1099,41 @@ namespace FifApi.Tests.Controllers
                 var produitReturned = createdAtActionResult.Value as Produit;
                 Assert.IsNotNull(produitReturned);
                 Assert.AreEqual(produitToAdd.Id, produitReturned.Id);
+            }
+        }
+
+        [TestMethod]
+        public async Task Post_Produit_Returns_False()
+        {
+            // Arrange
+            var produitToAdd = new Produit { Id = 1, Description = "Description du nouveau produit", PaysId = "fr" };
+
+            using (var dbContext = CreateDbContext())
+            {
+                var controller = new ProduitsController(dbContext);
+                Exception ex = null;
+
+                try
+                {
+                    var actionResult = await controller.PostProduit(produitToAdd);
+                    Assert.Fail("L'opération devrait lever une exception.");
+                }
+                catch (DbUpdateException dbEx)
+                {
+                    ex = dbEx.InnerException;
+                }
+                catch (Exception genericEx)
+                {
+                    ex = genericEx;
+                }
+
+                // Assert
+                if (ex != null)
+                {
+                    Assert.IsTrue(ex is InvalidOperationException, "L'exception levée n'est pas du type attendu.");
+                    Assert.IsTrue(ex.Message.Contains("Required properties '{'Name'}' are missing"), "Le message d'exception n'est pas celui attendu.");
+                }
+
             }
         }
 

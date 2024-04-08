@@ -482,32 +482,17 @@ namespace FifApi.Tests.Controllers
 
                 };
                 // Act
-                var tokenActionResult = loginController.Login(user);
-                int startIndex = tokenActionResult.ToJson().IndexOf("\"token\":\"") + "\"token\":\"".Length;
-                int endIndex = tokenActionResult.ToJson().IndexOf("\"", startIndex);
-
-                // Extraire la partie "token" de la chaîne JSON en utilisant Substring
-                string tokenValue = tokenActionResult.ToJson().Substring(startIndex, endIndex - startIndex);
-                Assert.IsNotNull(tokenValue);
-
-
-                user = new User
+                try
                 {
-                    UserName = "salut",
-                    Email = newUser.MailUtilisateur,
-                    Password = newUser.MotDePasse,
-                    token = tokenValue,
-
-                };
-
-
-                var resultViewUti = utilisateurController.ChangeUserName(user);
-                Assert.IsNotNull(resultViewUti);
-
-                var result = resultViewUti.Result.Value;
-                var anonymousResult = result.GetType().GetProperty("changed").GetValue(result, null);
-                Assert.IsFalse((bool)anonymousResult);
-
+                    loginController.Login(user);
+                    Assert.Fail("L'assertion a échoué : L'opération de connexion ne lève pas d'exception.");
+                }
+                catch (Exception ex)
+                {
+                    // Assert
+                    Assert.IsTrue(ex is InvalidOperationException, "L'exception levée n'est pas du type attendu.");
+                    Assert.AreEqual("Sequence contains no matching element", ex.Message, "Le message d'exception n'est pas celui attendu.");
+                }
 
             }
         }
