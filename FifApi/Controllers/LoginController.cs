@@ -49,7 +49,7 @@ namespace FifApi.Controllers
         {
             var usersTask = _dbContext.Utilisateurs.ToListAsync();
             var users = usersTask.Result;
-            return users.SingleOrDefault(x => x.PseudoUtilisateur.ToLower() == utilisateur.UserName.ToLower() && x.MotDePasse == utilisateur.Password);
+            return users.Single(x => x.PseudoUtilisateur.ToLower() == utilisateur.UserName.ToLower() && x.MotDePasse == utilisateur.Password);
         }
 
 
