@@ -104,7 +104,6 @@ namespace FifApi.Tests.Controllers
             using (var dbContext = CreateDbContext())
             {
                 var controller = new CategoriesController(dbContext);
-                // Attempt to add the same nation again
                 await controller.PostNations(pays);
                 var actionResult = await controller.PostNations(existingPays);
 
@@ -114,6 +113,58 @@ namespace FifApi.Tests.Controllers
                 Assert.IsNotNull(badRequestResult);
                 Assert.AreEqual(StatusCodes.Status400BadRequest, badRequestResult.StatusCode);
                 Assert.AreEqual("nation already in base", badRequestResult.Value);
+            }
+        }
+
+
+        [TestMethod]
+        public async Task Put_Nations_Returns_Created_Response()
+        {
+            // Arrange
+            var pays = new Pays { IdPays = "GER", NomPays = "Germany" };
+            var newPays = new Pays { IdPays = "GER", NomPays = "GERMANY" };
+
+
+            using (var dbContext = CreateDbContext())
+            {
+                var controller = new CategoriesController(dbContext);
+                await controller.PostNations(pays);
+                var actionResult = await controller.PutNations(newPays);
+
+
+                // Assert
+                var createdAtActionResult = actionResult as OkResult;
+                // Assert
+                Assert.IsNotNull(createdAtActionResult);
+                Assert.AreEqual(StatusCodes.Status200OK, createdAtActionResult.StatusCode);
+
+                // Check if the country is actually added to the database
+                var paysInDatabase = dbContext.Pays.FirstOrDefault(p => p.NomPays == newPays.NomPays);
+                Assert.IsNotNull(paysInDatabase);
+                Assert.AreEqual(newPays.IdPays, paysInDatabase.IdPays);
+                Assert.AreEqual(newPays.NomPays, paysInDatabase.NomPays);
+
+            }
+        }
+
+        [TestMethod]
+        public async Task Put_Nations_Returns_Bad_Request_If_Nation_Doesnt_Exists()
+        {
+            // Arrange
+            var pays = new Pays { IdPays = "GER", NomPays = "Germany" };
+            var newPays = new Pays { IdPays = "UKR", NomPays = "Ukraine" };
+
+            using (var dbContext = CreateDbContext())
+            {
+                var controller = new CategoriesController(dbContext);
+                await controller.PostNations(pays);
+                // Act
+                var actionResult = await controller.PutNations(newPays);
+
+                // Assert
+                var badRequestResult = actionResult as BadRequestResult;
+                Assert.IsNotNull(badRequestResult);
+                Assert.AreEqual(StatusCodes.Status400BadRequest, badRequestResult.StatusCode);
             }
         }
 
@@ -220,6 +271,8 @@ namespace FifApi.Tests.Controllers
                 Assert.AreEqual("category already in base", badRequestResult.Value);
             }
         }
+
+
 
         [TestMethod]
         public async Task Get_Couleurs_Returns_List_Of_Couleurs()
