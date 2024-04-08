@@ -54,6 +54,9 @@ namespace FifApi.Controllers
                                      description = g.FirstOrDefault()!.p.Description,
                                      caracteristiques = g.FirstOrDefault()!.p.Caracteristiques,
                                      image = g.FirstOrDefault()!.ph.URL,
+                                     marque = g.FirstOrDefault()!.p.MarqueId,
+                                     nation = g.FirstOrDefault()!.p.PaysId,
+                                     categorie = g.FirstOrDefault()!.p.TypeId,
                                      couleurs = (from cp in _context.CouleurProduits
                                                  join c in _context.Couleurs on cp.IdCouleur equals c.Id
                                                  where cp.IdProduit == g.Key
@@ -190,17 +193,58 @@ namespace FifApi.Controllers
         // PUT: api/Produits/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutProduit(int id, Produit produit)
+        public async Task<IActionResult> PutProduit(int id, Product product)
         {
-            if (id != produit.Id)
-            {
-                return BadRequest();
-            }
 
-            _context.Entry(produit).State = EntityState.Modified;
 
             try
             {
+
+
+                StocksController stocksController = new StocksController(_context);
+                Produit produit = await _context.Produits.Where(p => p.Id == id).FirstOrDefaultAsync();
+
+                _context.Photos.Where(p => p.IdPhoto == _context.AlbumPhotos.Where(a => a.IdAlbum == _context.Albums.Where(a => a.IdAlbum == produit.AlbumId).Select(a => a.IdAlbum).First()).Select(p => p.IdPhoto).First()).First().URL = product.Image;
+                produit.Name = product.NomProduit;
+                produit.Description = product.DescriptionProduit;
+                produit.MarqueId = product.Marque;
+                produit.PaysId = product.Nation;
+                produit.TypeId = product.Categorie;
+                foreach(CouleurProduit couleurProduit in await _context.CouleurProduits.Where(c => c.IdProduit == produit.Id).ToListAsync())
+                {
+                    foreach(Stock stock in _context.Stocks.Where(s => s.CouleurProduitId == couleurProduit.IdCouleurProduit).ToList())
+                    {
+                        _context.Stocks.Remove(stock);
+                    }
+                    _context.CouleurProduits.Remove(couleurProduit);
+                }
+
+                _context.SaveChanges();
+
+
+                int idCouleurProduit;
+                foreach (Color couleur in product.Couleurs)
+                {
+                    _context.CouleurProduits.Add(new CouleurProduit
+                    {
+                        IdCouleur = _context.Couleurs.Where(c => c.Nom == couleur.Nom).Select(c => c.Id).First(),
+                        IdProduit = id,
+                        Prix = couleur.Prix,
+                    });
+                    _context.SaveChanges();
+                    idCouleurProduit = _context.CouleurProduits.OrderBy(c => c.IdCouleurProduit).Last().IdCouleurProduit;
+                    foreach (Size taille in couleur.Tailles)
+                    {
+                        await stocksController.PostStock(new Stock
+                        {
+                            TailleId = taille.Code,
+                            Quantite = taille.Quantite,
+                            CouleurProduitId = idCouleurProduit
+                        });
+                    }
+                }
+
+
                 await _context.SaveChangesAsync();
             }
             catch (DbUpdateConcurrencyException)
@@ -228,46 +272,11 @@ namespace FifApi.Controllers
                 return Problem("Entity set 'FifaDBContext.Produits'  is null.");
             }
 
-            int idProduit;
+            try
+            {
+                int idProduit;
 
-            if (!_context.Photos.Any(p => p.URL == product.Image))
-            {
-                _context.Produits.Add(new Produit
-                {
-                    Name = product.NomProduit,
-                    Description = product.DescriptionProduit,
-                    MarqueId = product.Marque,
-                    PaysId = product.Nation,
-                    TypeId = product.Categorie,
-                    AlbumDuProduit = new Album
-                    {
-                        AlbumDesPhotos = new List<AlbumPhoto> {
-                            new AlbumPhoto
-                            {
-                                PhotoDesAlbums = new Photo
-                                {
-                                    URL = product.Image
-                                }
-                            }
-                        }
-                    }
-                });
-            }
-            else
-            {
-                if (_context.AlbumPhotos.Any(a => a.IdPhoto == _context.Photos.Where(p => p.URL == product.Image).Select(p => p.IdPhoto).First()))
-                {
-                    _context.Produits.Add(new Produit
-                    {
-                        Name = product.NomProduit,
-                        Description = product.DescriptionProduit,
-                        MarqueId = product.Marque,
-                        PaysId = product.Nation,
-                        TypeId = product.Categorie,
-                        AlbumId = _context.AlbumPhotos.Where(a => a.IdPhoto == _context.Photos.Where(p => p.URL == product.Image).Select(p => p.IdPhoto).First()).Select(a => a.IdAlbum).First()
-                    });
-                }
-                else 
+                if (!_context.Photos.Any(p => p.URL == product.Image))
                 {
                     _context.Produits.Add(new Produit
                     {
@@ -278,42 +287,84 @@ namespace FifApi.Controllers
                         TypeId = product.Categorie,
                         AlbumDuProduit = new Album
                         {
-                            AlbumDesPhotos = new List<AlbumPhoto>
+                            AlbumDesPhotos = new List<AlbumPhoto> {
+                            new AlbumPhoto
+                            {
+                                PhotoDesAlbums = new Photo
+                                {
+                                    URL = product.Image
+                                }
+                            }
+                        }
+                        }
+                    });
+                }
+                else
+                {
+                    if (_context.AlbumPhotos.Any(a => a.IdPhoto == _context.Photos.Where(p => p.URL == product.Image).Select(p => p.IdPhoto).First()))
+                    {
+                        _context.Produits.Add(new Produit
+                        {
+                            Name = product.NomProduit,
+                            Description = product.DescriptionProduit,
+                            MarqueId = product.Marque,
+                            PaysId = product.Nation,
+                            TypeId = product.Categorie,
+                            AlbumId = _context.AlbumPhotos.Where(a => a.IdPhoto == _context.Photos.Where(p => p.URL == product.Image).Select(p => p.IdPhoto).First()).Select(a => a.IdAlbum).First()
+                        });
+                    }
+                    else
+                    {
+                        _context.Produits.Add(new Produit
+                        {
+                            Name = product.NomProduit,
+                            Description = product.DescriptionProduit,
+                            MarqueId = product.Marque,
+                            PaysId = product.Nation,
+                            TypeId = product.Categorie,
+                            AlbumDuProduit = new Album
+                            {
+                                AlbumDesPhotos = new List<AlbumPhoto>
                             {
                                 new AlbumPhoto
                                 {
                                     IdPhoto = _context.Photos.Where(p => p.URL == product.Image).Select(p => p.IdPhoto).First()
                                 }
                             }
-                        }
-                    });
+                            }
+                        });
+                    }
                 }
-            }
-            _context.SaveChanges();
-
-            idProduit = _context.Produits.OrderBy(p => p.Id).Last().Id;
-            int idCouleurProduit;
-            foreach (Color couleur in product.Couleurs)
-            {
-                _context.CouleurProduits.Add(new CouleurProduit
-                {
-                    IdCouleur = _context.Couleurs.Where(c => c.Nom == couleur.Nom).Select(c => c.Id).First(),
-                    IdProduit = idProduit,
-                    Prix = couleur.Prix,
-                });
                 _context.SaveChanges();
-                idCouleurProduit = _context.CouleurProduits.OrderBy(c => c.IdCouleurProduit).Last().IdCouleurProduit;
-                foreach (Size taille in couleur.Tailles)
+
+                idProduit = _context.Produits.OrderBy(p => p.Id).Last().Id;
+                int idCouleurProduit;
+                StocksController stocksController = new StocksController(_context);
+                foreach (Color couleur in product.Couleurs)
                 {
-                    await new StocksController(_context).PostStock(new Stock
+                    _context.CouleurProduits.Add(new CouleurProduit
                     {
-                        TailleId = taille.Code,
-                        Quantite = taille.Quantite,
-                        CouleurProduitId = idCouleurProduit
+                        IdCouleur = _context.Couleurs.Where(c => c.Nom == couleur.Nom).Select(c => c.Id).First(),
+                        IdProduit = idProduit,
+                        Prix = couleur.Prix,
                     });
+                    _context.SaveChanges();
+                    idCouleurProduit = _context.CouleurProduits.OrderBy(c => c.IdCouleurProduit).Last().IdCouleurProduit;
+                    foreach (Size taille in couleur.Tailles)
+                    {
+                        await stocksController.PostStock(new Stock
+                        {
+                            TailleId = taille.Code,
+                            Quantite = taille.Quantite,
+                            CouleurProduitId = idCouleurProduit
+                        });
+                    }
                 }
+                return Ok();
+            } catch (Exception e)
+            {
+                return BadRequest(e.ToString());
             }
-            return Ok();
         }
 
         // DELETE: api/Produits/5

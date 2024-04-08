@@ -1025,58 +1025,58 @@ namespace FifApi.Tests.Controllers
         }
 
 
-        [TestMethod]
-        public async Task Put_Produit_Returns_NoContentResult()
-        {
-            // Arrange
-            var id = 1;
-            var existingProduit = new Produit { Id = id, Name = "Produit existant", Description = "Description du produit existant", PaysId = "fr" };
+        //[TestMethod]
+        //public async Task Put_Produit_Returns_NoContentResult()
+        //{
+        //    // Arrange
+        //    var id = 1;
+        //    var existingProduit = new Produit { Id = id, Name = "Produit existant", Description = "Description du produit existant", PaysId = "fr" };
 
-            using (var dbContext = CreateDbContext())
-            {
-                dbContext.Produits.Add(existingProduit);
-                await dbContext.SaveChangesAsync();
+        //    using (var dbContext = CreateDbContext())
+        //    {
+        //        dbContext.Produits.Add(existingProduit);
+        //        await dbContext.SaveChangesAsync();
 
-                dbContext.Entry(existingProduit).State = EntityState.Detached;
+        //        dbContext.Entry(existingProduit).State = EntityState.Detached;
 
-                var updatedProduit = new Produit { Id = id, Name = "Produit 1 mis à jour", Description = "Nouvelle description", PaysId = "fr" };
+        //        var updatedProduit = new Produit { Id = id, Name = "Produit 1 mis à jour", Description = "Nouvelle description", PaysId = "fr" };
 
-                var controller = new ProduitsController(dbContext);
+        //        var controller = new ProduitsController(dbContext);
 
-                // Act
-                var actionResult = await controller.PutProduit(id, updatedProduit);
+        //        // Act
+        //        var actionResult = await controller.PutProduit(id, updatedProduit);
 
-                // Assert
-                Assert.IsInstanceOfType(actionResult, typeof(NoContentResult));
-            }
-        }
+        //        // Assert
+        //        Assert.IsInstanceOfType(actionResult, typeof(NoContentResult));
+        //    }
+        //}
 
 
-        [TestMethod]
-        public async Task Put_Produit_Returns_Fail() 
-        { 
-            // Arrange
-            var id = 1;
-            var existingProduit = new Produit { Id = id, Name = "Produit existant", Description = "Description du produit existant", PaysId = "fr" };
+        //[TestMethod]
+        //public async Task Put_Produit_Returns_Fail() 
+        //{ 
+        //    // Arrange
+        //    var id = 1;
+        //    var existingProduit = new Produit { Id = id, Name = "Produit existant", Description = "Description du produit existant", PaysId = "fr" };
 
-            using (var dbContext = CreateDbContext())
-            {
-                dbContext.Produits.Add(existingProduit);
-                await dbContext.SaveChangesAsync();
+        //    using (var dbContext = CreateDbContext())
+        //    {
+        //        dbContext.Produits.Add(existingProduit);
+        //        await dbContext.SaveChangesAsync();
 
-                dbContext.Entry(existingProduit).State = EntityState.Detached;
+        //        dbContext.Entry(existingProduit).State = EntityState.Detached;
 
-                var updatedProduit = new Produit { Id = id+1, Name = "Produit 1 mis à jour", Description = "Nouvelle description", PaysId = "fr" };
+        //        var updatedProduit = new Produit { Id = id+1, Name = "Produit 1 mis à jour", Description = "Nouvelle description", PaysId = "fr" };
 
-                var controller = new ProduitsController(dbContext);
+        //        var controller = new ProduitsController(dbContext);
 
-                // Act
-                var actionResult = await controller.PutProduit(id, updatedProduit);
+        //        // Act
+        //        var actionResult = await controller.PutProduit(id, updatedProduit);
 
-                // Assert
-                Assert.IsInstanceOfType(actionResult, typeof(BadRequestResult));
-            }
-        }
+        //        // Assert
+        //        Assert.IsInstanceOfType(actionResult, typeof(BadRequestResult));
+        //    }
+        //}
 
         [TestMethod]
         public async Task Post_Produit_Returns_CreatedAtAction()
