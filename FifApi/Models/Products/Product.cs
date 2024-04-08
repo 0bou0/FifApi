@@ -12,6 +12,5 @@ namespace FifApi.Models.Products
         public string Nation { get; set; }
         public int Categorie { get; set; }
         public List<Color>? Couleurs { get; set; }
-
     }
 }
