@@ -99,6 +99,29 @@ namespace FifApi.Tests.Controllers
             using (var dbContext = CreateDbContext())
             {
                 dbContext.Commandes.Add(new Commande { IdCommande = idToFind + 1, IdUtilisateur = 1, DateCommande = DateTime.Now });
+                dbContext.Commandes.Add(new Commande { IdCommande = idToFind, IdUtilisateur = 2, DateCommande = DateTime.Now });
+                dbContext.SaveChanges();
+
+                var controller = new CommandeController(dbContext);
+
+                // Act
+                var actionResult = await controller.GetCommandeById(idToFind);
+                var result = actionResult.Value;
+
+                // Assert
+                Assert.IsNotNull(result);
+                Assert.AreNotEqual(idToFind +1, result.IdCommande);
+            }
+        }
+
+        [TestMethod]
+        public async Task Get_Commande_ById_Returns_Is_False()
+        {
+            // Arrange
+            var idToFind = 100;
+            using (var dbContext = CreateDbContext())
+            {
+                dbContext.Commandes.Add(new Commande { IdCommande = idToFind + 1, IdUtilisateur = 1, DateCommande = DateTime.Now });
                 dbContext.SaveChanges();
 
                 var controller = new CommandeController(dbContext);

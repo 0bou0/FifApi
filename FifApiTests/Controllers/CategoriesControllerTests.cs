@@ -116,6 +116,28 @@ namespace FifApi.Tests.Controllers
             }
         }
 
+        [TestMethod]
+        public async Task Post_Nations_Returns_Bad_Request_If_Nation_Is_False()
+        {
+            // Arrange
+            var pays = new Pays { IdPays = "GER" };
+
+
+            using (var dbContext = CreateDbContext())
+            {
+                var controller = new CategoriesController(dbContext);
+                // Attempt to add the same nation again
+                var actionResult = await controller.PostNations(pays);
+
+
+                // Assert
+                var badRequestResult = actionResult as BadRequestObjectResult;
+                Assert.IsNotNull(badRequestResult);
+                Assert.AreEqual(StatusCodes.Status400BadRequest, badRequestResult.StatusCode);
+                Assert.AreEqual("nation already in base", badRequestResult.Value);
+            }
+        }
+
 
         [TestMethod]
         public async Task Put_Nations_Returns_Created_Response()
@@ -273,6 +295,28 @@ namespace FifApi.Tests.Controllers
         }
 
 
+        [TestMethod]
+        public async Task Post_Categorie_Returns_Bad_Request_If_Nation_Is_False()
+        {
+            // Arrange
+            var type = new TypeProduit { Id = 1, Description="ma desc"};
+
+
+
+            using (var dbContext = CreateDbContext())
+            {
+                var controller = new CategoriesController(dbContext);
+                // Attempt to add the same nation again
+                var actionResult = await controller.PostCategories(type);
+
+
+                // Assert
+                var badRequestResult = actionResult as BadRequestObjectResult;
+                Assert.IsNotNull(badRequestResult);
+                Assert.AreEqual(StatusCodes.Status400BadRequest, badRequestResult.StatusCode);
+                Assert.AreEqual("category already in base", badRequestResult.Value);
+            }
+        }
 
         [TestMethod]
         public async Task Get_Couleurs_Returns_List_Of_Couleurs()
@@ -373,6 +417,32 @@ namespace FifApi.Tests.Controllers
                 Assert.AreEqual("color already in base", badRequestResult.Value);
             }
         }
+
+
+        [TestMethod]
+        public async Task Post_Couleur_Returns_Bad_Request_If_Nation_Is_False()
+        {
+            // Arrange
+            var couleur = new Couleur { Id = 1, Hexa = "FFFFFF" };
+
+
+
+
+            using (var dbContext = CreateDbContext())
+            {
+                var controller = new CategoriesController(dbContext);
+                // Attempt to add the same nation again
+                var actionResult = await controller.PostCouleur(couleur);
+
+
+                // Assert
+                var badRequestResult = actionResult as BadRequestObjectResult;
+                Assert.IsNotNull(badRequestResult);
+                Assert.AreEqual(StatusCodes.Status400BadRequest, badRequestResult.StatusCode);
+                Assert.AreEqual("color already in base", badRequestResult.Value);
+            }
+        }
+
 
         [TestMethod]
         public async Task Get_Tailles_Returns_List_Of_Tailles_Equal_To_Zero()
@@ -475,8 +545,33 @@ namespace FifApi.Tests.Controllers
             }
         }
 
+        [TestMethod]
+        public async Task Post_Taille_Returns_Bad_Request_If_Nation_Is_False()
+        {
+            // Arrange
+            var taille = new Taille { NomTaille="Une taille quelconque" };
 
-        private FifaDBContext CreateDbContext()
+
+
+
+
+            using (var dbContext = CreateDbContext())
+            {
+                var controller = new CategoriesController(dbContext);
+                // Attempt to add the same nation again
+                var actionResult = await controller.PostTailles(taille);
+
+
+                // Assert
+                var badRequestResult = actionResult as BadRequestObjectResult;
+                Assert.IsNotNull(badRequestResult);
+                Assert.AreEqual(StatusCodes.Status400BadRequest, badRequestResult.StatusCode);
+                Assert.AreEqual("size already in base", badRequestResult.Value);
+            }
+        }
+
+
+            private FifaDBContext CreateDbContext()
         {
             var services = new ServiceCollection();
 

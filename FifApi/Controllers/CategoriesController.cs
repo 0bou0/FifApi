@@ -168,5 +168,21 @@ namespace FifApi.Controllers
             await _dbContext.SaveChangesAsync();
             return Ok();
         }
+
+        [HttpGet("Marques")]
+        public async Task<ActionResult<IEnumerable<object>>> GetMarques()
+        {
+            var marque = await _dbContext.Marques.ToListAsync();
+            if (marque == null || !marque.Any())
+            {
+                return NotFound();
+            }
+
+            return marque.Select(m => new
+            {
+                id = m.IdMarque,
+                m.NomMarque
+            }).ToList();
+        }
     }
 }

@@ -205,6 +205,29 @@ namespace FifApi.Tests.Controllers
             }
         }
 
+        [TestMethod]
+        public async Task Put_Stock_Returns_NoContent_When_Quantity()
+        {
+            // Arrange
+            var idToUpdate = 5;
+            var stockToUpdate = new Stock { IdStock = idToUpdate, TailleId = "M", Quantite = 50 };
+
+            using (var dbContext = CreateDbContext())
+            {
+                dbContext.Stocks.Add(stockToUpdate);
+                await dbContext.SaveChangesAsync();
+
+                var controller = new StocksController(dbContext);
+
+                // Act
+                var actionResult = await controller.PutStock(idToUpdate, stockToUpdate);
+
+                // Assert
+                Assert.IsNotNull(actionResult);
+                Assert.IsInstanceOfType(actionResult, typeof(NoContentResult));
+            }
+        }
+
 
         [TestMethod]
         public async Task Delete_Stock_Returns_NoContent_Response()
