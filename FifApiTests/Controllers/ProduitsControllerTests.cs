@@ -11,6 +11,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Text.Json;
+using FifApi.Models.Products;
+using NuGet.Protocol;
 
 
 namespace FifApi.Tests.Controllers
@@ -1076,66 +1078,89 @@ namespace FifApi.Tests.Controllers
             }
         }
 
+        [TestMethod]
+        public async Task Post_Produit_Returns_CreatedAtAction()
+        {
+            var tailles = new List<Size>{ new Size { Code = "XL", Quantite = 45 } };
+            var couleurs = new List<Color> { new Color { Nom = "rouge", Prix = 53, Tailles = tailles } };
+            // Arrange
+            var produitToAdd = new Product
+            {
+                NomProduit = "Nouveau Produit",
+                Image = "bonjour.jpg",
+                DescriptionProduit = "Description du nouveau produit",
+                Nation = "FRA",
+                Marque = 1,
+                Categorie = 1,
+                Couleurs = couleurs
+            };
 
-        //[TestMethod]
-        //public async Task Post_Produit_Returns_CreatedAtAction()
-        //{
-        //    // Arrange
-        //    var produitToAdd = new Produit { Id = 1, Name = "Nouveau produit", Description = "Description du nouveau produit", PaysId = "fr" }; 
+            var typeProduit = new TypeProduit { Description = "fff", Nom="bonjour", Id=1 };
+            var marque = new Marque { NomMarque = "bonjour", IdMarque=1 };
+            var pays = new Pays { NomPays = "FRANCE", IdPays = "FRA" };
+            var couleur = new Couleur { Hexa = "FF0000", Id = 1, Nom = "rouge" };
+            var taille = new Taille { DescriptionTaille = "bonjour", IdTaille = "XL", NomTaille = "Très large" };
 
-        //    using (var dbContext = CreateDbContext())
-        //    {
-        //        var controller = new ProduitsController(dbContext);
+            using (var dbContext = CreateDbContext()) // Create your DbContext here
+            {
+                var controller = new ProduitsController(dbContext);
 
-        //        // Act
-        //        var actionResult = await controller.PostProduit(produitToAdd);
-        //        var createdAtActionResult = actionResult.Result as CreatedAtActionResult;
+                // Act
+                dbContext.Marques.Add(marque);
+                dbContext.TypeProduits.Add(typeProduit);
+                dbContext.Pays.Add(pays);
+                dbContext.Couleurs.Add(couleur);
+                dbContext.Tailles.Add(taille);
 
-        //        // Assert
-        //        Assert.IsNotNull(createdAtActionResult);
-        //        Assert.AreEqual("GetProduit", createdAtActionResult.ActionName);
-        //        Assert.AreEqual(201, createdAtActionResult.StatusCode);
+                dbContext.SaveChanges();
+                var actionResult = await controller.PostProduit(produitToAdd);
+                var createdAtActionResult = actionResult.Result as CreatedAtActionResult;
 
-        //        var produitReturned = createdAtActionResult.Value as Produit;
-        //        Assert.IsNotNull(produitReturned);
-        //        Assert.AreEqual(produitToAdd.Id, produitReturned.Id);
-        //    }
-        //}
+                // Assert
+                Assert.Fail(createdAtActionResult.ToJson());
+                Assert.IsNotNull(createdAtActionResult);
+                Assert.AreEqual("GetProduit", createdAtActionResult.ActionName);
+                Assert.AreEqual(201, createdAtActionResult.StatusCode);
 
-        //[TestMethod]
-        //public async Task Post_Produit_Returns_False()
-        //{
-        //    // Arrange
-        //    var produitToAdd = new Produit { Id = 1, Description = "Description du nouveau produit", PaysId = "fr" };
+                var produitReturned = createdAtActionResult.Value as Produit;
+                Assert.IsNotNull(produitReturned);
+                Assert.AreEqual(produitToAdd.NomProduit, produitReturned.Name);
+            }
+        }
+        [TestMethod]
+        public async Task Post_Produit_Returns_False()
+        {
+            // Arrange
+            var produitToAdd = new Product { NomProduit = "Nouveau produit", DescriptionProduit = "Description du nouveau produit", Nation = "fr" };
 
-        //    using (var dbContext = CreateDbContext())
-        //    {
-        //        var controller = new ProduitsController(dbContext);
-        //        Exception ex = null;
+            using (var dbContext = CreateDbContext())
+            {
+                var controller = new ProduitsController(dbContext);
+                Exception ex = null;
 
-        //        try
-        //        {
-        //            var actionResult = await controller.PostProduit(produitToAdd);
-        //            Assert.Fail("L'opération devrait lever une exception.");
-        //        }
-        //        catch (DbUpdateException dbEx)
-        //        {
-        //            ex = dbEx.InnerException;
-        //        }
-        //        catch (Exception genericEx)
-        //        {
-        //            ex = genericEx;
-        //        }
+                try
+                {
+                    var actionResult = await controller.PostProduit(produitToAdd);
+                    Assert.Fail("L'opération devrait lever une exception.");
+                }
+                catch (DbUpdateException dbEx)
+                {
+                    ex = dbEx.InnerException;
+                }
+                catch (Exception genericEx)
+                {
+                    ex = genericEx;
+                }
 
-        //        // Assert
-        //        if (ex != null)
-        //        {
-        //            Assert.IsTrue(ex is InvalidOperationException, "L'exception levée n'est pas du type attendu.");
-        //            Assert.IsTrue(ex.Message.Contains("Required properties '{'Name'}' are missing"), "Le message d'exception n'est pas celui attendu.");
-        //        }
+                // Assert
+                if (ex != null)
+                {
+                    Assert.IsTrue(ex is InvalidOperationException, "L'exception levée n'est pas du type attendu.");
+                    Assert.IsTrue(ex.Message.Contains("Required properties '{'Name'}' are missing"), "Le message d'exception n'est pas celui attendu.");
+                }
 
-        //    }
-        //}
+            }
+        }
 
 
         [TestMethod]
