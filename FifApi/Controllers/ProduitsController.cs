@@ -12,6 +12,8 @@ using Microsoft.AspNetCore.Routing.Constraints;
 using FifApi.Models;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Humanizer;
+using FifApi.Models.Products;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 
 namespace FifApi.Controllers
 {
@@ -219,16 +221,114 @@ namespace FifApi.Controllers
         // POST: api/Produits
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Produit>> PostProduit(Produit produit)
+        public async Task<ActionResult<object>> PostProduit([FromBody] Product product)
         {
-          if (_context.Produits == null)
-          {
-              return Problem("Entity set 'FifaDBContext.Produits'  is null.");
-          }
-            _context.Produits.Add(produit);
-            await _context.SaveChangesAsync();
+            if (_context.Produits == null)
+            {
+                return Problem("Entity set 'FifaDBContext.Produits'  is null.");
+            }
 
-            return CreatedAtAction("GetProduit", new { id = produit.Id }, produit);
+            int idProduit;
+
+            if (!_context.Photos.Any(p => p.URL == product.Image))
+            {
+                _context.Produits.Add(new Produit
+                {
+                    Name = product.NomProduit,
+                    Description = product.DescriptionProduit,
+                    MarqueId = product.Marque,
+                    PaysId = product.Nation,
+                    TypeId = product.Categorie,
+                    AlbumDuProduit = new Album
+                    {
+                        AlbumDesPhotos = new List<AlbumPhoto> {
+                            new AlbumPhoto
+                            {
+                                PhotoDesAlbums = new Photo
+                                {
+                                    URL = product.Image
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+            else
+            {
+                if (_context.AlbumPhotos.Any(a => a.IdPhoto == _context.Photos.Where(p => p.URL == product.Image).Select(p => p.IdPhoto).First()))
+                {
+                    _context.Produits.Add(new Produit
+                    {
+                        Name = product.NomProduit,
+                        Description = product.DescriptionProduit,
+                        MarqueId = product.Marque,
+                        PaysId = product.Nation,
+                        TypeId = product.Categorie,
+                        AlbumId = _context.AlbumPhotos.Where(a => a.IdPhoto == _context.Photos.Where(p => p.URL == product.Image).Select(p => p.IdPhoto).First()).Select(a => a.IdAlbum).First()
+                    });
+                }
+                else
+                {
+                    _context.Produits.Add(new Produit
+                    {
+                        Name = product.NomProduit,
+                        Description = product.DescriptionProduit,
+                        MarqueId = product.Marque,
+                        PaysId = product.Nation,
+                        TypeId = product.Categorie,
+                        AlbumDuProduit = new Album
+                        {
+                            AlbumDesPhotos = new List<AlbumPhoto>
+                            {
+                                new AlbumPhoto
+                                {
+                                    IdPhoto = _context.Photos.Where(p => p.URL == product.Image).Select(p => p.IdPhoto).First()
+                                }
+                            }
+                        }
+                    });
+                }
+            }
+            _context.SaveChanges();
+
+            idProduit = _context.Produits.OrderBy(p => p.Id).Last().Id;
+            int idCouleurProduit;
+            foreach (Color couleur in product.Couleurs)
+            {
+                _context.CouleurProduits.Add(new CouleurProduit
+                {
+                    IdCouleur = _context.Couleurs.Where(c => c.Nom == couleur.Nom).Select(c => c.Id).First(),
+                    IdProduit = idProduit,
+                    Prix = couleur.Prix,
+                });
+                _context.SaveChanges();
+                idCouleurProduit = _context.CouleurProduits.OrderBy(c => c.IdCouleurProduit).Last().IdCouleurProduit;
+                foreach (Size taille in couleur.Tailles)
+                {
+                    await new StocksController(_context).PostStock(new Stock
+                    {
+                        TailleId = taille.Code,
+                        Quantite = taille.Quantite,
+                        CouleurProduitId = idCouleurProduit
+                    });
+                }
+            }
+
+
+
+
+
+            //Produit produit = new Produit
+            //{
+            //    Name = product.NomProduit,
+            //    Description = product.DescriptionProduit,
+            //    MarqueId = product.Marque,
+            //    PaysId = product.Nation,
+            //    TypeId = product.CategorieId,
+            //    AlbumId = album
+            //};
+
+            return Ok();
         }
 
         // DELETE: api/Produits/5
