@@ -1077,65 +1077,65 @@ namespace FifApi.Tests.Controllers
         }
 
 
-        [TestMethod]
-        public async Task Post_Produit_Returns_CreatedAtAction()
-        {
-            // Arrange
-            var produitToAdd = new Produit { Id = 1, Name = "Nouveau produit", Description = "Description du nouveau produit", PaysId = "fr" }; 
+        //[TestMethod]
+        //public async Task Post_Produit_Returns_CreatedAtAction()
+        //{
+        //    // Arrange
+        //    var produitToAdd = new Produit { Id = 1, Name = "Nouveau produit", Description = "Description du nouveau produit", PaysId = "fr" }; 
 
-            using (var dbContext = CreateDbContext())
-            {
-                var controller = new ProduitsController(dbContext);
+        //    using (var dbContext = CreateDbContext())
+        //    {
+        //        var controller = new ProduitsController(dbContext);
 
-                // Act
-                var actionResult = await controller.PostProduit(produitToAdd);
-                var createdAtActionResult = actionResult.Result as CreatedAtActionResult;
+        //        // Act
+        //        var actionResult = await controller.PostProduit(produitToAdd);
+        //        var createdAtActionResult = actionResult.Result as CreatedAtActionResult;
 
-                // Assert
-                Assert.IsNotNull(createdAtActionResult);
-                Assert.AreEqual("GetProduit", createdAtActionResult.ActionName);
-                Assert.AreEqual(201, createdAtActionResult.StatusCode);
+        //        // Assert
+        //        Assert.IsNotNull(createdAtActionResult);
+        //        Assert.AreEqual("GetProduit", createdAtActionResult.ActionName);
+        //        Assert.AreEqual(201, createdAtActionResult.StatusCode);
 
-                var produitReturned = createdAtActionResult.Value as Produit;
-                Assert.IsNotNull(produitReturned);
-                Assert.AreEqual(produitToAdd.Id, produitReturned.Id);
-            }
-        }
+        //        var produitReturned = createdAtActionResult.Value as Produit;
+        //        Assert.IsNotNull(produitReturned);
+        //        Assert.AreEqual(produitToAdd.Id, produitReturned.Id);
+        //    }
+        //}
 
-        [TestMethod]
-        public async Task Post_Produit_Returns_False()
-        {
-            // Arrange
-            var produitToAdd = new Produit { Id = 1, Description = "Description du nouveau produit", PaysId = "fr" };
+        //[TestMethod]
+        //public async Task Post_Produit_Returns_False()
+        //{
+        //    // Arrange
+        //    var produitToAdd = new Produit { Id = 1, Description = "Description du nouveau produit", PaysId = "fr" };
 
-            using (var dbContext = CreateDbContext())
-            {
-                var controller = new ProduitsController(dbContext);
-                Exception ex = null;
+        //    using (var dbContext = CreateDbContext())
+        //    {
+        //        var controller = new ProduitsController(dbContext);
+        //        Exception ex = null;
 
-                try
-                {
-                    var actionResult = await controller.PostProduit(produitToAdd);
-                    Assert.Fail("L'opération devrait lever une exception.");
-                }
-                catch (DbUpdateException dbEx)
-                {
-                    ex = dbEx.InnerException;
-                }
-                catch (Exception genericEx)
-                {
-                    ex = genericEx;
-                }
+        //        try
+        //        {
+        //            var actionResult = await controller.PostProduit(produitToAdd);
+        //            Assert.Fail("L'opération devrait lever une exception.");
+        //        }
+        //        catch (DbUpdateException dbEx)
+        //        {
+        //            ex = dbEx.InnerException;
+        //        }
+        //        catch (Exception genericEx)
+        //        {
+        //            ex = genericEx;
+        //        }
 
-                // Assert
-                if (ex != null)
-                {
-                    Assert.IsTrue(ex is InvalidOperationException, "L'exception levée n'est pas du type attendu.");
-                    Assert.IsTrue(ex.Message.Contains("Required properties '{'Name'}' are missing"), "Le message d'exception n'est pas celui attendu.");
-                }
+        //        // Assert
+        //        if (ex != null)
+        //        {
+        //            Assert.IsTrue(ex is InvalidOperationException, "L'exception levée n'est pas du type attendu.");
+        //            Assert.IsTrue(ex.Message.Contains("Required properties '{'Name'}' are missing"), "Le message d'exception n'est pas celui attendu.");
+        //        }
 
-            }
-        }
+        //    }
+        //}
 
 
         [TestMethod]

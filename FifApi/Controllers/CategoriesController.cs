@@ -181,7 +181,7 @@ namespace FifApi.Controllers
             return marque.Select(m => new
             {
                 id = m.IdMarque,
-                m.NomMarque
+                nom = m.NomMarque
             }).ToList();
         }
     }

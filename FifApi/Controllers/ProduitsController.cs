@@ -221,7 +221,7 @@ namespace FifApi.Controllers
         // POST: api/Produits
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<object>> PostProduit([FromBody] Product product)
+        public async Task<ActionResult<object>> PostProduit(Product product)
         {
             if (_context.Produits == null)
             {
@@ -313,21 +313,6 @@ namespace FifApi.Controllers
                     });
                 }
             }
-
-
-
-
-
-            //Produit produit = new Produit
-            //{
-            //    Name = product.NomProduit,
-            //    Description = product.DescriptionProduit,
-            //    MarqueId = product.Marque,
-            //    PaysId = product.Nation,
-            //    TypeId = product.CategorieId,
-            //    AlbumId = album
-            //};
-
             return Ok();
         }
 
