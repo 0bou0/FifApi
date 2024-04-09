@@ -24,10 +24,10 @@ namespace FifApi.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Stock>>> GetStocks()
         {
-          if (_context.Stocks == null)
-          {
-              return NotFound();
-          }
+            if (_context.Stocks == null)
+            {
+                return NotFound();
+            }
             return await _context.Stocks.ToListAsync();
         }
 
@@ -35,10 +35,10 @@ namespace FifApi.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<Stock>> GetStock(int id)
         {
-          if (_context.Stocks == null)
-          {
-              return NotFound();
-          }
+            if (_context.Stocks == null)
+            {
+                return NotFound();
+            }
             var stock = await _context.Stocks.FindAsync(id);
 
             if (stock == null)
@@ -94,6 +94,11 @@ namespace FifApi.Controllers
             if (_context.Stocks == null || stock.Quantite <= 0)
             {
                 return NoContent();
+            }
+
+            if (!_context.Tailles.Any(t => t.IdTaille == stock.TailleId))
+            {
+                return BadRequest();
             }
 
             _context.Stocks.Add(stock);
