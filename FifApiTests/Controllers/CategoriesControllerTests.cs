@@ -20,14 +20,13 @@ namespace FifApi.Tests.Controllers
         [TestMethod]
         public async Task Get_Nations_Returns_List_Of_Nations()
         {
+
+            List<Pays> pays = new List<Pays>() {new Pays { IdPays = "fr", NomPays = "France" },
+                    new Pays { IdPays = "esp", NomPays = "Espagne" } };
             // Arrange
             using (var dbContext = CreateDbContext())
             {
-                dbContext.Pays.AddRange(new[]
-                {
-                    new Pays { IdPays = "fr", NomPays = "France" },
-                    new Pays { IdPays = "esp", NomPays = "Espagne" }
-                });
+                dbContext.Pays.AddRange(pays);
                 dbContext.SaveChanges();
 
                 var controller = new CategoriesController(dbContext);
@@ -38,7 +37,7 @@ namespace FifApi.Tests.Controllers
 
                 // Assert
                 Assert.IsNotNull(result);
-                Assert.AreEqual(2, result.Count);
+                Assert.AreEqual(pays.Count, result.Count);
                 Assert.IsNotNull(actionResult);
                 Assert.IsNotNull(actionResult.Value);
                 Assert.IsNotInstanceOfType(actionResult.Result, typeof(ObjectResult));
@@ -197,11 +196,13 @@ namespace FifApi.Tests.Controllers
             // Arrange
             using (var dbContext = CreateDbContext())
             {
-                dbContext.TypeProduits.AddRange(new[]
-                {
+                List<TypeProduit> typeProduits = new List<TypeProduit>() {
+                
                     new TypeProduit { Id = 1, Nom = "Catégorie 1" },
                     new TypeProduit { Id = 2, Nom = "Catégorie 2" }
-                });
+                };
+
+                dbContext.TypeProduits.AddRange(typeProduits);
                 dbContext.SaveChanges();
 
                 var controller = new CategoriesController(dbContext);
@@ -212,7 +213,7 @@ namespace FifApi.Tests.Controllers
 
                 // Assert
                 Assert.IsNotNull(result);
-                Assert.AreEqual(2, result.Count);
+                Assert.AreEqual(typeProduits.Count, result.Count);
                 Assert.IsNotNull(actionResult);
                 Assert.IsNotNull(actionResult.Value);
                 Assert.IsNotInstanceOfType(actionResult.Result, typeof(ObjectResult));
@@ -572,16 +573,16 @@ namespace FifApi.Tests.Controllers
 
 
             private FifaDBContext CreateDbContext()
-        {
-            var services = new ServiceCollection();
+            {
+                var services = new ServiceCollection();
 
-            services.AddDbContext<FifaDBContext>(options =>
-                options.UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())); // Utiliser un nom de base de données unique à chaque fois
+                services.AddDbContext<FifaDBContext>(options =>
+                    options.UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())); 
 
-            var serviceProvider = services.BuildServiceProvider();
+                var serviceProvider = services.BuildServiceProvider();
 
-            return serviceProvider.GetRequiredService<FifaDBContext>();
-        }
+                return serviceProvider.GetRequiredService<FifaDBContext>();
+            }   
 
     }
 }

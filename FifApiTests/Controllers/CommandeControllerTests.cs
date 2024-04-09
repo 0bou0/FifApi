@@ -22,11 +22,12 @@ namespace FifApi.Tests.Controllers
             // Arrange
             using (var dbContext = CreateDbContext())
             {
-                dbContext.Commandes.AddRange(new[]
-                {
+                List<Commande> commandes = new List<Commande>(){
                     new Commande { IdCommande = 1, IdUtilisateur = 1, DateCommande = DateTime.Now },
                     new Commande { IdCommande = 2, IdUtilisateur = 2, DateCommande = DateTime.Now }
-                });
+                };
+
+                dbContext.Commandes.AddRange(commandes);
                 dbContext.SaveChanges();
 
                 var controller = new CommandeController(dbContext);
@@ -37,7 +38,7 @@ namespace FifApi.Tests.Controllers
 
                 // Assert
                 Assert.IsNotNull(result);
-                Assert.AreEqual(2, result.Count);
+                Assert.AreEqual(commandes.Count, result.Count);
                 Assert.IsNotNull(actionResult);
                 Assert.IsNotNull(actionResult.Value);
                 Assert.IsNotInstanceOfType(actionResult.Result, typeof(NotFoundResult));

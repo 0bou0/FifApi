@@ -17,14 +17,13 @@ namespace FifApi.Tests.Controllers
         [TestMethod]
         public async Task Get_All_Stocks()
         {
+            List<Stock> stocks = new List<Stock>() {       new Stock { IdStock = 1, TailleId = "l", Quantite = 10 },
+                    new Stock { IdStock = 2, TailleId = "s", Quantite = 20 }};
+
             // Arrange
             using (var dbContext = CreateDbContext())
             {
-                dbContext.Stocks.AddRange(new[]
-                {
-                    new Stock { IdStock = 1, TailleId = "l", Quantite = 10 },
-                    new Stock { IdStock = 2, TailleId = "s", Quantite = 20 }
-                });
+                dbContext.Stocks.AddRange(stocks);
                 dbContext.SaveChanges();
 
                 var controller = new StocksController(dbContext);
@@ -35,7 +34,7 @@ namespace FifApi.Tests.Controllers
 
                 // Assert
                 Assert.IsNotNull(result);
-                Assert.AreEqual(2, result.Count);
+                Assert.AreEqual(stocks.Count, result.Count);
                 Assert.IsNotNull(actionResult);
                 Assert.IsNotNull(actionResult.Value);
                 Assert.IsNotInstanceOfType(actionResult.Result, typeof(ObjectResult));
