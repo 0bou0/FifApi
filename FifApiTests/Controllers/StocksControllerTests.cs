@@ -164,6 +164,7 @@ namespace FifApi.Tests.Controllers
         {
             // Arrange
             var idToUpdate = 50;
+            var updatedNewStock = new Stock { IdStock = idToUpdate, TailleId = "l", Quantite = 30 };
             var updatedStock = new Stock { IdStock = idToUpdate, TailleId = "l", Quantite = 50 };
             using (var dbContext = CreateDbContext())
             {
@@ -173,8 +174,7 @@ namespace FifApi.Tests.Controllers
                 var controller = new StocksController(dbContext);
 
                 // Act
-                var actionResult = await controller.PutStock(idToUpdate, updatedStock);
-
+                var actionResult = await controller.PutStock(idToUpdate, updatedNewStock);
                 // Assert
                 Assert.IsInstanceOfType(actionResult, typeof(NoContentResult));
             }
