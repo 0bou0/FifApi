@@ -411,6 +411,8 @@ namespace FifApi.Controllers
         }
 
         // DELETE: api/Produits/5
+        [ProducesResponseType(204)]
+        [ProducesResponseType(404)]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteProduit(int id)
         {
