@@ -30,7 +30,8 @@ namespace FifApi.Controllers
             _context = context;
         }
 
-
+        [ProducesResponseType(200)]
+        [ProducesResponseType(404)]
         [HttpGet("{id}")]
         public async Task<ActionResult<object>> GetProduitById(int id)
         {
@@ -106,6 +107,19 @@ namespace FifApi.Controllers
         }
 
         // GET: api/Produits/Filter?
+        /// <summary>
+        /// filtre les produit par leurs couleurs disponibles, leur nation, leur categorie et/ou leur taille
+        /// si utiliser sans parametre (ou tous null), renvoie simplement une liste de tous le produits non filtré.
+        /// </summary>
+        /// <param name="couleur">nom de la couleur par laquelle faire la recherche</param>
+        /// <param name="nation">nom du pays par laquelle faire la recherche</param>
+        /// <param name="categorie">nom de la categorie par laquelle faire la recherche</param>
+        /// <param name="taille">nom de la taille par laquelle faire la recherche</param>
+        /// <returns>
+        /// 
+        /// </returns>
+        [ProducesResponseType(200)]
+        [ProducesResponseType(404)]
         [HttpGet("Filter")]
         public async Task<ActionResult<object>> GetProduitsByFilter(string? couleur, string? nation, string? categorie, string? taille)
         {
@@ -192,10 +206,17 @@ namespace FifApi.Controllers
 
         // PUT: api/Produits/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [ProducesResponseType(204)]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(404)]
         [HttpPut("{id}")]
         public async Task<IActionResult> PutProduit(int id, Product product)
         {
 
+            if (_context.Produits == null || !ProduitExists(id))
+            {
+                return NotFound();
+            }
 
             try
             {
@@ -265,33 +286,35 @@ namespace FifApi.Controllers
 
                 await _context.SaveChangesAsync();
             }
-            catch (DbUpdateConcurrencyException)
+            catch (Exception e)
             {
-                if (!ProduitExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
+                return BadRequest(e.ToString());
             }
-
             return NoContent();
         }
 
+
+
+
         // POST: api/Produits
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [ProducesResponseType(204)]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(404)]
         [HttpPost]
         public async Task<ActionResult<object>> PostProduit(Product product)
         {
             if (_context.Produits == null)
             {
-                return Problem("Entity set 'FifaDBContext.Produits'  is null.");
+                return NotFound("Entity set 'FifaDBContext.Produits'  is null.");
             }
 
             try
             {
+                if (!(_context.Marques.Any(m => m.IdMarque == product.Marque) && _context.Pays.Any(p => p.IdPays == product.Nation) && _context.TypeProduits.Any(t => t.Id == product.Categorie)))
+                {
+                    return BadRequest();
+                }
                 int idProduit;
 
                 if (!_context.Photos.Any(p => p.URL == product.Image))
@@ -379,11 +402,12 @@ namespace FifApi.Controllers
                         });
                     }
                 }
-                return Ok();
-            } catch (Exception e)
+            } 
+             catch (Exception e)
             {
                 return BadRequest(e.ToString());
             }
+            return NoContent();
         }
 
         // DELETE: api/Produits/5
