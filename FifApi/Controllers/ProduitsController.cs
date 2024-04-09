@@ -318,7 +318,7 @@ namespace FifApi.Controllers
                 {
                     foreach (Size size in color.Tailles)
                     {
-                        if (!_context.Tailles.Any(t => t.IdTaille == size.Code)
+                        if (!_context.Tailles.Any(t => t.IdTaille == size.Code))
                         {
                             return BadRequest();
                         }
