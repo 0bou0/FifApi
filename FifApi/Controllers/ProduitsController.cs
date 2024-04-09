@@ -203,8 +203,26 @@ namespace FifApi.Controllers
 
                 StocksController stocksController = new StocksController(_context);
                 Produit produit = await _context.Produits.Where(p => p.Id == id).FirstOrDefaultAsync();
-
-                _context.Photos.Where(p => p.IdPhoto == _context.AlbumPhotos.Where(a => a.IdAlbum == _context.Albums.Where(a => a.IdAlbum == produit.AlbumId).Select(a => a.IdAlbum).First()).Select(p => p.IdPhoto).First()).First().URL = product.Image;
+                if (!_context.Produits.Any(p => p.AlbumId == produit.AlbumId))
+                {
+                    _context.Photos.Where(p => p.IdPhoto == _context.AlbumPhotos.Where(a => a.IdAlbum == _context.Albums.Where(a => a.IdAlbum == produit.AlbumId).Select(a => a.IdAlbum).First()).Select(p => p.IdPhoto).First()).First().URL = product.Image;
+                }
+                else
+                {
+                    produit.AlbumDuProduit = new Album
+                    {
+                        AlbumDesPhotos = new List<AlbumPhoto>
+                            {
+                                new AlbumPhoto
+                                {
+                                    PhotoDesAlbums = new Photo
+                                    {
+                                        URL = product.Image
+                                    }
+                                }
+                            }
+                    };
+                }
                 produit.Name = product.NomProduit;
                 produit.Description = product.DescriptionProduit;
                 produit.MarqueId = product.Marque;
@@ -287,15 +305,16 @@ namespace FifApi.Controllers
                         TypeId = product.Categorie,
                         AlbumDuProduit = new Album
                         {
-                            AlbumDesPhotos = new List<AlbumPhoto> {
-                            new AlbumPhoto
+                            AlbumDesPhotos = new List<AlbumPhoto> 
                             {
-                                PhotoDesAlbums = new Photo
+                                new AlbumPhoto
                                 {
-                                    URL = product.Image
+                                    PhotoDesAlbums = new Photo
+                                    {
+                                        URL = product.Image
+                                    }
                                 }
                             }
-                        }
                         }
                     });
                 }
@@ -325,12 +344,12 @@ namespace FifApi.Controllers
                             AlbumDuProduit = new Album
                             {
                                 AlbumDesPhotos = new List<AlbumPhoto>
-                            {
-                                new AlbumPhoto
                                 {
-                                    IdPhoto = _context.Photos.Where(p => p.URL == product.Image).Select(p => p.IdPhoto).First()
+                                    new AlbumPhoto
+                                    {
+                                        IdPhoto = _context.Photos.Where(p => p.URL == product.Image).Select(p => p.IdPhoto).First()
+                                    }
                                 }
-                            }
                             }
                         });
                     }
