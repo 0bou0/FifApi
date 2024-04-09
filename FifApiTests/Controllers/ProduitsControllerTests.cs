@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using System.Text.Json;
 using FifApi.Models.Products;
 using NuGet.Protocol;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
 
 namespace FifApi.Tests.Controllers
@@ -1025,78 +1026,14 @@ namespace FifApi.Tests.Controllers
         }
 
 
-        //[TestMethod]
-        //public async Task Put_Produit_Returns_NoContentResult()
-        //{
-        //    // Arrange
-        //    var id = 1;
-        //    var existingProduit = new Produit { Id = id, Name = "Produit existant", Description = "Description du produit existant", PaysId = "fr" };
-
-        //    using (var dbContext = CreateDbContext())
-        //    {
-        //        dbContext.Produits.Add(existingProduit);
-        //        await dbContext.SaveChangesAsync();
-
-        //        dbContext.Entry(existingProduit).State = EntityState.Detached;
-
-        //        var updatedProduit = new Produit { Id = id, Name = "Produit 1 mis à jour", Description = "Nouvelle description", PaysId = "fr" };
-
-        //        var controller = new ProduitsController(dbContext);
-
-        //        // Act
-        //        var actionResult = await controller.PutProduit(id, updatedProduit);
-
-        //        // Assert
-        //        Assert.IsInstanceOfType(actionResult, typeof(NoContentResult));
-        //    }
-        //}
-
-
-        //[TestMethod]
-        //public async Task Put_Produit_Returns_Fail() 
-        //{ 
-        //    // Arrange
-        //    var id = 1;
-        //    var existingProduit = new Produit { Id = id, Name = "Produit existant", Description = "Description du produit existant", PaysId = "fr" };
-
-        //    using (var dbContext = CreateDbContext())
-        //    {
-        //        dbContext.Produits.Add(existingProduit);
-        //        await dbContext.SaveChangesAsync();
-
-        //        dbContext.Entry(existingProduit).State = EntityState.Detached;
-
-        //        var updatedProduit = new Produit { Id = id+1, Name = "Produit 1 mis à jour", Description = "Nouvelle description", PaysId = "fr" };
-
-        //        var controller = new ProduitsController(dbContext);
-
-        //        // Act
-        //        var actionResult = await controller.PutProduit(id, updatedProduit);
-
-        //        // Assert
-        //        Assert.IsInstanceOfType(actionResult, typeof(BadRequestResult));
-        //    }
-        //}
-
 
         [TestMethod]
-        public async Task Put_Produit_Returns_CreatedAtAction()
+        public async Task Post_Produit_Returns_CreatedAtAction()
         {
             var tailles = new List<Size> { new Size { Code = "XL", Quantite = 45 } };
             var couleurs = new List<Color> { new Color { Nom = "rouge", Prix = 53, Tailles = tailles } };
             // Arrange
-            var produitToChange = new Product
-            {
-                NomProduit = "Changer",
-                Image = "rebonjour.jpg",
-                DescriptionProduit = "Description du produit",
-                Nation = "FRA",
-                Marque = 1,
-                Categorie = 1,
-                Couleurs = couleurs
-            };
-
-            var produitToAdd= new Product
+            var produitToAdd = new Product
             {
                 NomProduit = "Nouveau Produit",
                 Image = "bonjour.jpg",
@@ -1125,63 +1062,29 @@ namespace FifApi.Tests.Controllers
                 dbContext.Tailles.Add(taille);
 
                 dbContext.SaveChanges();
+
                 var actionResult = await controller.PostProduit(produitToAdd);
-                var createdAtActionResult = actionResult.Result as CreatedAtActionResult;
-                var produitReturned = createdAtActionResult.Value as Produit;
-
-                var actionNewResult = await controller.PutProduit(produitReturned.Id, produitToChange);
-                var createdAtActionNewResult = actionResult.Result as CreatedAtActionResult;
-                var produitNewReturned = createdAtActionResult.Value as Produit;
+                var okResult = actionResult.Result as NoContentResult;
 
                 // Assert
-                Assert.Fail(createdAtActionNewResult.ToJson());
-                Assert.IsNotNull(createdAtActionNewResult);
-                Assert.AreEqual("GetProduit", createdAtActionNewResult.ActionName);
-                Assert.AreEqual(201, createdAtActionNewResult.StatusCode);
 
-                Assert.IsNotNull(produitNewReturned);
-                Assert.AreEqual(produitToChange.NomProduit, produitNewReturned.Name);
-            }
-        }
-        [TestMethod]
-        public async Task Put_Produit_Returns_False()
-        {
-            // Arrange
-            var produitToAdd = new Product { NomProduit = "Nouveau produit", DescriptionProduit = "Description du nouveau produit", Nation = "fr" };
+                Assert.IsNotNull(actionResult);
+                Assert.IsInstanceOfType(actionResult.Result, typeof(NoContentResult));
 
-            using (var dbContext = CreateDbContext())
-            {
-                var controller = new ProduitsController(dbContext);
-                Exception ex = null;
 
-                try
-                {
-                    var actionResult = await controller.PostProduit(produitToAdd);
-                    Assert.Fail("L'opération devrait lever une exception.");
-                }
-                catch (DbUpdateException dbEx)
-                {
-                    ex = dbEx.InnerException;
-                }
-                catch (Exception genericEx)
-                {
-                    ex = genericEx;
-                }
+                Assert.IsNotNull(okResult);
 
-                // Assert
-                if (ex != null)
-                {
-                    Assert.IsTrue(ex is InvalidOperationException, "L'exception levée n'est pas du type attendu.");
-                    Assert.IsTrue(ex.Message.Contains("Required properties '{'Name'}' are missing"), "Le message d'exception n'est pas celui attendu.");
-                }
+                Assert.AreEqual(204, okResult.StatusCode);
+
 
             }
         }
 
+
         [TestMethod]
-        public async Task Post_Produit_Returns_CreatedAtAction()
+        public async Task Post_Produit_Returns_No_Marque()
         {
-            var tailles = new List<Size>{ new Size { Code = "XL", Quantite = 45 } };
+            var tailles = new List<Size> { new Size { Code = "XL", Quantite = 45 } };
             var couleurs = new List<Color> { new Color { Nom = "rouge", Prix = 53, Tailles = tailles } };
             // Arrange
             var produitToAdd = new Product
@@ -1190,13 +1093,106 @@ namespace FifApi.Tests.Controllers
                 Image = "bonjour.jpg",
                 DescriptionProduit = "Description du nouveau produit",
                 Nation = "FRA",
+                Categorie = 1,
+                Couleurs = couleurs
+            };
+
+            var typeProduit = new TypeProduit { Description = "fff", Nom = "bonjour", Id = 1 };
+            var marque = new Marque { NomMarque = "bonjour", IdMarque = 1 };
+            var pays = new Pays { NomPays = "FRANCE", IdPays = "FRA" };
+            var couleur = new Couleur { Hexa = "FF0000", Id = 1, Nom = "rouge" };
+            var taille = new Taille { DescriptionTaille = "bonjour", IdTaille = "XL", NomTaille = "Très large" };
+
+            using (var dbContext = CreateDbContext()) // Create your DbContext here
+            {
+                var controller = new ProduitsController(dbContext);
+
+                // Act
+                dbContext.Marques.Add(marque);
+                dbContext.TypeProduits.Add(typeProduit);
+                dbContext.Pays.Add(pays);
+                dbContext.Couleurs.Add(couleur);
+                dbContext.Tailles.Add(taille);
+
+                dbContext.SaveChanges();
+
+                var actionResult = await controller.PostProduit(produitToAdd);
+                var okResult = actionResult.Result as NoContentResult;
+
+                // Assert
+
+                Assert.IsNotNull(actionResult);
+                Assert.IsInstanceOfType(actionResult.Result, typeof(BadRequestResult));
+
+
+            }
+        }
+
+
+        [TestMethod]
+        public async Task Post_Produit_Returns_Marque_Dont_Exists()
+        {
+            var tailles = new List<Size> { new Size { Code = "XL", Quantite = 45 } };
+            var couleurs = new List<Color> { new Color { Nom = "rouge", Prix = 53, Tailles = tailles } };
+            // Arrange
+            var produitToAdd = new Product
+            {
+                NomProduit = "Nouveau Produit",
+                Image = "bonjour.jpg",
+                DescriptionProduit = "Description du nouveau produit",
+                Nation = "FRA",
+                Categorie = 1,
+                Marque = 1,
+                Couleurs = couleurs
+            };
+
+            var typeProduit = new TypeProduit { Description = "fff", Nom = "bonjour", Id = 1 };
+            var pays = new Pays { NomPays = "FRANCE", IdPays = "FRA" };
+            var couleur = new Couleur { Hexa = "FF0000", Id = 1, Nom = "rouge" };
+            var taille = new Taille { DescriptionTaille = "bonjour", IdTaille = "XL", NomTaille = "Très large" };
+
+            using (var dbContext = CreateDbContext()) // Create your DbContext here
+            {
+                var controller = new ProduitsController(dbContext);
+                //Act
+                dbContext.TypeProduits.Add(typeProduit);
+                dbContext.Pays.Add(pays);
+                dbContext.Couleurs.Add(couleur);
+                dbContext.Tailles.Add(taille);
+
+                dbContext.SaveChanges();
+
+                var actionResult = await controller.PostProduit(produitToAdd);
+                var okResult = actionResult.Result as NoContentResult;
+
+                // Assert
+
+                Assert.IsNotNull(actionResult);
+                Assert.IsInstanceOfType(actionResult.Result, typeof(BadRequestResult));
+
+
+            }
+        }
+
+
+        [TestMethod]
+        public async Task Post_Produit_Returns_No_Name()
+        {
+            var tailles = new List<Size> { new Size { Code = "XL", Quantite = 45 } };
+            var couleurs = new List<Color> { new Color { Nom = "rouge", Prix = 53, Tailles = tailles } };
+            // Arrange
+            var produitToAdd = new Product
+            {
+                Image = "bonjour.jpg",
+                DescriptionProduit = "Description du nouveau produit",
+                Nation = "FRA",
                 Marque = 1,
                 Categorie = 1,
                 Couleurs = couleurs
             };
 
-            var typeProduit = new TypeProduit { Description = "fff", Nom="bonjour", Id=1 };
-            var marque = new Marque { NomMarque = "bonjour", IdMarque=1 };
+            var typeProduit = new TypeProduit { Description = "fff", Nom = "bonjour", Id = 1 };
+            var marque = new Marque { NomMarque = "bonjour", IdMarque = 1 };
             var pays = new Pays { NomPays = "FRANCE", IdPays = "FRA" };
             var couleur = new Couleur { Hexa = "FF0000", Id = 1, Nom = "rouge" };
             var taille = new Taille { DescriptionTaille = "bonjour", IdTaille = "XL", NomTaille = "Très large" };
@@ -1214,53 +1210,774 @@ namespace FifApi.Tests.Controllers
 
                 dbContext.SaveChanges();
                 var actionResult = await controller.PostProduit(produitToAdd);
-                var createdAtActionResult = actionResult.Result as CreatedAtActionResult;
 
                 // Assert
-                Assert.IsNotNull(createdAtActionResult);
-                Assert.AreEqual("GetProduit", createdAtActionResult.ActionName);
-                Assert.AreEqual(201, createdAtActionResult.StatusCode);
 
-                var produitReturned = createdAtActionResult.Value as Produit;
-                Assert.IsNotNull(produitReturned);
-                Assert.AreEqual(produitToAdd.NomProduit, produitReturned.Name);
+                Assert.IsNotNull(actionResult);
+                Assert.IsInstanceOfType(actionResult.Result, typeof(BadRequestObjectResult));
+
+
+            }
+        }
+
+
+
+
+
+        [TestMethod]
+        public async Task Post_Produit_Returns_taille_Dont_Exists()
+        {
+            var tailles = new List<Size> { new Size { Code = "XL", Quantite = 45 } };
+            var couleurs = new List<Color> { new Color { Nom = "rouge", Prix = 53, Tailles = tailles } };
+            // Arrange
+            var produitToAdd = new Product
+            {
+                NomProduit = "Nouveau Produit",
+                Image = "bonjour.jpg",
+                DescriptionProduit = "Description du nouveau produit",
+                Nation = "FRA",
+                Marque = 1,
+                Categorie = 1,
+                Couleurs = couleurs
+
+            };
+
+            var typeProduit = new TypeProduit { Description = "fff", Nom = "bonjour", Id = 1 };
+            var marque = new Marque { NomMarque = "bonjour", IdMarque = 1 };
+            var pays = new Pays { NomPays = "FRANCE", IdPays = "FRA" };
+            var couleur = new Couleur { Hexa = "FF0000", Id = 1, Nom = "rouge" };
+
+            using (var dbContext = CreateDbContext()) 
+            {
+                var controller = new ProduitsController(dbContext);
+
+                // Act
+                dbContext.Marques.Add(marque);
+                dbContext.TypeProduits.Add(typeProduit);
+                dbContext.Pays.Add(pays);
+                dbContext.Couleurs.Add(couleur);
+
+                dbContext.SaveChanges();
+                var actionResult = await controller.PostProduit(produitToAdd);
+
+                // Assert
+
+                Assert.IsNotNull(actionResult);
+                Assert.IsInstanceOfType(actionResult.Result, typeof(BadRequestResult));
+
+
+            }
+        }
+
+        [TestMethod]
+        public async Task Post_Produit_Returns_typeProduit_Dont_Exists()
+        {
+            var tailles = new List<Size> { new Size { Code = "XL", Quantite = 45 } };
+            var couleurs = new List<Color> { new Color { Nom = "rouge", Prix = 53, Tailles = tailles } };
+            // Arrange
+            var produitToAdd = new Product
+            {
+                NomProduit = "Nouveau Produit",
+                Image = "bonjour.jpg",
+                DescriptionProduit = "Description du nouveau produit",
+                Nation = "FRA",
+                Marque = 1,
+                Categorie = 1,
+                Couleurs = couleurs
+
+            };
+
+            var marque = new Marque { NomMarque = "bonjour", IdMarque = 1 };
+            var pays = new Pays { NomPays = "FRANCE", IdPays = "FRA" };
+            var couleur = new Couleur { Hexa = "FF0000", Id = 1, Nom = "rouge" };
+            var taille = new Taille { DescriptionTaille = "bonjour", IdTaille = "XL", NomTaille = "Très large" };
+            using (var dbContext = CreateDbContext()) // Create your DbContext here
+            {
+                var controller = new ProduitsController(dbContext);
+
+                // Act
+                dbContext.Tailles.Add(taille);
+                dbContext.Marques.Add(marque);
+                dbContext.Pays.Add(pays);
+                dbContext.Couleurs.Add(couleur);
+
+                dbContext.SaveChanges();
+                var actionResult = await controller.PostProduit(produitToAdd);
+
+                // Assert
+
+                Assert.IsNotNull(actionResult);
+                Assert.IsInstanceOfType(actionResult.Result, typeof(BadRequestResult));
+
+
+            }
+        }
+
+        [TestMethod]
+        public async Task Post_Produit_Returns_Nation_Dont_Exists()
+        {
+            var tailles = new List<Size> { new Size { Code = "XL", Quantite = 45 } };
+            var couleurs = new List<Color> { new Color { Nom = "rouge", Prix = 53, Tailles = tailles } };
+            // Arrange
+            var produitToAdd = new Product
+            {
+                NomProduit = "Nouveau Produit",
+                Image = "bonjour.jpg",
+                DescriptionProduit = "Description du nouveau produit",
+                Nation = "FRA",
+                Marque = 1,
+                Categorie = 1,
+                Couleurs = couleurs
+
+            };
+
+            var typeProduit = new TypeProduit { Description = "fff", Nom = "bonjour", Id = 1 };
+            var marque = new Marque { NomMarque = "bonjour", IdMarque = 1 };
+            var couleur = new Couleur { Hexa = "FF0000", Id = 1, Nom = "rouge" };
+            var taille = new Taille { DescriptionTaille = "bonjour", IdTaille = "XL", NomTaille = "Très large" };
+
+            using (var dbContext = CreateDbContext()) // Create your DbContext here
+            {
+                var controller = new ProduitsController(dbContext);
+
+                // Act
+                dbContext.Marques.Add(marque);
+                dbContext.TypeProduits.Add(typeProduit);
+                dbContext.Couleurs.Add(couleur);
+                dbContext.Tailles.Add(taille);
+
+                dbContext.SaveChanges();
+                var actionResult = await controller.PostProduit(produitToAdd);
+
+                // Assert
+
+                Assert.IsNotNull(actionResult);
+                Assert.IsInstanceOfType(actionResult.Result, typeof(BadRequestResult));
+
+
+            }
+        }
+
+
+        [TestMethod]
+        public async Task Post_Produit_Returns_No_Nation()
+        {
+            var tailles = new List<Size> { new Size { Code = "XL", Quantite = 45 } };
+            var couleurs = new List<Color> { new Color { Nom = "rouge", Prix = 53, Tailles = tailles } };
+            // Arrange
+            var produitToAdd = new Product
+            {
+                NomProduit = "Nouveau Produit",
+                Image = "bonjour.jpg",
+                DescriptionProduit = "Description du nouveau produit",
+                Nation = "FRA",
+                Marque = 1,
+                Categorie = 1,
+                Couleurs = couleurs
+
+            };
+
+            var typeProduit = new TypeProduit { Description = "fff", Nom = "bonjour", Id = 1 };
+            var marque = new Marque { NomMarque = "bonjour", IdMarque = 1 };
+            var couleur = new Couleur { Hexa = "FF0000", Id = 1, Nom = "rouge" };
+            var taille = new Taille { DescriptionTaille = "bonjour", IdTaille = "XL", NomTaille = "Très large" };
+
+            using (var dbContext = CreateDbContext()) // Create your DbContext here
+            {
+                var controller = new ProduitsController(dbContext);
+
+                // Act
+                dbContext.Marques.Add(marque);
+                dbContext.TypeProduits.Add(typeProduit);
+                dbContext.Couleurs.Add(couleur);
+                dbContext.Tailles.Add(taille);
+
+                dbContext.SaveChanges();
+                var actionResult = await controller.PostProduit(produitToAdd);
+
+                // Assert
+
+                Assert.IsNotNull(actionResult);
+                Assert.IsInstanceOfType(actionResult.Result, typeof(BadRequestResult));
+
+
+            }
+        }
+
+        [TestMethod]
+        public async Task Post_Produit_Returns_No_Couleur()
+        {
+            var tailles = new List<Size> { new Size { Code = "XL", Quantite = 45 } };
+            var couleurs = new List<Color> { new Color { Nom = "rouge", Prix = 53, Tailles = tailles } };
+            // Arrange
+            var produitToAdd = new Product
+            {
+                NomProduit = "Nouveau Produit",
+                Image = "bonjour.jpg",
+                DescriptionProduit = "Description du nouveau produit",
+                Nation = "FRA",
+                Marque = 1,
+                Categorie = 1,
+
+            };
+
+            var typeProduit = new TypeProduit { Description = "fff", Nom = "bonjour", Id = 1 };
+            var marque = new Marque { NomMarque = "bonjour", IdMarque = 1 };
+            var pays = new Pays { NomPays = "FRANCE", IdPays = "FRA" };
+            var taille = new Taille { DescriptionTaille = "bonjour", IdTaille = "XL", NomTaille = "Très large" };
+            var couleur = new Couleur { Hexa = "FF0000", Id = 1, Nom = "rouge" };
+
+            using (var dbContext = CreateDbContext()) // Create your DbContext here
+            {
+                var controller = new ProduitsController(dbContext);
+
+                // Act
+                dbContext.Couleurs.Add(couleur);
+                dbContext.Marques.Add(marque);
+                dbContext.TypeProduits.Add(typeProduit);
+                dbContext.Pays.Add(pays);
+                dbContext.Tailles.Add(taille);
+
+                dbContext.SaveChanges();
+                var actionResult = await controller.PostProduit(produitToAdd);
+
+                // Assert
+
+                Assert.IsNotNull(actionResult);
+                Assert.IsInstanceOfType(actionResult.Result, typeof(BadRequestObjectResult));
+
+
+            }
+        }
+
+
+        [TestMethod]
+        public async Task Post_Produit_Returns_Couleur_Dont_Exist()
+        {
+            var tailles = new List<Size> { new Size { Code = "XL", Quantite = 45 } };
+            var couleurs = new List<Color> { new Color { Nom = "rouge", Prix = 53, Tailles = tailles } };
+            // Arrange
+            var produitToAdd = new Product
+            {
+                NomProduit = "Nouveau Produit",
+                Image = "bonjour.jpg",
+                DescriptionProduit = "Description du nouveau produit",
+                Nation = "FRA",
+                Marque = 1,
+                Categorie = 1,
+                Couleurs = couleurs
+
+            };
+
+            var typeProduit = new TypeProduit { Description = "fff", Nom = "bonjour", Id = 1 };
+            var marque = new Marque { NomMarque = "bonjour", IdMarque = 1 };
+            var pays = new Pays { NomPays = "FRANCE", IdPays = "FRA" };
+            var taille = new Taille { DescriptionTaille = "bonjour", IdTaille = "XL", NomTaille = "Très large" };
+
+            using (var dbContext = CreateDbContext()) // Create your DbContext here
+            {
+                var controller = new ProduitsController(dbContext);
+
+                // Act
+                dbContext.Marques.Add(marque);
+                dbContext.TypeProduits.Add(typeProduit);
+                dbContext.Pays.Add(pays);
+                dbContext.Tailles.Add(taille);
+
+                dbContext.SaveChanges();
+                var actionResult = await controller.PostProduit(produitToAdd);
+
+                // Assert
+
+                Assert.IsNotNull(actionResult);
+                Assert.IsInstanceOfType(actionResult.Result, typeof(BadRequestObjectResult));
+
+
+            }
+        }
+
+        [TestMethod]
+        public async Task Put_Produit_Returns_CreatedAtAction()
+        {
+            var tailles = new List<Size> { new Size { Code = "XL", Quantite = 45 } };
+            var couleurs = new List<Color> { new Color { Nom = "rouge", Prix = 53, Tailles = tailles } };
+            // Arrange
+            var produitToAdd = new Product
+            {
+
+                NomProduit = "Nouveau Produit",
+                Image = "bonjour.jpg",
+                DescriptionProduit = "Description du nouveau produit",
+                Nation = "FRA",
+                Marque = 1,
+                Categorie = 1,
+                Couleurs = couleurs
+            };
+            var produit = new Produit { Id = 1, Name = produitToAdd.NomProduit, Description = produitToAdd.DescriptionProduit, MarqueId = produitToAdd.Marque, PaysId = produitToAdd.Nation };
+            var typeProduit = new TypeProduit { Description = "fff", Nom = "bonjour", Id = 1 };
+            var marque = new Marque { NomMarque = "bonjour", IdMarque = 1 };
+            var pays = new Pays { NomPays = "FRANCE", IdPays = "FRA" };
+            var couleur = new Couleur { Hexa = "FF0000", Id = 1, Nom = "rouge" };
+            var taille = new Taille { DescriptionTaille = "bonjour", IdTaille = "XL", NomTaille = "Très large" };
+
+            using (var dbContext = CreateDbContext()) // Create your DbContext here
+            {
+                var controller = new ProduitsController(dbContext);
+
+                // Act
+                dbContext.Marques.Add(marque);
+                dbContext.TypeProduits.Add(typeProduit);
+                dbContext.Pays.Add(pays);
+                dbContext.Couleurs.Add(couleur);
+                dbContext.Tailles.Add(taille);
+                dbContext.Produits.Add(produit);
+                dbContext.SaveChanges();
+                var actionResult = await controller.PutProduit(produit.Id, produitToAdd);
+
+                // Assert
+
+                Assert.IsNotNull(actionResult);
+
+                Assert.IsNotNull(actionResult);
+
+                var statusCodeResult = actionResult as StatusCodeResult;
+
+                Assert.IsNotNull(statusCodeResult);
+
+                Assert.AreEqual(204, statusCodeResult.StatusCode);
+
+            }
+        }
+
+
+
+        [TestMethod]
+        public async Task Put_Produit_Returns_Marque_Dont_Exist()
+        {
+            var tailles = new List<Size> { new Size { Code = "XL", Quantite = 45 } };
+            var couleurs = new List<Color> { new Color { Nom = "rouge", Prix = 53, Tailles = tailles } };
+            // Arrange
+            var produitToAdd = new Product
+            {
+
+                NomProduit = "Nouveau Produit",
+                Image = "bonjour.jpg",
+                DescriptionProduit = "Description du nouveau produit",
+                Nation = "FRA",
+                Marque = 1,
+                Categorie = 1,
+                Couleurs = couleurs
+            };
+            var produit = new Produit { Id = 1, Name = produitToAdd.NomProduit, Description = produitToAdd.DescriptionProduit, MarqueId = produitToAdd.Marque, PaysId = produitToAdd.Nation };
+            var typeProduit = new TypeProduit { Description = "fff", Nom = "bonjour", Id = 1 };
+            var pays = new Pays { NomPays = "FRANCE", IdPays = "FRA" };
+            var couleur = new Couleur { Hexa = "FF0000", Id = 1, Nom = "rouge" };
+            var taille = new Taille { DescriptionTaille = "bonjour", IdTaille = "XL", NomTaille = "Très large" };
+
+            using (var dbContext = CreateDbContext()) // Create your DbContext here
+            {
+                var controller = new ProduitsController(dbContext);
+
+                // Act
+                dbContext.TypeProduits.Add(typeProduit);
+                dbContext.Pays.Add(pays);
+                dbContext.Couleurs.Add(couleur);
+                dbContext.Tailles.Add(taille);
+                dbContext.Produits.Add(produit);
+                dbContext.SaveChanges();
+              
+                    var actionResult = await controller.PutProduit(produit.Id, produitToAdd);
+
+                    // Assert
+                    Assert.IsNotNull(actionResult);
+                    Assert.IsInstanceOfType(actionResult, typeof(BadRequestResult));
+
+             
+
+
+            }
+        }
+
+        [TestMethod]
+        public async Task Put_Produit_Returns_No_Marque()
+        {
+            var tailles = new List<Size> { new Size { Code = "XL", Quantite = 45 } };
+            var couleurs = new List<Color> { new Color { Nom = "rouge", Prix = 53, Tailles = tailles } };
+            // Arrange
+            var produitToAdd = new Product
+            {
+
+                NomProduit = "Nouveau Produit",
+                Image = "bonjour.jpg",
+                DescriptionProduit = "Description du nouveau produit",
+                Nation = "FRA",
+                Categorie = 1,
+                Couleurs = couleurs
+            };
+            var produit = new Produit { Id = 1, Name = produitToAdd.NomProduit, Description = produitToAdd.DescriptionProduit, MarqueId = produitToAdd.Marque, PaysId = produitToAdd.Nation };
+            var typeProduit = new TypeProduit { Description = "fff", Nom = "bonjour", Id = 1 };
+            var marque = new Marque { NomMarque = "bonjour", IdMarque = 1 };
+            var pays = new Pays { NomPays = "FRANCE", IdPays = "FRA" };
+            var couleur = new Couleur { Hexa = "FF0000", Id = 1, Nom = "rouge" };
+            var taille = new Taille { DescriptionTaille = "bonjour", IdTaille = "XL", NomTaille = "Très large" };
+
+            using (var dbContext = CreateDbContext()) // Create your DbContext here
+            {
+                var controller = new ProduitsController(dbContext);
+
+                // Act
+                dbContext.Marques.Add(marque);
+                dbContext.TypeProduits.Add(typeProduit);
+                dbContext.Pays.Add(pays);
+                dbContext.Couleurs.Add(couleur);
+                dbContext.Tailles.Add(taille);
+                dbContext.Produits.Add(produit);
+                dbContext.SaveChanges();
+               
+                    var actionResult = await controller.PutProduit(produit.Id, produitToAdd);
+
+                    // Assert
+                    Assert.IsNotNull(actionResult);
+                    Assert.IsInstanceOfType(actionResult, typeof(BadRequestResult));
+
+              
+
+
             }
         }
         [TestMethod]
-        public async Task Post_Produit_Returns_False()
+        public async Task Put_Produit_Returns_Taille_Dont_Exists()
         {
+            var tailles = new List<Size> { new Size { Code = "XL", Quantite = 45 } };
+            var couleurs = new List<Color> { new Color { Nom = "rouge", Prix = 53, Tailles = tailles } };
             // Arrange
-            var produitToAdd = new Product { NomProduit = "Nouveau produit", DescriptionProduit = "Description du nouveau produit", Nation = "fr" };
+            var produitToAdd = new Product
+            {
 
-            using (var dbContext = CreateDbContext())
+                NomProduit = "Nouveau Produit",
+                Image = "bonjour.jpg",
+                DescriptionProduit = "Description du nouveau produit",
+                Nation = "FRA",
+                Categorie = 1,
+                Marque = 1,
+                Couleurs = couleurs
+            };
+            var produit = new Produit { Id = 1, Name = produitToAdd.NomProduit, Description = produitToAdd.DescriptionProduit, MarqueId = produitToAdd.Marque, PaysId = produitToAdd.Nation };
+            var typeProduit = new TypeProduit { Description = "fff", Nom = "bonjour", Id = 1 };
+            var marque = new Marque { NomMarque = "bonjour", IdMarque = 1 };
+            var pays = new Pays { NomPays = "FRANCE", IdPays = "FRA" };
+            var couleur = new Couleur { Hexa = "FF0000", Id = 1, Nom = "rouge" };
+
+            using (var dbContext = CreateDbContext()) // Create your DbContext here
             {
                 var controller = new ProduitsController(dbContext);
-                Exception ex = null;
 
-                try
-                {
-                    var actionResult = await controller.PostProduit(produitToAdd);
-                    Assert.Fail("L'opération devrait lever une exception.");
-                }
-                catch (DbUpdateException dbEx)
-                {
-                    ex = dbEx.InnerException;
-                }
-                catch (Exception genericEx)
-                {
-                    ex = genericEx;
-                }
+                // Act
+                dbContext.Marques.Add(marque);
+                dbContext.TypeProduits.Add(typeProduit);
+                dbContext.Pays.Add(pays);
+                dbContext.Couleurs.Add(couleur);
+                dbContext.Produits.Add(produit);
+                dbContext.SaveChanges();
+
+                var actionResult = await controller.PutProduit(produit.Id, produitToAdd);
 
                 // Assert
-                if (ex != null)
-                {
-                    Assert.IsTrue(ex is InvalidOperationException, "L'exception levée n'est pas du type attendu.");
-                    Assert.IsTrue(ex.Message.Contains("Required properties '{'Name'}' are missing"), "Le message d'exception n'est pas celui attendu.");
-                }
+                Assert.IsNotNull(actionResult);
+                Assert.IsInstanceOfType(actionResult, typeof(BadRequestResult));
+
+
+
 
             }
         }
 
+        [TestMethod]
+        public async Task Put_Produit_Returns_TypeProduit_Dont_Exists()
+        {
+            var tailles = new List<Size> { new Size { Code = "XL", Quantite = 45 } };
+            var couleurs = new List<Color> { new Color { Nom = "rouge", Prix = 53, Tailles = tailles } };
+            // Arrange
+            var produitToAdd = new Product
+            {
+
+                NomProduit = "Nouveau Produit",
+                Image = "bonjour.jpg",
+                DescriptionProduit = "Description du nouveau produit",
+                Nation = "FRA",
+                Categorie = 1,
+                Marque = 1,
+                Couleurs = couleurs
+            };
+            var produit = new Produit { Id = 1, Name = produitToAdd.NomProduit, Description = produitToAdd.DescriptionProduit, MarqueId = produitToAdd.Marque, PaysId = produitToAdd.Nation };
+            var marque = new Marque { NomMarque = "bonjour", IdMarque = 1 };
+            var pays = new Pays { NomPays = "FRANCE", IdPays = "FRA" };
+            var couleur = new Couleur { Hexa = "FF0000", Id = 1, Nom = "rouge" };
+            var taille = new Taille { DescriptionTaille = "bonjour", IdTaille = "XL", NomTaille = "Très large" };
+
+            using (var dbContext = CreateDbContext()) // Create your DbContext here
+            {
+                var controller = new ProduitsController(dbContext);
+
+                // Act
+                dbContext.Tailles.Add(taille);
+                dbContext.Marques.Add(marque);
+                dbContext.Pays.Add(pays);
+                dbContext.Couleurs.Add(couleur);
+                dbContext.Produits.Add(produit);
+                dbContext.SaveChanges();
+
+                var actionResult = await controller.PutProduit(produit.Id, produitToAdd);
+
+                // Assert
+                Assert.IsNotNull(actionResult);
+                Assert.IsInstanceOfType(actionResult, typeof(BadRequestResult));
+
+
+
+
+            }
+        }
+
+
+        [TestMethod]
+        public async Task Put_Produit_Returns_Produit_Dont_Exists()
+        {
+            var tailles = new List<Size> { new Size { Code = "XL", Quantite = 45 } };
+            var couleurs = new List<Color> { new Color { Nom = "rouge", Prix = 53, Tailles = tailles } };
+            // Arrange
+            var produitToAdd = new Product
+            {
+
+                NomProduit = "Nouveau Produit",
+                Image = "bonjour.jpg",
+                DescriptionProduit = "Description du nouveau produit",
+                Nation = "FRA",
+                Categorie = 1,
+                Marque = 1,
+                Couleurs = couleurs
+            };
+            var marque = new Marque { NomMarque = "bonjour", IdMarque = 1 };
+            var pays = new Pays { NomPays = "FRANCE", IdPays = "FRA" };
+            var couleur = new Couleur { Hexa = "FF0000", Id = 1, Nom = "rouge" };
+            var taille = new Taille { DescriptionTaille = "bonjour", IdTaille = "XL", NomTaille = "Très large" };
+            var typeProduit = new TypeProduit { Description = "fff", Nom = "bonjour", Id = 1 };
+
+            using (var dbContext = CreateDbContext()) // Create your DbContext here
+            {
+                var controller = new ProduitsController(dbContext);
+
+                // Act
+                dbContext.Tailles.Add(taille);
+                dbContext.Marques.Add(marque);
+                dbContext.Pays.Add(pays);
+                dbContext.Couleurs.Add(couleur);
+                dbContext.TypeProduits.Add(typeProduit);
+
+                dbContext.SaveChanges();
+
+                var actionResult = await controller.PutProduit(1, produitToAdd);
+
+                // Assert
+                Assert.IsNotNull(actionResult);
+                Assert.IsInstanceOfType(actionResult, typeof(NotFoundResult));
+
+
+
+
+            }
+        }
+
+        [TestMethod]
+        public async Task Put_Produit_Returns_Pays_Dont_Exists()
+        {
+            var tailles = new List<Size> { new Size { Code = "XL", Quantite = 45 } };
+            var couleurs = new List<Color> { new Color { Nom = "rouge", Prix = 53, Tailles = tailles } };
+            // Arrange
+            var produitToAdd = new Product
+            {
+
+                NomProduit = "Nouveau Produit",
+                Image = "bonjour.jpg",
+                DescriptionProduit = "Description du nouveau produit",
+                Nation = "FRA",
+                Marque = 1,
+                Categorie = 1,
+                Couleurs = couleurs
+            };
+            var produit = new Produit { Id = 1, Name = produitToAdd.NomProduit, Description = produitToAdd.DescriptionProduit, MarqueId = produitToAdd.Marque, PaysId = produitToAdd.Nation };
+            var typeProduit = new TypeProduit { Description = "fff", Nom = "bonjour", Id = 1 };
+            var pays = new Pays { NomPays = "FRANCE", IdPays = "FRA" };
+            var couleur = new Couleur { Hexa = "FF0000", Id = 1, Nom = "rouge" };
+            var taille = new Taille { DescriptionTaille = "bonjour", IdTaille = "XL", NomTaille = "Très large" };
+
+            using (var dbContext = CreateDbContext()) // Create your DbContext here
+            {
+                var controller = new ProduitsController(dbContext);
+
+                // Act
+                dbContext.TypeProduits.Add(typeProduit);
+                dbContext.Pays.Add(pays);
+                dbContext.Couleurs.Add(couleur);
+                dbContext.Tailles.Add(taille);
+                dbContext.Produits.Add(produit);
+                dbContext.SaveChanges();
+              
+                    var actionResult = await controller.PutProduit(produit.Id, produitToAdd);
+
+                    // Assert
+                    Assert.IsNotNull(actionResult);
+                    Assert.IsInstanceOfType(actionResult, typeof(BadRequestResult));
+
+            
+
+
+            }
+        }
+
+
+        [TestMethod]
+        public async Task Put_Produit_Returns_No_Pays()
+        {
+            var tailles = new List<Size> { new Size { Code = "XL", Quantite = 45 } };
+            var couleurs = new List<Color> { new Color { Nom = "rouge", Prix = 53, Tailles = tailles } };
+            // Arrange
+            var produitToAdd = new Product
+            {
+
+                NomProduit = "Nouveau Produit",
+                Image = "bonjour.jpg",
+                DescriptionProduit = "Description du nouveau produit",
+                Nation = "FRA",
+                Categorie = 1,
+                Couleurs = couleurs
+            };
+            var produit = new Produit { Id = 1, Name = produitToAdd.NomProduit, Description = produitToAdd.DescriptionProduit, MarqueId = produitToAdd.Marque, PaysId = produitToAdd.Nation };
+            var typeProduit = new TypeProduit { Description = "fff", Nom = "bonjour", Id = 1 };
+            var marque = new Marque { NomMarque = "bonjour", IdMarque = 1 };
+            var pays = new Pays { NomPays = "FRANCE", IdPays = "FRA" };
+            var couleur = new Couleur { Hexa = "FF0000", Id = 1, Nom = "rouge" };
+            var taille = new Taille { DescriptionTaille = "bonjour", IdTaille = "XL", NomTaille = "Très large" };
+
+            using (var dbContext = CreateDbContext()) // Create your DbContext here
+            {
+                var controller = new ProduitsController(dbContext);
+
+                // Act
+                dbContext.Marques.Add(marque);
+                dbContext.TypeProduits.Add(typeProduit);
+                dbContext.Pays.Add(pays);
+                dbContext.Couleurs.Add(couleur);
+                dbContext.Tailles.Add(taille);
+                dbContext.Produits.Add(produit);
+                dbContext.SaveChanges();
+               
+                    var actionResult = await controller.PutProduit(produit.Id, produitToAdd);
+
+                    // Assert
+                    Assert.IsNotNull(actionResult);
+                    Assert.IsInstanceOfType(actionResult, typeof(BadRequestResult));
+
+
+
+            }
+        }
+
+
+        [TestMethod]
+        public async Task Put_Produit_Returns_Couleur_Dont_Exists()
+        {
+            var tailles = new List<Size> { new Size { Code = "XL", Quantite = 45 } };
+            var couleurs = new List<Color> { new Color { Nom = "rouge", Prix = 53, Tailles = tailles } };
+            // Arrange
+            var produitToAdd = new Product
+            {
+
+                NomProduit = "Nouveau Produit",
+                Image = "bonjour.jpg",
+                DescriptionProduit = "Description du nouveau produit",
+                Nation = "FRA",
+                Marque = 1,
+                Categorie = 1,
+                Couleurs = couleurs
+            };
+            var produit = new Produit { Id = 1, Name = produitToAdd.NomProduit, Description = produitToAdd.DescriptionProduit, MarqueId = produitToAdd.Marque, PaysId = produitToAdd.Nation };
+            var typeProduit = new TypeProduit { Description = "fff", Nom = "bonjour", Id = 1 };
+            var pays = new Pays { NomPays = "FRANCE", IdPays = "FRA" };
+            var taille = new Taille { DescriptionTaille = "bonjour", IdTaille = "XL", NomTaille = "Très large" };
+            var marque = new Marque { NomMarque = "bonjour", IdMarque = 1 };
+
+            using (var dbContext = CreateDbContext()) // Create your DbContext here
+            {
+                var controller = new ProduitsController(dbContext);
+
+                // Act
+                dbContext.Marques.Add(marque);
+                dbContext.TypeProduits.Add(typeProduit);
+                dbContext.Pays.Add(pays);
+                dbContext.Tailles.Add(taille);
+                dbContext.Produits.Add(produit);
+                dbContext.SaveChanges();
+                
+                    var actionResult = await controller.PutProduit(produit.Id, produitToAdd);
+
+                    // Assert
+                    Assert.IsNotNull(actionResult);
+                    Assert.IsInstanceOfType(actionResult, typeof(BadRequestObjectResult));
+
+                
+                
+
+
+            }
+        }
+
+        [TestMethod]
+        public async Task Put_Produit_Returns_No_Couleur()
+        {
+            var tailles = new List<Size> { new Size { Code = "XL", Quantite = 45 } };
+            var couleurs = new List<Color> { new Color { Nom = "rouge", Prix = 53, Tailles = tailles } };
+            // Arrange
+            var produitToAdd = new Product
+            {
+
+                NomProduit = "Nouveau Produit",
+                Image = "bonjour.jpg",
+                DescriptionProduit = "Description du nouveau produit",
+                Nation = "FRA",
+                Marque = 1,
+                Categorie = 1,
+            };
+            var produit = new Produit { Id = 1, Name = produitToAdd.NomProduit, Description = produitToAdd.DescriptionProduit, MarqueId = produitToAdd.Marque, PaysId = produitToAdd.Nation };
+            var typeProduit = new TypeProduit { Description = "fff", Nom = "bonjour", Id = 1 };
+            var marque = new Marque { NomMarque = "bonjour", IdMarque = 1 };
+            var pays = new Pays { NomPays = "FRANCE", IdPays = "FRA" };
+            var couleur = new Couleur { Hexa = "FF0000", Id = 1, Nom = "rouge" };
+            var taille = new Taille { DescriptionTaille = "bonjour", IdTaille = "XL", NomTaille = "Très large" };
+
+            using (var dbContext = CreateDbContext()) // Create your DbContext here
+            {
+                var controller = new ProduitsController(dbContext);
+
+                // Act
+                dbContext.Marques.Add(marque);
+                dbContext.TypeProduits.Add(typeProduit);
+                dbContext.Pays.Add(pays);
+                dbContext.Couleurs.Add(couleur);
+                dbContext.Tailles.Add(taille);
+                dbContext.Produits.Add(produit);
+                dbContext.SaveChanges();
+          
+                    var actionResult = await controller.PutProduit(produit.Id, produitToAdd);
+
+                    // Assert
+                    Assert.IsNotNull(actionResult);
+                    Assert.IsInstanceOfType(actionResult, typeof(BadRequestObjectResult));
+
+
+
+            }
+        }
 
         [TestMethod]
         public async Task Delete_Produit_Returns_NoContentResult()

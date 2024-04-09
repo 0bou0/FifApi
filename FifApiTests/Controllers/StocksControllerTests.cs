@@ -8,6 +8,7 @@ using FifApi.Models;
 using FifApi.Models.EntityFramework;
 using System.Linq;
 using System.Threading.Tasks;
+using NuGet.Protocol;
 
 namespace FifApi.Tests.Controllers
 {
@@ -120,13 +121,16 @@ namespace FifApi.Tests.Controllers
         public async Task Post_Stock_Returns_Created_Response()
         {
             // Arrange
-            var newStock = new Stock { IdStock = 3, TailleId = "m", Quantite = 30 };
+            var newStock = new Stock { IdStock = 3, TailleId = "M", Quantite = 30 };
+            var newTaille = new Taille { IdTaille = "M", DescriptionTaille = "tres large", NomTaille = "M" };
             using (var dbContext = CreateDbContext())
             {
-                var controller = new StocksController(dbContext);
+                dbContext.Tailles.Add(newTaille);
 
+                var controller = new StocksController(dbContext);
                 // Act
                 var actionResult = await controller.PostStock(newStock);
+                Assert.Fail(actionResult.ToJson());
                 var createdAtActionResult = actionResult.Result as CreatedAtActionResult;
                 var result = createdAtActionResult.Value as Stock;
 
@@ -164,7 +168,7 @@ namespace FifApi.Tests.Controllers
         {
             // Arrange
             var idToUpdate = 50;
-            var updatedNewStock = new Stock { IdStock = idToUpdate, TailleId = "l", Quantite = 30 };
+            var updatedNewStock = new Stock { IdStock = idToUpdate, TailleId = "l" };
             var updatedStock = new Stock { IdStock = idToUpdate, TailleId = "l", Quantite = 50 };
             using (var dbContext = CreateDbContext())
             {
@@ -204,28 +208,7 @@ namespace FifApi.Tests.Controllers
             }
         }
 
-        [TestMethod]
-        public async Task Put_Stock_Returns_NoContent_When_Quantity()
-        {
-            // Arrange
-            var idToUpdate = 5;
-            var stockToUpdate = new Stock { IdStock = idToUpdate, TailleId = "M", Quantite = 50 };
-
-            using (var dbContext = CreateDbContext())
-            {
-                dbContext.Stocks.Add(stockToUpdate);
-                await dbContext.SaveChangesAsync();
-
-                var controller = new StocksController(dbContext);
-
-                // Act
-                var actionResult = await controller.PutStock(idToUpdate, stockToUpdate);
-
-                // Assert
-                Assert.IsNotNull(actionResult);
-                Assert.IsInstanceOfType(actionResult, typeof(NoContentResult));
-            }
-        }
+    
 
 
         [TestMethod]

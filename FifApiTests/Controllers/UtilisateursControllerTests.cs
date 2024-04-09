@@ -35,11 +35,9 @@ namespace FifApi.Tests.Controllers
         {
             using (var dbContext = CreateDbContext())
             {
-                dbContext.Utilisateurs.AddRange(new[]
-                {
-                    new Utilisateur { IdUtilisateur = 1, PseudoUtilisateur = "user1", MailUtilisateur = "user1@example.com", MotDePasse = "password1", Role = "user" },
-                    new Utilisateur { IdUtilisateur = 2, PseudoUtilisateur = "user2", MailUtilisateur = "user2@example.com", MotDePasse = "password2", Role = "user" }
-                });
+                List<Utilisateur> uts = new List<Utilisateur> {      new Utilisateur { IdUtilisateur = 1, PseudoUtilisateur = "user1", MailUtilisateur = "user1@example.com", MotDePasse = "password1", Role = "user" },
+                    new Utilisateur { IdUtilisateur = 2, PseudoUtilisateur = "user2", MailUtilisateur = "user2@example.com", MotDePasse = "password2", Role = "user" }};
+                dbContext.Utilisateurs.AddRange(uts);
                 dbContext.SaveChanges();
 
                 var controller = new UtilisateursController(dbContext, null);
@@ -48,7 +46,7 @@ namespace FifApi.Tests.Controllers
                 var result = actionResult.Value.ToList();
 
                 Assert.IsNotNull(result);
-                Assert.AreEqual(2, result.Count);
+                Assert.AreEqual(uts.Count, result.Count);
             }
         }
 
@@ -90,15 +88,12 @@ namespace FifApi.Tests.Controllers
                 // Assert
                 Assert.IsNotNull(result, "Le résultat ne devrait pas être null.");
 
-                // Vérifiez si le résultat est une chaîne (string)
                 Assert.IsInstanceOfType(result, typeof(string), "Le résultat devrait être une chaîne de caractères.");
 
-                // Vérifiez si la chaîne représente un objet JSON avec la propriété "email"
                 var jsonString = (string)result;
                 dynamic jsonObject = JObject.Parse(jsonString);
                 Assert.IsTrue(jsonObject.email != null, "Le résultat devrait contenir la propriété 'email'.");
 
-                // Vérifiez si la valeur de la propriété "email" est correcte
                 var emailAvailable = (bool)jsonObject.email;
                 Assert.IsFalse(emailAvailable, "L'email devrait être disponible.");
             }
@@ -860,10 +855,40 @@ namespace FifApi.Tests.Controllers
             }
         }
 
-       
+
 
         [TestMethod]
         public async Task PutUtilisateur_ValidData_Returns_Ok()
+        {
+            // Arrange
+            var usertoupdate = new User { UserName = "mon", Email = "up@example.com", Password = "pass" };
+            var updatedUser = new User { UserName = "updateduser", Email = "updated@example.com", Password = "pass" , NewPassword = "new pass"};
+
+            using (var dbContext = CreateDbContext())
+            {
+                // Act
+                var _config = CreateConfigWithSecretKey();
+                var loginController = new LoginController(dbContext, _config);
+                var utilisateurController = new UtilisateursController(dbContext, _config);
+
+                var createUser = utilisateurController.PostUtilisateur(usertoupdate);
+
+                var usersTask = dbContext.Utilisateurs.ToListAsync();
+                var users = usersTask.Result;
+                var newUser = users.FirstOrDefault();
+                Assert.IsNotNull(newUser.ToJson());
+
+                var updateUser = utilisateurController.PutUtilisateur(newUser.IdUtilisateur, updatedUser);
+
+                // Assert
+                Assert.IsNotNull(updateUser);
+                Assert.IsInstanceOfType(updateUser.Result.Value, typeof(object));
+                Assert.IsTrue(dbContext.Utilisateurs.Any(u => u.PseudoUtilisateur == updatedUser.UserName && u.MailUtilisateur == updatedUser.Email && u.MotDePasse == updatedUser.NewPassword));
+            }
+        }
+
+        [TestMethod]
+        public async Task PutUtilisateur_ValidData_Returns_Wrong_Password()
         {
             // Arrange
             var usertoupdate = new User { UserName = "mon", Email = "up@example.com", Password = "pass" };
@@ -883,7 +908,37 @@ namespace FifApi.Tests.Controllers
                 var newUser = users.FirstOrDefault();
                 Assert.IsNotNull(newUser.ToJson());
 
-                var updateUser = utilisateurController.PutUtilisateur(newUser.IdUtilisateur,updatedUser);
+                var updateUser = utilisateurController.PutUtilisateur(newUser.IdUtilisateur, updatedUser);
+
+                // Assert
+                Assert.IsNotNull(updateUser);
+                Assert.IsInstanceOfType(updateUser.Result.Value, typeof(object));
+                Assert.IsTrue(dbContext.Utilisateurs.Any(u => u.PseudoUtilisateur == updatedUser.UserName && u.MailUtilisateur == updatedUser.Email && u.MotDePasse == updatedUser.Password));
+            }
+        }
+
+        [TestMethod]
+        public async Task PutUtilisateur_ValidData_Returns_No_Token()
+        {
+            // Arrange
+            var usertoupdate = new User { UserName = "mon", Email = "up@example.com", Password = "pass" };
+            var updatedUser = new User { UserName = "updateduser", Email = "updated@example.com", Password = "newpassword" };
+
+            using (var dbContext = CreateDbContext())
+            {
+                // Act
+                var _config = CreateConfigWithSecretKey();
+                var loginController = new LoginController(dbContext, _config);
+                var utilisateurController = new UtilisateursController(dbContext, _config);
+
+                var createUser = utilisateurController.PostUtilisateur(usertoupdate);
+
+                var usersTask = dbContext.Utilisateurs.ToListAsync();
+                var users = usersTask.Result;
+                var newUser = users.FirstOrDefault();
+                Assert.IsNotNull(newUser.ToJson());
+
+                var updateUser = utilisateurController.PutUtilisateur(newUser.IdUtilisateur, updatedUser);
 
                 // Assert
                 Assert.IsNotNull(updateUser);
