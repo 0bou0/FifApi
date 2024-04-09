@@ -220,7 +220,10 @@ namespace FifApi.Controllers
 
             try
             {
-
+                if (!(_context.Marques.Any(m => m.IdMarque == product.Marque) && _context.Pays.Any(p => p.IdPays == product.Nation) && _context.TypeProduits.Any(t => t.Id == product.Categorie)))
+                {
+                    return BadRequest();
+                }
 
                 StocksController stocksController = new StocksController(_context);
                 Produit produit = await _context.Produits.Where(p => p.Id == id).FirstOrDefaultAsync();
