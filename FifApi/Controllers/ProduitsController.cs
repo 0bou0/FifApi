@@ -220,6 +220,16 @@ namespace FifApi.Controllers
 
             try
             {
+                foreach (Color color in product.Couleurs)
+                {
+                    foreach (Size size in color.Tailles)
+                    {
+                        if (!_context.Tailles.Any(t => t.IdTaille == size.Code))
+                        {
+                            return BadRequest();
+                        }
+                    }
+                }
                 if (!(_context.Marques.Any(m => m.IdMarque == product.Marque) && _context.Pays.Any(p => p.IdPays == product.Nation) && _context.TypeProduits.Any(t => t.Id == product.Categorie)))
                 {
                     return BadRequest();
