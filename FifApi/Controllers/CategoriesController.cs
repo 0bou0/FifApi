@@ -169,6 +169,7 @@ namespace FifApi.Controllers
             return Ok();
         }
 
+        // GET: api/Categories/Marques
         [HttpGet("Marques")]
         public async Task<ActionResult<IEnumerable<object>>> GetMarques()
         {
@@ -183,6 +184,21 @@ namespace FifApi.Controllers
                 id = m.IdMarque,
                 nom = m.NomMarque
             }).ToList();
+        }
+
+        // POST: api/Categories/Marques
+        [HttpPost("Marques")]
+        public async Task<ActionResult> PostMarques([FromBody] Marque marque)
+        {
+            if (_dbContext.Marques == null)
+                return NotFound();
+            if (_dbContext.Marques.Where(x => x.IdMarque == marque.IdMarque).Select(x => x.IdMarque).FirstOrDefault() == marque.IdMarque)
+                return BadRequest("Marque deja dans la base");
+
+            _dbContext.Marques.Add(marque);
+
+            await _dbContext.SaveChangesAsync();
+            return Ok();
         }
     }
 }
