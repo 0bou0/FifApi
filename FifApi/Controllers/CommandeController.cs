@@ -6,6 +6,7 @@ using NuGet.Protocol.Core.Types;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Design;
+using System.Configuration;
 using System.Linq;
 using System.Threading.Tasks;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
@@ -112,6 +113,23 @@ namespace FifApi.Controllers
 
         }
 
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteCommande(int id)
+        {
+            if (_dbContext.Commandes == null)
+            {
+                return NotFound();
+            }
+            Commande commande = _dbContext.Commandes.First(c => c.IdCommande == id);
+            foreach (LigneCommande ligneCommande in _dbContext.LigneCommandes.Where(l => l.IdCommande == id).ToList())
+            {
+                _dbContext.LigneCommandes.Remove(ligneCommande);
+            }
+            _dbContext.Commandes.Remove(commande);
+            await _dbContext.SaveChangesAsync();
+            return Ok();
+        }
 
 
 
