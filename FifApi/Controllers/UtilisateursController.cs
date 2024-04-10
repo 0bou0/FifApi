@@ -293,21 +293,6 @@ namespace FifApi.Controllers
         }
 
 
-        // PUT: api/Utilisateurs/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<ActionResult<object>> PutUtilisateur(int id, User user)
-        {
-            Utilisateur utilisateur = await _context.Utilisateurs.FindAsync(id);
-
-            utilisateur.PseudoUtilisateur = user.UserName ?? utilisateur.PseudoUtilisateur;
-            utilisateur.MailUtilisateur = user.Email ?? utilisateur.MailUtilisateur;
-            utilisateur.MotDePasse = user.Password ?? utilisateur.MotDePasse;
-
-            await _context.SaveChangesAsync();
-
-            return utilisateur;
-        }
 
         // POST: api/Utilisateurs
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
